@@ -66,7 +66,7 @@ public class GroundItem : MonoBehaviour
 
     public void PickUpGUI()
     {
-        GameManager.Instance.player.GetComponent<PlayerController>().inventory.AddItem(item, 1);
+        GameManager.Instance.Player.GetComponent<PlayerController>().inventory.AddItem(item, 1);
         // TODO
         //GameManager.Instance.activeChunkManager.RemoveGroundItem(this);
         Destroy(gameObject);

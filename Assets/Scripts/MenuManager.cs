@@ -23,7 +23,6 @@ public class MenuManager : MonoBehaviour
 
     private List<GameObject> saveSlots;
     private List<GameObject> deleteSlotButton;
-    private bool loadingGame;
 
     // Start is called before the first frame update
     void Start()
@@ -35,18 +34,6 @@ public class MenuManager : MonoBehaviour
         savedGames = CheckForSavedGames();
     }
 
-    public void Update()
-    {
-        if (loadingGame)
-        {
-            if (GameManager.Instance.loadingScene == false)
-            {
-                // TODO
-                //GameManager.Instance.activeChunkManager.SpawnObjects();
-                GameManager.Instance.UnloadScene("Menu");
-            }
-        }
-    }
 
     private List<string> CheckForSavedGames()
     {
@@ -102,7 +89,6 @@ public class MenuManager : MonoBehaviour
         loadingCanvas.enabled = true;
         saveSelectionCanvas.enabled = false;
         GameManager.Instance.LoadGame(_path);
-        loadingGame = true;
     }
 
     #region Button Methods

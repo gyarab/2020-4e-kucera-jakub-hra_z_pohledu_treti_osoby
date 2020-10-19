@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55ca55f109fac69418731ec21f0099e1, type: 3}
+  m_Name: TestMazeSettings
+  m_EditorClassIdentifier: 
+  centerPoint: {x: 0, y: 0, z: 0}
+  distanceBetweenCells: 10
+  length: 20
+  width: 10
+  minDistanceMultiplyer: 1
+  maxDistanceMultiplyer: 3
+  randomDistanceBetweenCells: 1
+  triesToGenerateMaze: 10
+  minTilesPercentage: 0.6
+  roomChance:
+  - 1
+  - 0.5
+  - 0.5
+  - 0.5
+  doorChanceFallOff:
+  - 0
+  - 0
+  - 0
+  - 0
+  doorDirectionChance:
+  - 1
+  - 1
+  - 1
+  - 1

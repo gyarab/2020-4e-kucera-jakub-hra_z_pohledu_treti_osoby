@@ -1410,11 +1410,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pickUpRange: 0
   itemObjectDatabase: {fileID: 11400000, guid: c287ddb2d0a801e4b92dc7fbe31682b2, type: 2}
-  activeChunkManager: {fileID: 0}
-  player: {fileID: 0}
-  loadingScene: 0
-  savePath: saves
-  currentSavePath: 
+  _savePath: 
 --- !u!4 &1018226199
 Transform:
   m_ObjectHideFlags: 0

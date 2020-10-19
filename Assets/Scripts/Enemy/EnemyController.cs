@@ -70,8 +70,7 @@ public class EnemyController : MonoBehaviour, IDamageable
 
         _groundRayPosition = new Vector3(0, -_enemyHeight + _groundOffset, 0);
 
-        // TODO change
-        _target = GameObject.FindGameObjectWithTag("Player").transform;
+        _target = GameManager.Instance.Player.transform;
         ChangeState(WaitForPath());
     }
 
@@ -105,7 +104,7 @@ public class EnemyController : MonoBehaviour, IDamageable
         yield return new WaitForSeconds(3f);
 
         // TODO change
-        GameObject.FindGameObjectWithTag("Pathfinding").GetComponent<Pathfinding>().GetPath(transform.position, _target.position, ReceivePath);
+        GameManager.Instance.Pathfinding.GetPath(transform.position, _target.position, ReceivePath);
         yield return null;
     }
 

@@ -154,7 +154,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     // Staaaaaaaaaaart
     private void Start()
     {
-        GameManager.Instance.player = gameObject;
+        GameManager.Instance.Player = gameObject;
 
         groundRayPosition = new Vector3(0, - controllerGroundHeightOffset + groundRayOffset, 0);
         spherePos = new Vector3(0, -sphereOffset, 0);

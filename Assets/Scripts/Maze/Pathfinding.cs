@@ -7,7 +7,7 @@ public class Pathfinding : MonoBehaviour
 {
     private PathfindingNode[] _nodes;
     private int _nodeCount;
-    private PathfindingHeap _openSet; 
+    private PathfindingHeap _openSet;
 
     public void SetVariables(PathfindingNode[] array, int count)
     {
@@ -88,23 +88,6 @@ public class Pathfinding : MonoBehaviour
         PathfindingNode currentNode = _nodes[endID];
 
         return AddStop(result, currentNode, startID);
-
-        // TODO remove?
-        while(currentNode.id != startID)
-        {
-            result.Add(new Vector3(currentNode.position.x, 0, currentNode.position.y));
-            currentNode = _nodes[currentNode.cameFromID];
-        }
-
-        Vector3 temp;
-        for (int i = 0; i < result.Count / 2; i++)
-        {
-            temp = result[i];
-            result[i] = result[result.Count - 1 - i];
-            result[result.Count - 1 - i] = temp;
-        }
-
-        return result;
     }
 
     private List<Vector3> AddStop(List<Vector3> list, PathfindingNode currentNode, int startID)

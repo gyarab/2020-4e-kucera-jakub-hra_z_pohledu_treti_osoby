@@ -4,16 +4,17 @@ using UnityEngine;
 using System.IO;
 using UnityEngine.SceneManagement;
 
-public class GameManager : MonoBehaviour // Should not be singleton
+public class GameManager : MonoBehaviour
 {
     private static GameManager _instance;
-    // TODO change to properties? or move
+    // TODO change to properties? or move + 1
     public float pickUpRange;
-    public ItemDatabaseObject itemObjectDatabase;
-    public GameObject player; // TODO
-    public bool loadingScene;
-
+    public ItemDatabaseObject itemObjectDatabase; // TODO load in start
+    public GameObject Player { get; set; }
+    public HubManager CurrentHubManager { get; set; }
     public Pathfinding Pathfinding { get; set; }
+    public MazeGenerator MazeGen { get; set; }
+    public Vector3 Spawnpoint { get; set; }
 
     [Header("Save Path")]
     [SerializeField]
@@ -31,15 +32,19 @@ public class GameManager : MonoBehaviour // Should not be singleton
 
                 if (_instance == null)
                 {
-                    // Need to create a new GameObject to attach the singleton to.
+                    // Create a new GameObject to attach the singleton to.
                     GameObject gameObject = new GameObject("_GameManager");
                     _instance = gameObject.AddComponent<GameManager>();
-                    DontDestroyOnLoad(gameObject);
                 }
             }
 
             return _instance;
         }
+    }
+
+    private void Start()
+    {
+        DontDestroyOnLoad(gameObject);
     }
 
     public ItemObject GetItemObjectByID(int _id)
@@ -57,7 +62,7 @@ public class GameManager : MonoBehaviour // Should not be singleton
 
     public void CreateNewSave(string _path)
     {
-        LoadManager.Instance.CreateSave(Path.Combine(Application.persistentDataPath, _savePath, _path, "hello.json")); // TODO player stats, location and inventory; items for each chunk
+        LoadManager.Instance.CreateSave(Path.Combine(Application.persistentDataPath, _savePath, _path, "hello.save")); // TODO player stats, location and inventory; items for each chunk; rework to json?
     }
 
     public void DeleteSave(string _path)
@@ -67,10 +72,15 @@ public class GameManager : MonoBehaviour // Should not be singleton
 
     public void LoadGame(string _path)
     {
-        // TODO 
-        Debug.Log("Loading");
-        loadingScene = true;
-        StartCoroutine(LoadScenesAsync("Chunk1", "Player")); // TODO
+        // TODO do something w path
+        StartCoroutine(LoadHubAsync("Hub", "Player"));
+    }
+
+    public void LoadMaze(MazeSettingsSO mazeSettings)
+    {
+        // TODO loading screen in player canvas
+        Player.SetActive(false);
+        StartCoroutine(LoadMazeAsync("Maze", mazeSettings));
     }
 
     public void UnloadScene(string _name)
@@ -83,10 +93,8 @@ public class GameManager : MonoBehaviour // Should not be singleton
     // Loads game scene
     #region Enumerators
 
-    IEnumerator LoadScenesAsync(string locationSceneName, string playerSceneName)
+    IEnumerator LoadHubAsync(string locationSceneName, string playerSceneName)
     {
-        List<AsyncOperation> sceneLoads = new List<AsyncOperation>();
-
         AsyncOperation locationSceneLoadingTask = SceneManager.LoadSceneAsync(locationSceneName, LoadSceneMode.Additive);
         locationSceneLoadingTask.allowSceneActivation = false;
 
@@ -98,15 +106,35 @@ public class GameManager : MonoBehaviour // Should not be singleton
         locationSceneLoadingTask.allowSceneActivation = true;
         while (!locationSceneLoadingTask.isDone) { yield return null; }
 
-        // TODO Spawn items and enemies
-
         playerSceneLoadingTask.allowSceneActivation = true;
         while (!playerSceneLoadingTask.isDone) { yield return null; }
 
         SceneManager.SetActiveScene(SceneManager.GetSceneByName(locationSceneName));
-        loadingScene = false; // TODO move; idk
 
-        Debug.Log("Loading Done");
+        while (Player == null || CurrentHubManager == null) { yield return null; }
+
+        CurrentHubManager.EnablePlayerDependantObjects(Player.transform);
+        UnloadScene("Menu");
+    }
+
+    IEnumerator LoadMazeAsync(string locationSceneName, MazeSettingsSO mazeSettings)
+    {
+        AsyncOperation locationSceneLoadingTask = SceneManager.LoadSceneAsync(locationSceneName, LoadSceneMode.Additive);
+
+        while (!locationSceneLoadingTask.isDone) { yield return null; }
+
+        SceneManager.SetActiveScene(SceneManager.GetSceneByName(locationSceneName));
+
+        while (MazeGen == null) { yield return null; }
+
+        MazeGen.GenerateMaze(mazeSettings);
+
+        CurrentHubManager.EnablePlayerDependantObjects(Player.transform); // TODO Change
+        CurrentHubManager = null;
+        UnloadScene("Hub");
+
+        Player.SetActive(true);
+        // TODO hide player loading screen
     }
 
     IEnumerator UnloadSceneAsync(string sceneName)
