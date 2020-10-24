@@ -6,21 +6,20 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+    private const string SAVESFOLDER = "Saves";
+    private const string PLAYERFILE = "player.stats";
+    private const string GAMEFILE = "game.info";
+
     private static GameManager _instance;
-    // TODO change to properties? or move + 1
-    public float pickUpRange;
-    public ItemDatabaseObject itemObjectDatabase; // TODO load in start
     public GameObject Player { get; set; }
     public HubManager CurrentHubManager { get; set; }
     public Pathfinding Pathfinding { get; set; }
     public MazeGenerator MazeGen { get; set; }
     public Vector3 Spawnpoint { get; set; }
 
-    [Header("Save Path")]
-    [SerializeField]
-    private string _savePath;
+    private string _currentSavePath; // TODO remove useless?
 
-    public string CurrentSavePath { get; set; }
+    private ItemDatabaseObject _itemObjectDatabase;
 
     public static GameManager Instance
     {
@@ -42,37 +41,47 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void Start()
+    private void Awake()
     {
         DontDestroyOnLoad(gameObject);
     }
 
-    public ItemObject GetItemObjectByID(int _id)
+    private void Start()
     {
-        return itemObjectDatabase.getItem[_id];
+        _itemObjectDatabase = Resources.Load<ItemDatabaseObject>("ItemDatabase");
     }
 
-    // TODO prob change to normal class - singleton is useless
+    public ItemObject GetItemObjectByID(int id)
+    {
+        return _itemObjectDatabase.getItem[id];
+    }
+
     #region Save Managment
 
     public List<string> GetSaves()
     {
-        return LoadManager.Instance.ReturnSubdirectories(Path.Combine(Application.persistentDataPath, _savePath));
+        return LoadManager.ReturnSubdirectories(Path.Combine(Application.persistentDataPath, SAVESFOLDER));
     }
 
-    public void CreateNewSave(string _path)
+    public void CreateNewSave(string path)
     {
-        LoadManager.Instance.CreateSave(Path.Combine(Application.persistentDataPath, _savePath, _path, "hello.save")); // TODO player stats, location and inventory; items for each chunk; rework to json?
+        string fullPath = Path.Combine(Application.persistentDataPath, SAVESFOLDER, path);
+        LoadManager.CreateFolder(fullPath);
+        LoadManager.SaveFile(Path.Combine(fullPath, GAMEFILE), new SaveableGameState(1, true));
+
+        // player stats  PLAYERFILE
+        // shop inventory
     }
 
-    public void DeleteSave(string _path)
+    public void DeleteSave(string path)
     {
-        LoadManager.Instance.DeleteDirectory(Path.Combine(Application.persistentDataPath, _savePath, _path));
+        LoadManager.DeleteDirectory(Path.Combine(Application.persistentDataPath, SAVESFOLDER, path));
     }
 
-    public void LoadGame(string _path)
+    public void LoadGame(string path)
     {
-        // TODO do something w path
+        _currentSavePath = path;
+        // TODO do something w path; load inventory
         StartCoroutine(LoadHubAsync("Hub", "Player"));
     }
 
@@ -83,9 +92,9 @@ public class GameManager : MonoBehaviour
         StartCoroutine(LoadMazeAsync("Maze", mazeSettings));
     }
 
-    public void UnloadScene(string _name)
+    public void UnloadScene(string name)
     {
-        StartCoroutine(UnloadSceneAsync(_name));
+        StartCoroutine(UnloadSceneAsync(name));
     }
 
     #endregion
@@ -113,7 +122,9 @@ public class GameManager : MonoBehaviour
 
         while (Player == null || CurrentHubManager == null) { yield return null; }
 
-        CurrentHubManager.EnablePlayerDependantObjects(Player.transform);
+        Player.GetComponent<PlayerController>().GetPlayerInventory().Load(Path.Combine(Application.persistentDataPath, SAVESFOLDER, _currentSavePath, "player.inv")); // TODO hardcoded
+
+        CurrentHubManager.EnablePlayerDependantObjects(Player.transform, Path.Combine(Application.persistentDataPath, SAVESFOLDER, _currentSavePath, "shop.inv"));
         UnloadScene("Menu");
     }
 
@@ -129,7 +140,9 @@ public class GameManager : MonoBehaviour
 
         MazeGen.GenerateMaze(mazeSettings);
 
-        CurrentHubManager.EnablePlayerDependantObjects(Player.transform); // TODO Change
+        // TODO Change (mazeGen); impossible?
+        //CurrentHubManager.EnablePlayerDependantObjects(Player.transform);
+
         CurrentHubManager = null;
         UnloadScene("Hub");
 
@@ -141,7 +154,7 @@ public class GameManager : MonoBehaviour
     {
         if (!sceneName.Equals(SceneManager.GetActiveScene().name))
         {
-            AsyncOperation sceneUnloadingTask = SceneManager.UnloadSceneAsync(sceneName); // TODO move somewhere else
+            AsyncOperation sceneUnloadingTask = SceneManager.UnloadSceneAsync(sceneName);
             while (!sceneUnloadingTask.isDone) { yield return null; }
         }
     }

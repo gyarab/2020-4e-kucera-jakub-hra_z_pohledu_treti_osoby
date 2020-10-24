@@ -9,63 +9,79 @@ using TMPro;
 
 public class InventoryMonoBehaviour : MonoBehaviour
 {
-    public string savePath; // change to private TODO
-    public Canvas inventoryUI;
-    public List<InventoryItem> slots;
-    public bool isShop;
-    public Canvas inGameCanvas;
+    public int Coins { get; set; } // TODO loading and saving
+
+    [Header("General")]
+    [SerializeField]
+    private Canvas _inventoryCanvas;
+    [SerializeField]
+    private Canvas _inGameCanvas;
+    [SerializeField]
+    private InventorySlotContainer _inventoryContainer;
+    [SerializeField]
+    private bool _isShop;
 
     [Header("ItemsUI")]
-    public GameObject itemUI;
-    public Transform slotHolder;
-    public GameObject slotPrefab;
+    [SerializeField]
+    private GameObject _itemUI;
+    [SerializeField]
+    private Transform _slotHolder;
+    [SerializeField]
+    private GameObject _slotPrefab;
+
     [Header("DescriptionUI")]
-    public GameObject descriptionUI;
-    public TextMeshProUGUI itemNameTMPT;
-    public TextMeshProUGUI descriptionTMPT;
-    public Button equipBuyButton;
-
-    private int currentItem;
-    private TextMeshProUGUI equipBuyButtonTMPT;
-
+    [SerializeField]
+    private GameObject _descriptionUI;
+    [SerializeField]
+    private TextMeshProUGUI _itemNameTMPT;
+    [SerializeField]
+    private TextMeshProUGUI _descriptionTMPT;
+    [SerializeField]
+    private Button _equipBuyButton;
+    
     [Header("StatsUI")]
-    public GameObject statsUI;
+    [SerializeField]
+    private GameObject _statsUI;
+
+    private string _savePath;
+    private int _currentItem;
+    private TextMeshProUGUI _equipBuyButtonTMPT;
 
     public void Start()
     {
-        equipBuyButtonTMPT = equipBuyButton.GetComponentInChildren<TextMeshProUGUI>();
+        _equipBuyButtonTMPT = _equipBuyButton.GetComponentInChildren<TextMeshProUGUI>();
         HideInventory();
     }
 
     public void ShowInventory()
     {
         DisplayInventory();
-        inventoryUI.enabled = true;
-        inGameCanvas.enabled = false;
+        _inventoryCanvas.enabled = true;
+        _inGameCanvas.enabled = false;
     }
 
     public void HideInventory()
     {
-        inventoryUI.enabled = false;
-        inGameCanvas.enabled = true;
+        _inventoryCanvas.enabled = false;
+        _inGameCanvas.enabled = true;
     }
 
     public void DisplayInfo(int _slotPosition)
     {
-        itemNameTMPT.text = slots[_slotPosition].itemObject.name;
-        descriptionTMPT.text = slots[_slotPosition].itemObject.description;
-        equipBuyButton.onClick.RemoveAllListeners();
+        _itemNameTMPT.text = _inventoryContainer.Slots[_slotPosition].itemObject.name;
+        _descriptionTMPT.text = _inventoryContainer.Slots[_slotPosition].itemObject.description;
+        _equipBuyButton.onClick.RemoveAllListeners();
 
-        if (isShop)
+        if (_isShop)
         {
-            equipBuyButtonTMPT.SetText("Buy");
+            _equipBuyButtonTMPT.SetText("Buy");
             int a = _slotPosition;
-            equipBuyButton.onClick.AddListener(delegate { BuyItem(a); });
+            _equipBuyButton.onClick.AddListener(delegate { BuyItem(a); });
         } else
         {
-            equipBuyButtonTMPT.SetText("Equip");
+            _equipBuyButtonTMPT.SetText("Equip");
             int a = _slotPosition;
-            equipBuyButton.onClick.AddListener(delegate { EquipItem(a); });
+            _equipBuyButton.onClick.AddListener(delegate { EquipItem(a); });
         }
     }
 
@@ -73,27 +89,27 @@ public class InventoryMonoBehaviour : MonoBehaviour
     {
         int counter = 0;
 
-        foreach(Transform child in slotHolder)
+        foreach(Transform child in _slotHolder)
         {
-            if(counter < slots.Count)
+            if(counter < _inventoryContainer.Slots.Count)
             {
                 child.gameObject.SetActive(true);
-                child.GetComponent<Image>().sprite = slots[counter].itemObject.uiSprite;
+                child.GetComponent<Image>().sprite = _inventoryContainer.Slots[counter].itemObject.uiSprite;
                 child.GetComponent<Button>().onClick.RemoveAllListeners();
                 int a = counter;
                 child.GetComponent<Button>().onClick.AddListener(delegate { DisplayInfo(a); });
 
-                if (isShop)
+                if (_isShop)
                 {
                     child.GetComponentInChildren<TextMeshProUGUI>().enabled = true;
-                    child.GetComponentInChildren<TextMeshProUGUI>().text = slots[counter].itemObject.price.ToString();
+                    child.GetComponentInChildren<TextMeshProUGUI>().text = _inventoryContainer.Slots[counter].itemObject.price.ToString();
                 }
                 else
                 {
-                    if (slots[counter].amount > 1)
+                    if (_inventoryContainer.Slots[counter].amount > 1)
                     {
                         child.GetComponentInChildren<TextMeshProUGUI>().enabled = true;
-                        child.GetComponentInChildren<TextMeshProUGUI>().text = slots[counter].amount.ToString();
+                        child.GetComponentInChildren<TextMeshProUGUI>().text = _inventoryContainer.Slots[counter].amount.ToString();
                     }
                     else
                     {
@@ -107,18 +123,18 @@ public class InventoryMonoBehaviour : MonoBehaviour
             counter++;
         }
 
-        for (; counter < slots.Count; counter++)
+        for (; counter < _inventoryContainer.Slots.Count; counter++)
         {
-            GameObject newGO = Instantiate(slotPrefab, slotHolder);
-            newGO.GetComponent<Image>().sprite = slots[counter].itemObject.uiSprite;
+            GameObject newGO = Instantiate(_slotPrefab, _slotHolder);
+            newGO.GetComponent<Image>().sprite = _inventoryContainer.Slots[counter].itemObject.uiSprite;
             newGO.GetComponent<Button>().onClick.RemoveAllListeners();
             int a = counter;
             newGO.GetComponent<Button>().onClick.AddListener(delegate { DisplayInfo(a); });
 
-            if (slots[counter].amount > 1)
+            if (_inventoryContainer.Slots[counter].amount > 1)
             {
                 newGO.GetComponentInChildren<TextMeshProUGUI>().enabled = true;
-                newGO.GetComponentInChildren<TextMeshProUGUI>().text = slots[counter].amount.ToString();
+                newGO.GetComponentInChildren<TextMeshProUGUI>().text = _inventoryContainer.Slots[counter].amount.ToString();
             }
             else
             {
@@ -139,33 +155,38 @@ public class InventoryMonoBehaviour : MonoBehaviour
         Debug.Log("BUY _slotPos " + _slotPosition);
     }
 
+    public void SetShop(bool isShop)
+    {
+        _isShop = isShop;
+    }
+
     #region Item List Manipulation
 
     public void AddItem(ItemObject _itemObject, int _amount)
     {
-        for (int i = 0; i < slots.Count; i++)
+        for (int i = 0; i < _inventoryContainer.Slots.Count; i++)
         {
-            if (slots[i].itemObject.id == _itemObject.id)
+            if (_inventoryContainer.Slots[i].itemObject.id == _itemObject.id)
             {
-                slots[i].amount += _amount;
+                _inventoryContainer.Slots[i].amount += _amount;
                 return;
             }
         }
 
-        slots.Add(new InventoryItem(_itemObject, _amount));
+        _inventoryContainer.Slots.Add(new InventoryItem(_itemObject, _amount));
     }
 
     public void RemoveItem(int _itemObjectID)
     {
-        for (int i = 0; i < slots.Count; i++)
+        for (int i = 0; i < _inventoryContainer.Slots.Count; i++)
         {
-            if (slots[i].itemObject.id == _itemObjectID)
+            if (_inventoryContainer.Slots[i].itemObject.id == _itemObjectID)
             {
-                slots[i].amount--;
+                _inventoryContainer.Slots[i].amount--;
 
-                if (slots[i].amount <= 0)
+                if (_inventoryContainer.Slots[i].amount <= 0)
                 {
-                    slots.Remove(slots[i]);
+                    _inventoryContainer.Slots.Remove(_inventoryContainer.Slots[i]);
                 }
             }
         }
@@ -173,40 +194,30 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
     public void Save()
     {
-        SaveableInventory inv = new SaveableInventory();
-        foreach(InventoryItem item in slots)
-        {
-            inv.items.Add(new SaveableInventorySlot(item.itemObject.id, item.amount));
-        }
-
-        string saveData = JsonUtility.ToJson(inv);
-        BinaryFormatter bf = new BinaryFormatter();
-        FileStream file = File.Create(string.Concat(Application.persistentDataPath, savePath));
-        bf.Serialize(file, saveData);
-        file.Close();
+        LoadManager.SaveFile(_savePath, new SaveableInventory(_inventoryContainer.Slots));
     }
 
-    public void Load()
+    public void Load(string path)
     {
-        if(File.Exists(string.Concat(Application.persistentDataPath, savePath)))
-        {
-            SaveableInventory inv = new SaveableInventory();
-            BinaryFormatter bf = new BinaryFormatter();
-            FileStream file = File.Open(string.Concat(Application.persistentDataPath, savePath), FileMode.Open);
-            JsonUtility.FromJsonOverwrite(bf.Deserialize(file).ToString(), inv);
-            file.Close();
+        _inventoryContainer.Load(path);
 
-            slots = new List<InventoryItem>();
-            foreach(SaveableInventorySlot slot in inv.items)
-            {
-                slots.Add(new InventoryItem(GameManager.Instance.GetItemObjectByID(slot.id), slot.amount));
-            }
-        }
+        // TODO else add starting item?
+    }
+
+    public void SwitchContainer(InventorySlotContainer container)
+    {
+        _inventoryContainer.Save();
+        _inventoryContainer = container;
     }
 
     public void Clear()
     {
-        slots = new List<InventoryItem>();
+        _inventoryContainer.Slots = new List<InventoryItem>();
+    }
+
+    private void OnApplicationQuit()
+    {
+        _inventoryContainer.Save();
     }
 
     #endregion

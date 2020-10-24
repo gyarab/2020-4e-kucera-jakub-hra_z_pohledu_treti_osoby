@@ -18,7 +18,7 @@ public class MazeGenerator : MonoBehaviour
 
     // TODO remove SerializeField?
     [SerializeField]
-    private TilesSO tiles; // TODO change to field?
+    private TilesSO[] tiles; // TODO change to field?   
 
     private Stack<Vector2Int> cellStack;
     private List<int[]> paths;
@@ -414,7 +414,7 @@ public class MazeGenerator : MonoBehaviour
         pathfindingNodes = new PathfindingNode[maxNodeCount];
 
         // First Cell
-        _spawnPoint = new Vector3(startPoint.x + (xDistance[firstCell.y] + 0.5f) * _mazeSettings.distanceBetweenCells, startPoint.y + 0.3f, startPoint.z + (zDistance[firstCell.x] + 0.5f) * _mazeSettings.distanceBetweenCells); // TODO only points to the right cell; rework hardcoded?; TODO spawns somwhere else // RLpos
+        _spawnPoint = new Vector3(startPoint.x + (xDistance[firstCell.y] + 0.5f) * _mazeSettings.distanceBetweenCells, startPoint.y + 1f, startPoint.z + (zDistance[firstCell.x] + 0.5f) * _mazeSettings.distanceBetweenCells); // TODO only points to the right cell; rework hardcoded?; TODO spawns somwhere else // RLpos
         CreateRoom(firstCell);
         PushNeighbouringCells(firstCell);
         cells[firstCell.x, firstCell.y].generated = true;
@@ -447,6 +447,8 @@ public class MazeGenerator : MonoBehaviour
 
     private void CreateRoom(Vector2Int position)
     {
+        int tileType = _mazeSettings.roomTileTypes[Random.Range(0, _mazeSettings.roomTileTypes.Length)];
+
         Vector2Int dimensions = GetDimensions(position);
         // X, Z
         Vector2 realPosition = new Vector2(startPoint.x + xDistance[position.y] * _mazeSettings.distanceBetweenCells, startPoint.z + zDistance[position.x] * _mazeSettings.distanceBetweenCells); // RLpos
@@ -457,7 +459,7 @@ public class MazeGenerator : MonoBehaviour
         {
             for (int j = 0; j < dimensions.y; j++) // X
             {
-                pathfindingNodes[currentEmptyNode] = new PathfindingNode(currentEmptyNode, realPosition.x + _mazeSettings.distanceBetweenCells * j, realPosition.y + _mazeSettings.distanceBetweenCells * i); // RLpos
+                pathfindingNodes[currentEmptyNode] = new PathfindingNode(currentEmptyNode, realPosition.x + _mazeSettings.distanceBetweenCells * j, realPosition.y + _mazeSettings.distanceBetweenCells * i, tileType); // RLpos
 
                 // 2nd column + (Y)
                 if (j > 0)
@@ -498,6 +500,8 @@ public class MazeGenerator : MonoBehaviour
     // Creates corridor
     private void CreateCorridor(Vector2Int position)
     {
+        int tileType = _mazeSettings.corridorTileTypes[Random.Range(0, _mazeSettings.corridorTileTypes.Length)];
+
         // X, Z
         Vector2 realPosition = new Vector2(startPoint.x + xDistance[position.y] * _mazeSettings.distanceBetweenCells, startPoint.z + zDistance[position.x] * _mazeSettings.distanceBetweenCells); // RLpos
         Vector2Int dimensions = GetDimensions(position);
@@ -507,7 +511,7 @@ public class MazeGenerator : MonoBehaviour
         int centerID = currentEmptyNode + (dimensions.y * pathCoords.x) + pathCoords.y;
         cells[position.x, position.y].lowestPathfindingNodeID = currentEmptyNode;
 
-        PathfindingNode centerNode = new PathfindingNode(centerID, centerPosition.x, centerPosition.y);
+        PathfindingNode centerNode = new PathfindingNode(centerID, centerPosition.x, centerPosition.y, tileType);
         pathfindingNodes[centerID] = centerNode;
 
         // Top
@@ -516,7 +520,7 @@ public class MazeGenerator : MonoBehaviour
             if (pathCoords.x < (dimensions.x - 1))
             {
                 int id = centerID + dimensions.y;
-                pathfindingNodes[id] = new PathfindingNode(centerID + dimensions.y, centerPosition.x, centerPosition.y + _mazeSettings.distanceBetweenCells); // RLpos
+                pathfindingNodes[id] = new PathfindingNode(centerID + dimensions.y, centerPosition.x, centerPosition.y + _mazeSettings.distanceBetweenCells, tileType); // RLpos
                 ConnectTwoNodes(pathfindingNodes[id], centerNode, Side.Bottom);
             }
         }
@@ -526,7 +530,7 @@ public class MazeGenerator : MonoBehaviour
             if (pathCoords.y < (dimensions.y - 1))
             {
                 int id = centerID + 1;
-                pathfindingNodes[id] = new PathfindingNode(centerID + 1, centerPosition.x + _mazeSettings.distanceBetweenCells, centerPosition.y); // RLpos
+                pathfindingNodes[id] = new PathfindingNode(centerID + 1, centerPosition.x + _mazeSettings.distanceBetweenCells, centerPosition.y, tileType); // RLpos
                 ConnectTwoNodes(pathfindingNodes[id], centerNode, Side.Left);
             }
         }
@@ -536,7 +540,7 @@ public class MazeGenerator : MonoBehaviour
             if (pathCoords.x > 0)
             {
                 int id = centerID - dimensions.y;
-                pathfindingNodes[id] = new PathfindingNode(centerID - dimensions.y, centerPosition.x, centerPosition.y - _mazeSettings.distanceBetweenCells); // RLpos
+                pathfindingNodes[id] = new PathfindingNode(centerID - dimensions.y, centerPosition.x, centerPosition.y - _mazeSettings.distanceBetweenCells, tileType); // RLpos
                 ConnectTwoNodes(pathfindingNodes[id], centerNode, Side.Top);
             }
         }
@@ -546,7 +550,7 @@ public class MazeGenerator : MonoBehaviour
             if (pathCoords.y > 0)
             {
                 int id = centerID - 1;
-                pathfindingNodes[id] = new PathfindingNode(centerID - 1, centerPosition.x - _mazeSettings.distanceBetweenCells, centerPosition.y); // RLpos
+                pathfindingNodes[id] = new PathfindingNode(centerID - 1, centerPosition.x - _mazeSettings.distanceBetweenCells, centerPosition.y, tileType); // RLpos
                 ConnectTwoNodes(pathfindingNodes[id], centerNode, Side.Right);
             }
         }
@@ -733,23 +737,23 @@ public class MazeGenerator : MonoBehaviour
             switch (node.GetDoorCount())
             {
                 case 1:
-                    Instantiate(tiles.tiles[0], new Vector3(node.position.x, _parent.position.y, node.position.y), Quaternion.Euler(new Vector3(0, firstDoor * 90, 0)), _parent);
+                    Instantiate(tiles[node.TileType].tiles[0], new Vector3(node.position.x, _parent.position.y, node.position.y), Quaternion.Euler(new Vector3(0, firstDoor * 90, 0)), _parent);
                     break;
                 case 2:
                     if (node.neighbours[((firstDoor + 2) * 2) % 8] == null)
                     {
-                        Instantiate(tiles.tiles[1], new Vector3(node.position.x, _parent.position.y, node.position.y), Quaternion.Euler(new Vector3(0, firstDoor * 90, 0)), _parent);
+                        Instantiate(tiles[node.TileType].tiles[1], new Vector3(node.position.x, _parent.position.y, node.position.y), Quaternion.Euler(new Vector3(0, firstDoor * 90, 0)), _parent);
                     }
                     else
                     {
-                        Instantiate(tiles.tiles[2], new Vector3(node.position.x, _parent.position.y, node.position.y), Quaternion.Euler(new Vector3(0, firstDoor * 90, 0)), _parent);
+                        Instantiate(tiles[node.TileType].tiles[2], new Vector3(node.position.x, _parent.position.y, node.position.y), Quaternion.Euler(new Vector3(0, firstDoor * 90, 0)), _parent);
                     }
                     break;
                 case 3:
-                    Instantiate(tiles.tiles[3], new Vector3(node.position.x, _parent.position.y, node.position.y), Quaternion.Euler(new Vector3(0, (firstDoor - 1) * 90, 0)), _parent);
+                    Instantiate(tiles[node.TileType].tiles[3], new Vector3(node.position.x, _parent.position.y, node.position.y), Quaternion.Euler(new Vector3(0, (firstDoor - 1) * 90, 0)), _parent);
                     break;
                 case 4:
-                    Instantiate(tiles.tiles[4], new Vector3(node.position.x, _parent.position.y, node.position.y), Quaternion.identity, _parent);
+                    Instantiate(tiles[node.TileType].tiles[4], new Vector3(node.position.x, _parent.position.y, node.position.y), Quaternion.identity, _parent);
                     break;
                 default:
                     throw new System.Exception("Cell can't have more than four doors");

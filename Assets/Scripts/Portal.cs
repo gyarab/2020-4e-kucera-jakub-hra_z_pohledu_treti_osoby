@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Portal : MonoBehaviour
+public class Portal : MonoBehaviour // TODO rework to button press?
 {
     [SerializeField]
     private float _range = 2f;
@@ -28,7 +28,7 @@ public class Portal : MonoBehaviour
             if (Vector3.Distance(_target.position, transform.position) < _range)
             {
                 Debug.Log("Went through");
-                // TODO load specific level; change
+                // TODO load specific level; boss or puzzle etc...
                 GameManager.Instance.LoadMaze(_mazeSettings);
             }
         }

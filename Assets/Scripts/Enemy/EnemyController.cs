@@ -43,6 +43,14 @@ public class EnemyController : MonoBehaviour, IDamageable
     [SerializeField]
     private float _moveDistanceTolerance;
 
+    [Header("Loot")]
+    [SerializeField, Range(0f, 1f)]
+    private float _itemDropChance;
+    [SerializeField]
+    private int _itemDropID;
+    [SerializeField, Range(0f, 1f)]
+    private float _coinDropChance;
+
     // Objects
     private Image _healthBar;
     private Canvas _healthBarCanvas;
@@ -71,7 +79,7 @@ public class EnemyController : MonoBehaviour, IDamageable
         _groundRayPosition = new Vector3(0, -_enemyHeight + _groundOffset, 0);
 
         _target = GameManager.Instance.Player.transform;
-        ChangeState(WaitForPath());
+        ChangeState(LookForTarget());
     }
 
     void Update()
@@ -92,23 +100,25 @@ public class EnemyController : MonoBehaviour, IDamageable
 
     public void ReceivePath(List<Vector3> path)
     {
+        if(path == null)
+        {
+            ChangeState(FollowTarget());
+        }
+
         _path = path;
-        ChangeState(FollowTarget());
+        ChangeState(FollowPath());
     }
 
     #region State Methods
 
     private IEnumerator WaitForPath()
     {
-        // TODO remove
-        yield return new WaitForSeconds(3f);
-
         // TODO change
         GameManager.Instance.Pathfinding.GetPath(transform.position, _target.position, ReceivePath);
         yield return null;
     }
 
-    private IEnumerator FollowTarget()
+    private IEnumerator FollowPath()
     {
         int index = 0;
         SetDestination(_path[index]);
@@ -145,7 +155,7 @@ public class EnemyController : MonoBehaviour, IDamageable
             yield return new WaitForFixedUpdate();
         }
 
-        ChangeState(FollowTarget());
+        ChangeState(FollowPath());
     }
 
     private IEnumerator AttackTarget()
@@ -154,7 +164,15 @@ public class EnemyController : MonoBehaviour, IDamageable
         Attack();
         yield return new WaitForSeconds(_delayAfterAttack);
 
+        Debug.Log("Attack");
         //ChangeState(FollowTarget());
+    }
+
+    public IEnumerator FollowTarget()
+    {
+        // TODO
+
+        yield return new WaitForFixedUpdate();
     }
 
     #endregion
@@ -265,7 +283,13 @@ public class EnemyController : MonoBehaviour, IDamageable
 
     #endregion
 
-    // TODO die and rop items
+    private void GetDestroyed()
+    {
+        // TODO die and drop items
+
+        Destroy(gameObject);
+    }
+
     public void TakeDamage(float damageTaken)
     {
         _currentHealth -= damageTaken;
@@ -274,6 +298,7 @@ public class EnemyController : MonoBehaviour, IDamageable
         if (_currentHealth <= 0)
         {
             _healthBarCanvas.enabled = false;
+            GetDestroyed();
             Debug.Log(name + " destroyed");
         }
         else

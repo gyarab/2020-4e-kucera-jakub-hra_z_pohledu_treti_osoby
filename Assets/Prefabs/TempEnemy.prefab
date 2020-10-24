@@ -114,7 +114,7 @@ MonoBehaviour:
     magicDamage: 0
     armor: 0
     fireResistance: 0
-    magicResistance: 0
+    magicResistance: 10
   _speed: 0.2
   _healthBarGO: {fileID: 8798370691427807756}
   _detectionRange: 3
@@ -128,12 +128,15 @@ MonoBehaviour:
   _sphereRadius: 0.5
   _groundOffset: 1.5
   _rayOverhead: 0.2
-  _attackRange: 0
-  _damage: 0
-  _delayBeforeAttack: 0
-  _delayAfterAttack: 0
-  _attackAngleInDegrees: 0
+  _attackRange: 2
+  _damage: 10
+  _delayBeforeAttack: 1.5
+  _delayAfterAttack: 1.5
+  _attackAngleInDegrees: 30
   _moveDistanceTolerance: 0.1
+  _itemDropChance: 0
+  _itemDropID: 0
+  _coinDropChance: 0
 --- !u!1001 &4565850943518436811
 PrefabInstance:
   m_ObjectHideFlags: 0

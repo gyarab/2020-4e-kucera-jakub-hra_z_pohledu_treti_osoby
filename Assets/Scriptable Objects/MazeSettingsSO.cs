@@ -25,4 +25,8 @@ public class MazeSettingsSO : ScriptableObject
     public float[] doorChanceFallOff = new float[4];
     [Range(0f, 1f), Tooltip("Top, Right, Bottom, Left")]
     public float[] doorDirectionChance = new float[4];
+
+    [Header("Tile Type")]
+    public int[] roomTileTypes;
+    public int[] corridorTileTypes;
 }

@@ -3,24 +3,38 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GroundItem : MonoBehaviour
+public class GroundItem : FloatingButton
 {
-    public static Transform playerTransform;
-    public static Transform cameraTransform;
-    public static float pickUpRange;
-    
-    public ItemObject item;
+    // TODO remove or uncomment if it doesnt work
+    /*[SerializeField]
+    private float pickUpRange;
 
-    private Canvas pickUpCanvas;
-    private bool canvasEnabled;
+    private static Transform playerTransform;
+    private static Transform cameraTransform;*/
+    
+    private ItemObject _item;
+
+    /*private Canvas pickUpCanvas;
+    private bool canvasEnabled;*/
 
     private void Start()
     {
-        pickUpCanvas = GetComponentInChildren<Canvas>();
+        FloatingButtonStart();
+
+        /*pickUpCanvas = GetComponentInChildren<Canvas>();
         pickUpCanvas.enabled = false;
+
+        if(cameraTransform == null)
+        {
+            cameraTransform = Camera.main.transform;
+        }
+        if (playerTransform == null)
+        {
+            playerTransform = GameManager.Instance.Player.transform;
+        }*/
     }
 
-    private void Update()
+    /*private void Update()
     {
         LookAtCamera(cameraTransform);
     }
@@ -35,9 +49,14 @@ public class GroundItem : MonoBehaviour
         {
             HideButton();
         }
+    }*/
+
+    public void SetVariables(ItemObject item)
+    {
+        _item = item;
     }
 
-    private void ShowButton()
+    /*private void ShowButton()
     {
         if (!canvasEnabled)
         {
@@ -62,13 +81,12 @@ public class GroundItem : MonoBehaviour
             pickUpCanvas.transform.LookAt(_cameraTransform);
             pickUpCanvas.transform.Rotate(0, 180, 0);
         }
-    }
+    }*/
 
+        
     public void PickUpGUI()
     {
-        GameManager.Instance.Player.GetComponent<PlayerController>().inventory.AddItem(item, 1);
-        // TODO
-        //GameManager.Instance.activeChunkManager.RemoveGroundItem(this);
+        GameManager.Instance.Player.GetComponent<PlayerController>().GetPlayerInventory().AddItem(_item, 1);
         Destroy(gameObject);
     }
 }

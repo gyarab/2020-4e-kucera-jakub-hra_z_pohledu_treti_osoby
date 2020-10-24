@@ -69,15 +69,15 @@ public class PlayerController : MonoBehaviour, IDamageable
     public float targetLockRayDistance;
     public LayerMask excludeUILayer;
 
-    [Header("Location")]
-    // TODO
-
-    [Header("Inventory")]
-    public InventoryMonoBehaviour inventory;
+    [Header("Inventory and UI")]
+    [SerializeField]
+    private InventoryMonoBehaviour _inventory;
 
     [Header("Stats temporary")] // TODO remove, prob not
     public CharacterStats currentStats;
     public float currentHealth;
+
+    private InventorySlotContainer _inventoryContainer;
 
     private Vector3 rotationSmoothVelocity;
     private Vector3 currentRotation;
@@ -116,9 +116,6 @@ public class PlayerController : MonoBehaviour, IDamageable
     private Dictionary<int, float> fingerTouchTimeDictionary;
     private Transform cameraLockedTarget;
     private bool lockedOnTarget;
-
-    // Location
-    // TODO
 
     #endregion
 
@@ -560,7 +557,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     public void PauseGame()
     {
-        inventory.ShowInventory();
+        _inventory.ShowInventory();
     }
 
     #endregion
@@ -791,11 +788,10 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     // TODO inventory
     #region Inventory Tutorial
-    // Pick up items close to player via Game Manager, which will store list of items TODO
 
-    private void OnApplicationQuit()
+    public InventoryMonoBehaviour GetPlayerInventory()
     {
-        //inventory.slots.Clear();
+        return _inventory;
     }
 
     #endregion

@@ -8,7 +8,7 @@ using TMPro;
 
 public class MenuManager : MonoBehaviour
 {
-    [Header("UI")]
+    [Header("UI")] // TODO change to serialized
     public Canvas menuCanvas;
     public Canvas saveSelectionCanvas;
     public Canvas loadingCanvas;
@@ -18,11 +18,12 @@ public class MenuManager : MonoBehaviour
     public float uiOffset;
 
     [Header("Miscelanious")]
-    public int saveMaxCount;
-    private List<string> savedGames;
+    [SerializeField]
+    private int _saveMaxCount;
 
-    private List<GameObject> saveSlots;
-    private List<GameObject> deleteSlotButton;
+    private List<string> _savedGames;
+    private List<GameObject> _saveSlots;
+    private List<GameObject> _deleteSlotButton;
 
     // Start is called before the first frame update
     void Start()
@@ -31,7 +32,7 @@ public class MenuManager : MonoBehaviour
         saveSelectionCanvas.enabled = false;
         loadingCanvas.enabled = false;
 
-        savedGames = CheckForSavedGames();
+        _savedGames = CheckForSavedGames();
     }
 
 
@@ -46,46 +47,42 @@ public class MenuManager : MonoBehaviour
     {
         GameManager.Instance.CreateNewSave(_directory);
 
-        // Save all Inventories and map Chunks to the folder TODO
+        // TODO create new inventory
 
         return true;
     }
 
     private void DrawLevelUI()
     {
-        if(saveSlots != null)
+        if(_saveSlots != null)
         {
-            for (int i = 0; i < saveSlots.Count; i++)
+            for (int i = 0; i < _saveSlots.Count; i++)
             {
-                Destroy(saveSlots[i]);
-                Destroy(deleteSlotButton[i]);
+                Destroy(_saveSlots[i]);
+                Destroy(_deleteSlotButton[i]);
             }
         }
 
-        saveSlots = new List<GameObject>();
-        deleteSlotButton = new List<GameObject>();
+        _saveSlots = new List<GameObject>();
+        _deleteSlotButton = new List<GameObject>();
 
-        for (int i = 0; i < savedGames.Count; i++)
+        for (int i = 0; i < _savedGames.Count; i++)
         {
-            saveSlots.Add(Instantiate(levelUIPrefab, saveSelectionCanvas.transform));
-            saveSlots[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(saveSlots[i].GetComponent<RectTransform>().anchoredPosition.x, saveSlots[i].GetComponent<RectTransform>().anchoredPosition.y - i * uiOffset);
-            saveSlots[i].GetComponentInChildren<TextMeshProUGUI>().SetText(savedGames[i]);
+            _saveSlots.Add(Instantiate(levelUIPrefab, saveSelectionCanvas.transform));
+            _saveSlots[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(_saveSlots[i].GetComponent<RectTransform>().anchoredPosition.x, _saveSlots[i].GetComponent<RectTransform>().anchoredPosition.y - i * uiOffset);
+            _saveSlots[i].GetComponentInChildren<TextMeshProUGUI>().SetText(_savedGames[i]);
             int x = i;
-            saveSlots[i].GetComponent<Button>().onClick.AddListener(delegate { GetSaveUI(x); });
+            _saveSlots[i].GetComponent<Button>().onClick.AddListener(delegate { GetSaveUI(x); });
 
-            deleteSlotButton.Add(Instantiate(deleteLevelUIPrefab, saveSelectionCanvas.transform));
-            deleteSlotButton[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(deleteSlotButton[i].GetComponent<RectTransform>().anchoredPosition.x, deleteSlotButton[i].GetComponent<RectTransform>().anchoredPosition.y - i * uiOffset);
-            deleteSlotButton[i].GetComponent<Button>().onClick.AddListener(delegate { DeleteSaveUI(x); });
+            _deleteSlotButton.Add(Instantiate(deleteLevelUIPrefab, saveSelectionCanvas.transform));
+            _deleteSlotButton[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(_deleteSlotButton[i].GetComponent<RectTransform>().anchoredPosition.x, _deleteSlotButton[i].GetComponent<RectTransform>().anchoredPosition.y - i * uiOffset);
+            _deleteSlotButton[i].GetComponent<Button>().onClick.AddListener(delegate { DeleteSaveUI(x); });
         }
     }
 
     // TODO
     private void LoadSave(string _path) // TODO loading bar?
     {
-        // Read current Player's location and load that scene TODO
-        // Create Game Manager and pass bool to instantiate player TODO
-        //SceneManager.LoadScene("Game");
-
         loadingCanvas.enabled = true;
         saveSelectionCanvas.enabled = false;
         GameManager.Instance.LoadGame(_path);
@@ -119,25 +116,25 @@ public class MenuManager : MonoBehaviour
 
     public void GetSaveUI(int _position)
     {
-        LoadSave(savedGames[_position]);
+        LoadSave(_savedGames[_position]);
     }
 
     public void DeleteSaveUI(int _position)
     {
-        GameManager.Instance.DeleteSave(savedGames[_position]);
-        savedGames.RemoveAt(_position);
+        GameManager.Instance.DeleteSave(_savedGames[_position]);
+        _savedGames.RemoveAt(_position);
         DrawLevelUI();
     }
 
     public void CreateSaveUI()
     {
-        if(savedGames.Count < saveMaxCount)
+        if(_savedGames.Count < _saveMaxCount)
         {
             string newSaveName = inputField.text.Trim();
 
             if (!newSaveName.Equals(""))
             {
-                foreach (string saveName in savedGames)
+                foreach (string saveName in _savedGames)
                 {
                     if (saveName == newSaveName)
                     {
@@ -147,7 +144,7 @@ public class MenuManager : MonoBehaviour
                 }
                 if (CreateNewSave(newSaveName))
                 {
-                    savedGames.Add(newSaveName);
+                    _savedGames.Add(newSaveName);
                     DrawLevelUI();
                 }
             } else

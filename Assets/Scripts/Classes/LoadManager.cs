@@ -4,31 +4,14 @@ using UnityEngine;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
-// TODO prob change methods to static adn remove the Instance
-public class LoadManager
+public static class LoadManager
 {
-    private static LoadManager instance;
-
-    public static LoadManager Instance
-    {
-        get
-        {
-            if (instance == null)
-            {
-                // Need to create a new GameObject to attach the singleton to.
-                instance = new LoadManager();
-            }
-
-            return instance;
-        }
-    }
-
-    public List<string> ReturnSubdirectories(string _path)
+    public static List<string> ReturnSubdirectories(string path)
     {
         List<string> result = new List<string>();
 
-        if (Directory.Exists(_path)){
-            DirectoryInfo baseDir = new DirectoryInfo(_path);
+        if (Directory.Exists(path)){
+            DirectoryInfo baseDir = new DirectoryInfo(path);
 
             // Get a reference to each directory in that directory.
             
@@ -41,22 +24,51 @@ public class LoadManager
         return result;
     }
 
-    public void CreateSave(string _path)
+    public static void CreateFolder(string path)
     {
-        if (!Directory.Exists(Path.GetDirectoryName(_path)))
+        if (!Directory.Exists(Path.GetDirectoryName(path)))
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(_path));
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
         }
-
-        string saveData = "test";
-        BinaryFormatter bf = new BinaryFormatter();
-        FileStream stream = new FileStream(_path, FileMode.Create);
-        bf.Serialize(stream, saveData);
-        stream.Close();
     }
 
-    public void DeleteDirectory(string _path)
+    public static void SaveFile<T>(string path, T objectToSave)
     {
-        Directory.Delete(_path, true);
+        FileStream file;
+        BinaryFormatter bf = new BinaryFormatter();
+
+        if (File.Exists(path))
+        {
+            file = File.OpenWrite(path);
+        }
+        else
+        {
+            file = File.Create(path);
+        }
+
+        bf.Serialize(file, objectToSave);
+        file.Close();
+    }
+
+    public static T ReadFile<T>(string path) where T : new()
+    {
+        T result = new T();
+
+        if (File.Exists(path))
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            FileStream file = File.OpenRead(path);
+            result = (T)bf.Deserialize(file);
+            file.Close();
+
+            return result;
+        }
+
+        return result;
+    }
+
+    public static void DeleteDirectory(string path)
+    {
+        Directory.Delete(path, true);
     }
 }

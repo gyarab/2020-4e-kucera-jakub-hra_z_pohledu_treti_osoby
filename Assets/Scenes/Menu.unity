@@ -946,7 +946,7 @@ MonoBehaviour:
   deleteLevelUIPrefab: {fileID: 4744932964043506517, guid: cb0e9f3edf2fb614aa2af47bebd79e2a,
     type: 3}
   uiOffset: 60
-  saveMaxCount: 4
+  _saveMaxCount: 3
 --- !u!4 &731837671
 Transform:
   m_ObjectHideFlags: 0
@@ -1408,9 +1408,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea43e980390ea6a45826624028def6ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pickUpRange: 0
-  itemObjectDatabase: {fileID: 11400000, guid: c287ddb2d0a801e4b92dc7fbe31682b2, type: 2}
-  _savePath: 
 --- !u!4 &1018226199
 Transform:
   m_ObjectHideFlags: 0

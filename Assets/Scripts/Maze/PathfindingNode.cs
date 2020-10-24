@@ -13,11 +13,14 @@ public class PathfindingNode : IComparable<PathfindingNode>
     // G - distance from start; H - estimate
     public float gCost, hCost;
 
-    public PathfindingNode(int id, float x, float y)
+    public int TileType { get; private set; }
+
+    public PathfindingNode(int id, float x, float y, int tileType)
     {
         this.id = id;
         position = new Vector2(x, y);
         neighbours = new PathfindingNode[8];
+        TileType = tileType;
     }
 
     public int CompareTo(PathfindingNode other)
