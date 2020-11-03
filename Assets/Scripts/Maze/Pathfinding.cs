@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public class Pathfinding : MonoBehaviour
+public class Pathfinding
 {
     private PathfindingNode[] _nodes;
     private int _nodeCount;
     private PathfindingHeap _openSet;
 
-    public void SetVariables(PathfindingNode[] array, int count)
+    public Pathfinding(PathfindingNode[] nodes, int count)
     {
-        _nodes = array;
+        _nodes = nodes;
         _nodeCount = count;
-
         _openSet = new PathfindingHeap(_nodeCount); // TODO prob optimize 
     }
 

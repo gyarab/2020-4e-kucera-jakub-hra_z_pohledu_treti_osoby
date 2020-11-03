@@ -2,15 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class InventoryItem
+public class InventorySlot
 {
-    public ItemObject itemObject;
-    public int amount;
+    public ItemObject ItemObject { get; set; }
+    public int Amount { get; set; }
+    public int SlotHolderChildPosition { get; set; }
 
-    public InventoryItem(ItemObject _itemObject, int _amount)
+    public InventorySlot(ItemObject itemObject, int amount)
     {
-        itemObject = _itemObject;
-        amount = _amount;
+        ItemObject = itemObject;
+        Amount = amount;
+    }
+
+    public InventorySlot(ItemObject itemObject, int amount, int position)
+    {
+        ItemObject = itemObject;
+        Amount = amount;
+        SlotHolderChildPosition = position;
     }
 }

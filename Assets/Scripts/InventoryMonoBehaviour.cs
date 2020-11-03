@@ -17,9 +17,13 @@ public class InventoryMonoBehaviour : MonoBehaviour
     [SerializeField]
     private Canvas _inGameCanvas;
     [SerializeField]
-    private InventorySlotContainer _inventoryContainer;
+    private InventorySlotContainer _playerInventoryContainer;
     [SerializeField]
     private bool _isShop;
+    [SerializeField]
+    private GameObject _shopTabButton;
+    [SerializeField]
+    private PlayerController _player;
 
     [Header("ItemsUI")]
     [SerializeField]
@@ -42,80 +46,118 @@ public class InventoryMonoBehaviour : MonoBehaviour
     [Header("StatsUI")]
     [SerializeField]
     private GameObject _statsUI;
+    [SerializeField]
+    private TextMeshProUGUI _currentStatsTMPT;
+    [SerializeField]
+    private TextMeshProUGUI _statsDeltaTMPT;
+
+    private InventorySlotContainer _secondaryShopInventoryContainer;
 
     private string _savePath;
     private int _currentItem;
     private TextMeshProUGUI _equipBuyButtonTMPT;
 
-    public void Start()
+    // Current equipment
+    private InventorySlot _equippedWeaponSlot;
+
+    public void Awake()
     {
         _equipBuyButtonTMPT = _equipBuyButton.GetComponentInChildren<TextMeshProUGUI>();
-        HideInventory();
     }
 
-    public void ShowInventory()
+    public void Start()
     {
-        DisplayInventory();
+        HideInventoryUI();
+        PassStatsToPlayer();
+    }
+
+    public void ShowInventory(bool shop)
+    {
+        _isShop = shop;
+
+        if (_isShop)
+        {
+            _shopTabButton.SetActive(true);
+            DisplayInventory(_secondaryShopInventoryContainer);
+        } else
+        {
+            _shopTabButton.SetActive(false);
+            DisplayInventory(_playerInventoryContainer);
+        }
+
         _inventoryCanvas.enabled = true;
         _inGameCanvas.enabled = false;
     }
 
-    public void HideInventory()
+    public void DisplayInfo(int itemID)
     {
-        _inventoryCanvas.enabled = false;
-        _inGameCanvas.enabled = true;
-    }
+        InventorySlotContainer inventoryContainer;
 
-    public void DisplayInfo(int _slotPosition)
-    {
-        _itemNameTMPT.text = _inventoryContainer.Slots[_slotPosition].itemObject.name;
-        _descriptionTMPT.text = _inventoryContainer.Slots[_slotPosition].itemObject.description;
+        if (_isShop)
+        {
+            inventoryContainer = _secondaryShopInventoryContainer;
+        } else
+        {
+            inventoryContainer = _playerInventoryContainer;
+        }
+
+        ItemObject itemObject = inventoryContainer.GetSlotByItemID(itemID).ItemObject;
+
+        _itemNameTMPT.text = itemObject.name;
+        _descriptionTMPT.text = itemObject.description;
         _equipBuyButton.onClick.RemoveAllListeners();
 
         if (_isShop)
         {
             _equipBuyButtonTMPT.SetText("Buy");
-            int a = _slotPosition;
-            _equipBuyButton.onClick.AddListener(delegate { BuyItem(a); });
+            int id = itemObject.itemID;
+            _equipBuyButton.onClick.AddListener(delegate { BuyItem(id); });
         } else
         {
-            _equipBuyButtonTMPT.SetText("Equip");
-            int a = _slotPosition;
-            _equipBuyButton.onClick.AddListener(delegate { EquipItem(a); });
+            // TODO if equiped -> unequip
+
+            int id = itemObject.itemID;
+            if (itemObject is ConsumableObject)
+            {
+                _equipBuyButtonTMPT.SetText("Consume");
+                _equipBuyButton.onClick.AddListener(delegate { ConsumeItem(id); });
+            } else
+            {
+                _equipBuyButtonTMPT.SetText("Equip");
+                _equipBuyButton.onClick.AddListener(delegate { EquipItem(id); });
+
+                // TODO change chanseStatsUI
+                _currentStatsTMPT.text = _player.GetStats().StatsToStringColumn(false, false);
+                // TODO change statsDelta
+                CharacterStats selectedObjectStats = EquipmentToStats(itemObject);
+                CharacterStats equippedObjectStats = new CharacterStats(); ;
+                switch (itemObject.type)
+                {
+                    case ItemType.Weapon:
+                        if(_equippedWeaponSlot != null)
+                        {
+                            equippedObjectStats = EquipmentToStats(_equippedWeaponSlot.ItemObject);
+                        }
+                        break;
+                }
+
+                selectedObjectStats.SubtractStats(equippedObjectStats);
+                _statsDeltaTMPT.text = selectedObjectStats.StatsToStringColumn(true, true);
+            }
         }
     }
 
-    public void DisplayInventory()
+    public void DisplayInventory(InventorySlotContainer inventory)
     {
         int counter = 0;
 
-        foreach(Transform child in _slotHolder)
+        foreach (Transform child in _slotHolder)
         {
-            if(counter < _inventoryContainer.Slots.Count)
+            if (counter < inventory.Slots.Count)
             {
                 child.gameObject.SetActive(true);
-                child.GetComponent<Image>().sprite = _inventoryContainer.Slots[counter].itemObject.uiSprite;
-                child.GetComponent<Button>().onClick.RemoveAllListeners();
-                int a = counter;
-                child.GetComponent<Button>().onClick.AddListener(delegate { DisplayInfo(a); });
 
-                if (_isShop)
-                {
-                    child.GetComponentInChildren<TextMeshProUGUI>().enabled = true;
-                    child.GetComponentInChildren<TextMeshProUGUI>().text = _inventoryContainer.Slots[counter].itemObject.price.ToString();
-                }
-                else
-                {
-                    if (_inventoryContainer.Slots[counter].amount > 1)
-                    {
-                        child.GetComponentInChildren<TextMeshProUGUI>().enabled = true;
-                        child.GetComponentInChildren<TextMeshProUGUI>().text = _inventoryContainer.Slots[counter].amount.ToString();
-                    }
-                    else
-                    {
-                        child.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
-                    }
-                }
+                SetSlotDescription(child.gameObject, inventory.Slots[counter], counter);
             } else
             {
                 child.gameObject.SetActive(false);
@@ -123,101 +165,246 @@ public class InventoryMonoBehaviour : MonoBehaviour
             counter++;
         }
 
-        for (; counter < _inventoryContainer.Slots.Count; counter++)
+        for (; counter < inventory.Slots.Count; counter++)
         {
             GameObject newGO = Instantiate(_slotPrefab, _slotHolder);
-            newGO.GetComponent<Image>().sprite = _inventoryContainer.Slots[counter].itemObject.uiSprite;
-            newGO.GetComponent<Button>().onClick.RemoveAllListeners();
-            int a = counter;
-            newGO.GetComponent<Button>().onClick.AddListener(delegate { DisplayInfo(a); });
 
-            if (_inventoryContainer.Slots[counter].amount > 1)
+            SetSlotDescription(newGO, inventory.Slots[counter], counter);
+        }
+
+        if (inventory.Slots.Count > 0)
+        {
+            DisplayInfo(inventory.Slots[0].ItemObject.itemID);
+        }
+    }
+
+    public void SetSlotDescription(GameObject slot, InventorySlot item, int index)
+    {
+        slot.GetComponent<Image>().sprite = item.ItemObject.uiSprite;
+        slot.GetComponent<Button>().onClick.RemoveAllListeners();
+        slot.GetComponent<Image>().color = Color.white; // TODO do smth else
+
+        item.SlotHolderChildPosition = index;
+        int id = item.ItemObject.itemID;
+
+        if (!_isShop)
+        {
+            if (CheckIfEquipped(item))
             {
-                newGO.GetComponentInChildren<TextMeshProUGUI>().enabled = true;
-                newGO.GetComponentInChildren<TextMeshProUGUI>().text = _inventoryContainer.Slots[counter].amount.ToString();
+                slot.GetComponent<Image>().color = Color.green; // TODO do smth else
+            }
+        }
+
+        slot.GetComponent<Button>().onClick.AddListener(delegate { DisplayInfo(id); });
+
+        if (_isShop)
+        {
+            slot.GetComponentInChildren<TextMeshProUGUI>().enabled = true;
+            slot.GetComponentInChildren<TextMeshProUGUI>().text = item.ItemObject.price.ToString();
+        }
+        else
+        {
+            if (item.Amount > 1)
+            {
+                slot.GetComponentInChildren<TextMeshProUGUI>().enabled = true;
+                slot.GetComponentInChildren<TextMeshProUGUI>().text = item.Amount.ToString();
             }
             else
             {
-                newGO.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
+                slot.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
             }
         }
     }
 
-    // TODO
-    public void EquipItem(int _slotPosition)
+    private bool CheckIfEquipped(InventorySlot slot)
     {
-        Debug.Log("EQUIP _slotPos " + _slotPosition);
-    }
-
-    // TODO
-    public void BuyItem(int _slotPosition)
-    {
-        Debug.Log("BUY _slotPos " + _slotPosition);
-    }
-
-    public void SetShop(bool isShop)
-    {
-        _isShop = isShop;
-    }
-
-    #region Item List Manipulation
-
-    public void AddItem(ItemObject _itemObject, int _amount)
-    {
-        for (int i = 0; i < _inventoryContainer.Slots.Count; i++)
+        if(_equippedWeaponSlot != null)
         {
-            if (_inventoryContainer.Slots[i].itemObject.id == _itemObject.id)
+            if (slot.ItemObject.itemID == _equippedWeaponSlot.ItemObject.itemID)
             {
-                _inventoryContainer.Slots[i].amount += _amount;
-                return;
+                return true;
             }
         }
 
-        _inventoryContainer.Slots.Add(new InventoryItem(_itemObject, _amount));
+        return false;
     }
 
-    public void RemoveItem(int _itemObjectID)
+    // TODO
+    public void EquipItem(int itemID)
     {
-        for (int i = 0; i < _inventoryContainer.Slots.Count; i++)
-        {
-            if (_inventoryContainer.Slots[i].itemObject.id == _itemObjectID)
-            {
-                _inventoryContainer.Slots[i].amount--;
+        InventorySlot inventorySlot = _playerInventoryContainer.GetSlotByItemID(itemID);
 
-                if (_inventoryContainer.Slots[i].amount <= 0)
+        EquipItemInSlot(inventorySlot, true);
+        PassStatsToPlayer();
+        DisplayInfo(itemID);
+    }
+
+    public void EquipItemInSlot(InventorySlot inventorySlot, bool visualEffect)
+    {
+        if (inventorySlot.ItemObject.GetType() == typeof(WeaponObject)) // ADD CATEGORY
+        {
+            WeaponObject weapon = (WeaponObject)inventorySlot.ItemObject;
+            if (visualEffect)
+            {
+                if (_equippedWeaponSlot != null)
                 {
-                    _inventoryContainer.Slots.Remove(_inventoryContainer.Slots[i]);
+                    _slotHolder.GetChild(_equippedWeaponSlot.SlotHolderChildPosition).GetComponent<Image>().color = Color.white;  // TODO do smth else
                 }
+                _slotHolder.GetChild(inventorySlot.SlotHolderChildPosition).GetComponent<Image>().color = Color.green; // TODO do smth else
+            }
+
+            _equippedWeaponSlot = inventorySlot;
+            _player.SwitchAnimationController(weapon.animationType);
+            _player.SetWeapons(weapon.model, weapon.animationType == AnimationType.TWOHANDED);
+        }
+    }
+
+    public void ConsumeItem(int itemID)
+    {
+        // TODO
+        Debug.Log("CONSUME id " + itemID);
+    }
+
+    public void BuyItem(int itemID)
+    {
+        InventorySlot inventorySlot = _secondaryShopInventoryContainer.GetSlotByItemID(itemID);
+
+        if (_secondaryShopInventoryContainer.RemoveItem(inventorySlot.ItemObject.itemID)) {
+            _slotHolder.transform.GetChild(inventorySlot.SlotHolderChildPosition).gameObject.SetActive(false);
+
+            if (_secondaryShopInventoryContainer.Slots.Count > 0)
+            {
+                DisplayInfo(_secondaryShopInventoryContainer.Slots[0].ItemObject.itemID);
             }
         }
+
+        _playerInventoryContainer.AddItem(inventorySlot.ItemObject, 1);
+
+        Coins -= inventorySlot.ItemObject.price;
+    }
+
+    public void PassStatsToPlayer()
+    {
+        _player.SetStats(GetFullEquipmentStats());
+    }
+
+    private CharacterStats GetFullEquipmentStats()
+    {
+        CharacterStats stats = new CharacterStats();
+
+        if (CheckIfEquipped(_equippedWeaponSlot)) // ADD CATEGORY
+        {
+            stats.AddStats(EquipmentToStats(_equippedWeaponSlot.ItemObject));
+        }
+
+        return stats;
+    }
+
+    private CharacterStats EquipmentToStats(ItemObject equipment)
+    {
+        CharacterStats stats = new CharacterStats();
+
+        if (equipment == null)
+        {
+            return stats;
+        }
+
+        if (equipment.type == ItemType.Weapon) // ADD CATEGORY
+        {
+            WeaponObject weapon = (WeaponObject)equipment;
+            stats.Damage += weapon.damage;
+            stats.Health += weapon.healthBonus;
+            stats.ArmourPenetration += weapon.armourPenetration;
+        }
+
+        return stats;
+    }
+
+    #region Item List Manipulation // TODO move some?
+
+    public void AddItem(ItemObject itemObject, int amount)
+    {
+        _playerInventoryContainer.AddItem(itemObject, amount);
+    }
+
+    public void RemoveItem(int itemObjectID)
+    {
+        _playerInventoryContainer.RemoveItem(itemObjectID);
     }
 
     public void Save()
     {
-        LoadManager.SaveFile(_savePath, new SaveableInventory(_inventoryContainer.Slots));
+        if (_playerInventoryContainer != null)
+        {
+            _playerInventoryContainer.EquippedItemSlots = new List<InventorySlot>(); // ADD CATEGORY
+
+            if(_equippedWeaponSlot != null)
+            {
+                _playerInventoryContainer.EquippedItemSlots.Add(_equippedWeaponSlot);
+            }
+
+            _playerInventoryContainer.Save();
+        }
+
+        if (_secondaryShopInventoryContainer != null)
+        {
+            _secondaryShopInventoryContainer.Save();
+        }
     }
 
     public void Load(string path)
     {
-        _inventoryContainer.Load(path);
+        _playerInventoryContainer = new InventorySlotContainer(path);
 
-        // TODO else add starting item?
+        // TODO else add starting item? can it be even here?
+        foreach (InventorySlot slot in _playerInventoryContainer.EquippedItemSlots)
+        {
+            EquipItemInSlot(slot, false);
+        }
+
+        PassStatsToPlayer();
     }
 
-    public void SwitchContainer(InventorySlotContainer container)
+    public void LoadAndOpenShop(InventorySlotContainer container)
     {
-        _inventoryContainer.Save();
-        _inventoryContainer = container;
-    }
+        if (_secondaryShopInventoryContainer != null)
+        {
+            _secondaryShopInventoryContainer.Save();
+        }
 
-    public void Clear()
-    {
-        _inventoryContainer.Slots = new List<InventoryItem>();
+        _secondaryShopInventoryContainer = container;
+        ShowInventory(true);
     }
 
     private void OnApplicationQuit()
     {
-        _inventoryContainer.Save();
+        Save();
+    }
+
+    #endregion
+
+    #region UI Methods
+
+    public void SwitchToInventoryTabUI()
+    {
+        Debug.Log("Player inventory");
+        _isShop = false;
+        DisplayInventory(_playerInventoryContainer);
+    }
+
+    public void SwitchToShopTabUI()
+    {
+        Debug.Log("Shop inventory");
+        _isShop = true;
+        DisplayInventory(_secondaryShopInventoryContainer);
+    }
+
+    public void HideInventoryUI()
+    {
+        _inventoryCanvas.enabled = false;
+        _inGameCanvas.enabled = true;
+
+        Save();
     }
 
     #endregion

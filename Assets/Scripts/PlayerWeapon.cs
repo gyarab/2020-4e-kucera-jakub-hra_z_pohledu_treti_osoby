@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerWeapon : MonoBehaviour
+public class PlayerWeapon : MonoBehaviour // TODO remove???
 {
     [Header("Attack General")]
     public float damage;
@@ -71,7 +71,7 @@ public class PlayerWeapon : MonoBehaviour
 
             if (angleInDegrees > Vector3.Angle(target.TransformVector(direction), attackDirection))
             {
-                overlaps[i].GetComponent<IDamageable>().TakeDamage(damage);
+                overlaps[i].GetComponent<IDamageable>().TakeDamage(damage, 0f); // TODO add character stats
                 Debug.DrawRay(target.position, attackDirection, Color.green);
             } else
             {

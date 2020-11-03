@@ -24,11 +24,18 @@ public static class LoadManager
         return result;
     }
 
-    public static void CreateFolder(string path)
+    public static void CreateFolder(string path, string directoryName)
     {
-        if (!Directory.Exists(Path.GetDirectoryName(path)))
+        if (!Directory.Exists(path))
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            Directory.CreateDirectory(path);
+        }
+
+        string directoryPath = Path.Combine(path, directoryName);
+
+        if (!Directory.Exists(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
         }
     }
 

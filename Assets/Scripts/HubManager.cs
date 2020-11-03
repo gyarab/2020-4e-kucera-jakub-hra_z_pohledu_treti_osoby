@@ -15,8 +15,10 @@ public class HubManager : MonoBehaviour
         GameManager.Instance.CurrentHubManager = this;
     }
 
-    public void EnablePlayerDependantObjects(Transform target, string shopInventoryPath)
+    public void EnablePlayerDependantObjects(Transform target, Transform cameraTransform, string shopInventoryPath)
     {
+        FloatingButton.SetTransforms(target, cameraTransform); // TODO change?
+
         for (int i = 0; i < _portals.Length; i++)
         {
             _portals[i].enabled = true;

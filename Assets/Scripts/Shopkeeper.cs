@@ -16,15 +16,13 @@ public class Shopkeeper : FloatingButton
 
     public void LoadShopInventory(string path)
     {
-        _shopInventoryContainer.Load(path);
+        _shopInventoryContainer = new InventorySlotContainer(path);
     }
 
     public void Interact()
     {
         Debug.Log("Shop opened");
 
-        _inventoryMonoBehaviour.SetShop(true);
-        _inventoryMonoBehaviour.SwitchContainer(_shopInventoryContainer);
-        _inventoryMonoBehaviour.ShowInventory();
+        _inventoryMonoBehaviour.LoadAndOpenShop(_shopInventoryContainer);
     }
 }

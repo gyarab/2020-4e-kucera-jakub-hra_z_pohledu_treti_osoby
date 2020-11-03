@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 626d481a5027f484c9739dabb41ee077, type: 3}
   m_Name: DefaultItem
   m_EditorClassIdentifier: 
-  id: 4
+  itemID: 2
+  uiSprite: {fileID: 0}
   type: 2
   itemName: Default Item
   description: Nothing interesting...

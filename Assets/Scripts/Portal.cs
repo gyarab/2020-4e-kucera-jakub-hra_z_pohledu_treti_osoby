@@ -27,7 +27,6 @@ public class Portal : MonoBehaviour // TODO rework to button press?
             _side = GetSide(_target.position);
             if (Vector3.Distance(_target.position, transform.position) < _range)
             {
-                Debug.Log("Went through");
                 // TODO load specific level; boss or puzzle etc...
                 GameManager.Instance.LoadMaze(_mazeSettings);
             }

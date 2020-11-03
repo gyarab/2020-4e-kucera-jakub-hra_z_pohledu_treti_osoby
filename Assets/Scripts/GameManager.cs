@@ -6,20 +6,21 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    private const string SAVESFOLDER = "Saves";
-    private const string PLAYERFILE = "player.stats";
-    private const string GAMEFILE = "game.info";
+    private const string SAVES_FOLDER = "Saves";
+    private const string PLAYER_INVENTORY = "player.inv";
+    private const string PLAYER_STATS = "player.stats";
+    private const string SHOP_INVENTORY = "shop.inv";
+    private const string GAME_FILE = "game.info";
 
     private static GameManager _instance;
     public GameObject Player { get; set; }
     public HubManager CurrentHubManager { get; set; }
-    public Pathfinding Pathfinding { get; set; }
-    public MazeGenerator MazeGen { get; set; }
     public Vector3 Spawnpoint { get; set; }
 
     private string _currentSavePath; // TODO remove useless?
 
-    private ItemDatabaseObject _itemObjectDatabase;
+    //private ItemDatabaseObject _itemObjectDatabase;
+    private ItemDatabase _itemDatabase;
 
     public static GameManager Instance
     {
@@ -44,38 +45,42 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
+        _itemDatabase = Instantiate(Resources.Load<GameObject>("_ItemDatabase"), transform).GetComponent<ItemDatabase>();
     }
 
     private void Start()
     {
-        _itemObjectDatabase = Resources.Load<ItemDatabaseObject>("ItemDatabase");
+        //_itemObjectDatabase = Resources.Load<ItemDatabaseObject>("ItemDatabase");
     }
 
     public ItemObject GetItemObjectByID(int id)
     {
-        return _itemObjectDatabase.getItem[id];
+        return _itemDatabase.GetItem[id];
     }
 
     #region Save Managment
 
     public List<string> GetSaves()
     {
-        return LoadManager.ReturnSubdirectories(Path.Combine(Application.persistentDataPath, SAVESFOLDER));
+        return LoadManager.ReturnSubdirectories(Path.Combine(Application.persistentDataPath, SAVES_FOLDER));
     }
 
     public void CreateNewSave(string path)
     {
-        string fullPath = Path.Combine(Application.persistentDataPath, SAVESFOLDER, path);
-        LoadManager.CreateFolder(fullPath);
-        LoadManager.SaveFile(Path.Combine(fullPath, GAMEFILE), new SaveableGameState(1, true));
+        string fullPath = Path.Combine(Application.persistentDataPath, SAVES_FOLDER, path);
 
-        // player stats  PLAYERFILE
-        // shop inventory
+        LoadManager.CreateFolder(Path.Combine(Application.persistentDataPath, SAVES_FOLDER), path);
+        LoadManager.SaveFile(Path.Combine(fullPath, GAME_FILE), new SaveableGameState(1, true));
+        LoadManager.SaveFile(Path.Combine(fullPath, PLAYER_INVENTORY), new SaveableInventory());
+
+        // TODO player stats
+        // TODO shop inventory
+        LoadManager.SaveFile(Path.Combine(fullPath, SHOP_INVENTORY), new SaveableInventory(Resources.Load<NewGameInventorySO>(Path.Combine("NewGame", "ShopkeeperInventory")).itemIDs));
     }
 
     public void DeleteSave(string path)
     {
-        LoadManager.DeleteDirectory(Path.Combine(Application.persistentDataPath, SAVESFOLDER, path));
+        LoadManager.DeleteDirectory(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, path));
     }
 
     public void LoadGame(string path)
@@ -122,9 +127,9 @@ public class GameManager : MonoBehaviour
 
         while (Player == null || CurrentHubManager == null) { yield return null; }
 
-        Player.GetComponent<PlayerController>().GetPlayerInventory().Load(Path.Combine(Application.persistentDataPath, SAVESFOLDER, _currentSavePath, "player.inv")); // TODO hardcoded
+        Player.GetComponent<PlayerController>().GetPlayerInventory().Load(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, "player.inv")); // TODO hardcoded
 
-        CurrentHubManager.EnablePlayerDependantObjects(Player.transform, Path.Combine(Application.persistentDataPath, SAVESFOLDER, _currentSavePath, "shop.inv"));
+        CurrentHubManager.EnablePlayerDependantObjects(Player.transform, Player.GetComponent<PlayerController>().GetPlayerCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, "shop.inv"));
         UnloadScene("Menu");
     }
 
@@ -136,18 +141,16 @@ public class GameManager : MonoBehaviour
 
         SceneManager.SetActiveScene(SceneManager.GetSceneByName(locationSceneName));
 
-        while (MazeGen == null) { yield return null; }
-
-        MazeGen.GenerateMaze(mazeSettings);
+        MazeManager.Instance.CreateMaze(mazeSettings); // TODO set spawnPoint?
 
         // TODO Change (mazeGen); impossible?
-        //CurrentHubManager.EnablePlayerDependantObjects(Player.transform);
+        //CurrentHubManager.EnablePlayerDependantObjects(Player.transform); ?
 
         CurrentHubManager = null;
         UnloadScene("Hub");
 
         Player.SetActive(true);
-        // TODO hide player loading screen
+        // TODO hide player loading screen; add loading screen to GameManager?
     }
 
     IEnumerator UnloadSceneAsync(string sceneName)

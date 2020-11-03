@@ -29,4 +29,8 @@ public class MazeSettingsSO : ScriptableObject
     [Header("Tile Type")]
     public int[] roomTileTypes;
     public int[] corridorTileTypes;
+
+    [Header("Enemy")]
+    [Range(0f, 1f)]
+    public float spawnChance;
 }

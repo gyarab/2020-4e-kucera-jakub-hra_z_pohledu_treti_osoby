@@ -35,7 +35,6 @@ public class MenuManager : MonoBehaviour
         _savedGames = CheckForSavedGames();
     }
 
-
     private List<string> CheckForSavedGames()
     {
         List<string> directories = GameManager.Instance.GetSaves();
@@ -46,8 +45,6 @@ public class MenuManager : MonoBehaviour
     private bool CreateNewSave(string _directory) // TODO move to gui?
     {
         GameManager.Instance.CreateNewSave(_directory);
-
-        // TODO create new inventory
 
         return true;
     }

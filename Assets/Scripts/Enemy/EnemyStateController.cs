@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EnemyStateController : StateMachine, IDamageable
+public class EnemyStateController : StateMachine, IDamageable // TODO remove?
 {
     [Header("Enemy")]
     [SerializeField]
@@ -34,7 +34,7 @@ public class EnemyStateController : StateMachine, IDamageable
         _healthBarCanvas = _healthBarGO.GetComponent<Canvas>();
         _healthBar = _healthBarCanvas.transform.GetChild(0).transform.GetChild(0).GetComponent<Image>();
 
-        _currentHealth = _stats.health;
+        _currentHealth = _stats.Health;
         _healthBarCanvas.enabled = false;
 
         // TODO set target
@@ -103,10 +103,10 @@ public class EnemyStateController : StateMachine, IDamageable
     }
 
     // TODO die and rop items
-    public void TakeDamage(float damageTaken)
+    public void TakeDamage(float damage, float armourPenetration)
     {
-        _currentHealth -= damageTaken;
-        _healthBar.fillAmount = _currentHealth / _stats.health;
+        _currentHealth -= damage; // TODO add character stats
+        _healthBar.fillAmount = _currentHealth / _stats.Health;
 
         if (_currentHealth <= 0)
         {

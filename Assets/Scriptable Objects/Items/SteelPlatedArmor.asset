@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6599ba82c417d894aa2cc67fb6ac8c8a, type: 3}
   m_Name: SteelPlatedArmor
   m_EditorClassIdentifier: 
-  id: 3
+  itemID: 4
+  uiSprite: {fileID: 0}
   type: 1
   itemName: Steel Plated Armor
   description: Nothing is better at stopping enemy attacks than good old steel.

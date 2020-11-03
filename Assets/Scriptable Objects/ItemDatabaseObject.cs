@@ -6,7 +6,7 @@ using UnityEngine;
 public class ItemDatabaseObject : ScriptableObject, ISerializationCallbackReceiver
 {
     public ItemObject[] items;
-    public Dictionary<int, ItemObject> getItem = new Dictionary<int, ItemObject>();
+    public Dictionary<int, ItemObject> getItem;
 
     public void OnAfterDeserialize()
     {
@@ -14,8 +14,8 @@ public class ItemDatabaseObject : ScriptableObject, ISerializationCallbackReceiv
 
         for (int i = 0; i < items.Length; i++)
         {
-            if (items[i].id != 0) {
-                getItem.Add(items[i].id, items[i]);
+            if (items[i].itemID != 0) {
+                getItem.Add(items[i].itemID, items[i]);
             }
         }
     }
@@ -25,9 +25,9 @@ public class ItemDatabaseObject : ScriptableObject, ISerializationCallbackReceiv
         // TODO not working; wokring without it
         /*items.Clear();
 
-        foreach(ItemObject item in getItem.Values)
+        foreach(KeyValuePair<int, ItemObject> kvp in getItem)
         {
-            items.Add(item);
+            items.Add(kvp.Value);
         }*/
     }
 }

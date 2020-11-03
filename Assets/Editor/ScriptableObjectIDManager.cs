@@ -37,6 +37,7 @@ public class ScriptableObjectIDManager : EditorWindow
 
         int highestID = FindHighestID(list);
         SetIDs(list, highestID);
+        AssetDatabase.SaveAssets();
     }
 
     private List<T> FindAssetsByType<T>() where T : UnityEngine.Object
@@ -61,9 +62,9 @@ public class ScriptableObjectIDManager : EditorWindow
 
         foreach(ItemObject item in _list)
         {
-            if(item.id > max)
+            if(item.itemID > max)
             {
-                max = item.id;
+                max = item.itemID;
             }
         }
         return max;
@@ -73,10 +74,10 @@ public class ScriptableObjectIDManager : EditorWindow
     {
         foreach (ItemObject item in _list)
         {
-            if(item.id == 0)
+            if(item.itemID == 0)
             {
                 _currentID++;
-                item.id = _currentID;
+                item.itemID = _currentID;
             }
         }
     }

@@ -2,16 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum ItemType
-{
-    Consumable,
-    Equipment,
-    Default
-}
-
 public abstract class ItemObject : ScriptableObject
 {
-    public int id;
+    public int itemID;
     public Sprite uiSprite;
     public ItemType type;
     public string itemName;

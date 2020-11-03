@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8729eaba13c9cce44bde41f210497f73, type: 3}
+  m_Name: Sword
+  m_EditorClassIdentifier: 
+  itemID: 6
+  uiSprite: {fileID: 0}
+  type: 3
+  itemName: One-handed sword
+  description: Traditional sword.
+  price: 15
+  damage: 10
+  healthBonus: 20
+  armourPenetration: 0
+  animationType: 1
+  model: {fileID: 3473136122499692353, guid: eff0e9e4063c1fe49ac6625544768433, type: 3}

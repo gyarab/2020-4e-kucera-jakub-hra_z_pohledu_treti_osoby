@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ShopInventoryItemObject : InventoryItem
+public class ShopInventoryItemObject : InventorySlot
 {
     public int price;
 

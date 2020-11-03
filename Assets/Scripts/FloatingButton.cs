@@ -5,10 +5,10 @@ using UnityEngine;
 public class FloatingButton : MonoBehaviour
 {
     [SerializeField]
-    private float _interactableDistance;
+    private float _interactableDistance = 2f;
 
     private static Transform playerTransform;
-    private static Transform cameraTransform;
+    private static Transform playerCameraTransform;
 
     private Canvas _canvas;
     private bool _canvasEnabled;
@@ -18,14 +18,14 @@ public class FloatingButton : MonoBehaviour
         FloatingButtonStart();
     }
 
-    public void FloatingButtonStart()
+    protected void FloatingButtonStart()
     {
         _canvas = GetComponentInChildren<Canvas>();
         _canvas.enabled = false;
 
-        if (cameraTransform == null)
+        if (playerCameraTransform == null)
         {
-            cameraTransform = Camera.main.transform;
+            playerCameraTransform = Camera.main.transform;
         }
         if (playerTransform == null)
         {
@@ -33,9 +33,15 @@ public class FloatingButton : MonoBehaviour
         }
     }
 
+    public static void SetTransforms(Transform player, Transform camera)
+    {
+        playerTransform = player;
+        playerCameraTransform = camera;
+    }
+
     private void Update()
     {
-        LookAtCamera(cameraTransform);
+        LookAtCamera(playerCameraTransform);
     }
 
     private void FixedUpdate()
@@ -48,7 +54,6 @@ public class FloatingButton : MonoBehaviour
         {
             HideButton();
         }
-        Debug.Log("Floating button update");
     }
 
     private void ShowButton()

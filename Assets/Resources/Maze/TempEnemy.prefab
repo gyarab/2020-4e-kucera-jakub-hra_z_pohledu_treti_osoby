@@ -107,17 +107,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gravity: 10
-  _stats:
-    health: 80
-    damage: 0
-    fireDamage: 0
-    magicDamage: 0
-    armor: 0
-    fireResistance: 0
-    magicResistance: 10
   _speed: 0.2
   _healthBarGO: {fileID: 8798370691427807756}
-  _detectionRange: 3
+  _detectionRange: 10
   _detectionAngle: 30
   _firstRaycastOffset: {x: 0, y: 0.7, z: 0}
   _secondRaycastOffset: {x: 0, y: -0.7, z: 0}

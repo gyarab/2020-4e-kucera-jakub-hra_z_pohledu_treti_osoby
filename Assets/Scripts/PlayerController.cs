@@ -41,14 +41,13 @@ public class PlayerController : MonoBehaviour, IDamageable
     public float sphereRadius;
     public LayerMask excludePlayer;
     public float groundOffset;
-    //public float groundSphereRadius;
+    //public float groundSphereRadius; why?
 
     [Header("Components")]
     public SphereCollider sphereCollider;
     public SphereCollider sphereFeetCollider;
     public Transform cameraTransform;
     public Joystick joystick;
-    public Animator animator;
 
     [Header("Camera")]
     public float cameraSensitivityX;
@@ -74,8 +73,19 @@ public class PlayerController : MonoBehaviour, IDamageable
     private InventoryMonoBehaviour _inventory;
 
     [Header("Stats temporary")] // TODO remove, prob not
-    public CharacterStats currentStats;
-    public float currentHealth;
+    [SerializeField]
+    private CharacterStatsSO baseStats;
+    private CharacterStats _currentStats;
+    [SerializeField]
+    private float currentHealth;
+
+    [Header("Animatons")]
+    [SerializeField]
+    private Animator animator; // TODO change w weapon
+    [SerializeField]
+    private AnimatorOverrideController fistsOverrideController;
+    [SerializeField]
+    private AnimatorOverrideController onehandedOverrideController, twohandedOverrideController, bothhandedOverrideController; 
 
     private InventorySlotContainer _inventoryContainer;
 
@@ -119,10 +129,14 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     #endregion
 
-    #region Attack Variables
+    // TODO public -> private + serializeField
+    #region Attack Variables 
 
     [Header("Attack General")]
-    public float damage; // Rework TODO
+    [SerializeField]
+    private Transform _rightHandTransform;
+    [SerializeField]
+    private Transform _leftHandTransform;
     public bool findEnemy;
     public LayerMask enemies;
     public Vector3 offsetPosition, offsetRotation; // TODO
@@ -148,22 +162,29 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     #region Unity methods
 
-    // Staaaaaaaaaaart
-    private void Start()
+    private void Awake()
     {
-        GameManager.Instance.Player = gameObject;
-
-        groundRayPosition = new Vector3(0, - controllerGroundHeightOffset + groundRayOffset, 0);
+        groundRayPosition = new Vector3(0, -controllerGroundHeightOffset + groundRayOffset, 0);
         spherePos = new Vector3(0, -sphereOffset, 0);
         groundPos = new Vector3(0, -groundOffset, 0);
         maxStep = sphereRadius / Mathf.Cos(walkAngle * Mathf.Deg2Rad);
-        
+
         rightFingerId = -1;
         fingerTouchTimeDictionary = new Dictionary<int, float>(recordedTouchesLimit);
         canDoAction = true;
         acceptingInput = true;
 
         AttackSettings();
+
+        // TODO set stats and rigth animation controller
+        SwitchAnimationController(AnimationType.ONEHANDED);
+    }
+
+    // Staaaaaaaaaaart
+    private void Start()
+    {
+        GameManager.Instance.Player = gameObject;
+        currentHealth = baseStats.health;
     }
 
     // Directional Input
@@ -557,7 +578,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     public void PauseGame()
     {
-        _inventory.ShowInventory();
+        _inventory.ShowInventory(false);
     }
 
     #endregion
@@ -704,7 +725,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
             if (angleInDegrees > Vector3.Angle(transform.TransformVector(this.attackDirection), attackDirection))
             {
-                attackOverlaps[i].GetComponent<IDamageable>().TakeDamage(damage);
+                attackOverlaps[i].GetComponent<IDamageable>().TakeDamage(_currentStats.Damage, _currentStats.ArmourPenetration);
                 Debug.DrawRay(transform.position, attackDirection, Color.green);
             }
             else
@@ -716,12 +737,50 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     #endregion
 
-    // Probably TODO
     #region Animations
+    
+    public void SwitchAnimationController(AnimationType type)
+    {
+        switch (type)
+        {
+            case AnimationType.FISTS:
+                SetAnimationsController(fistsOverrideController);
+                break;
+            case AnimationType.ONEHANDED:
+                SetAnimationsController(onehandedOverrideController);
+                break;
+            case AnimationType.TWOHANDED:
+                SetAnimationsController(twohandedOverrideController);
+                break;
+            case AnimationType.BOTHHANDED:
+                SetAnimationsController(bothhandedOverrideController);
+                break;
+            default:
+                Debug.Log("Really?");
+                break;
+        }
+    }
 
     private void SetAnimationsController(AnimatorOverrideController overrideController)
     {
+        Debug.Log("Switched controller");
         animator.runtimeAnimatorController = overrideController;
+    }
+
+    #endregion
+
+    #region Stats
+
+    public void SetStats(CharacterStats equipmentStats)
+    {
+        // TODO add equipment stats
+        _currentStats = new CharacterStats(baseStats.health, baseStats.armour, baseStats.damage, baseStats.armourPenetration);
+        _currentStats.AddStats(equipmentStats);
+    }
+
+    public CharacterStats GetStats()
+    {
+        return _currentStats;
     }
 
     #endregion
@@ -786,19 +845,39 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     #endregion
 
-    // TODO inventory
-    #region Inventory Tutorial
-
     public InventoryMonoBehaviour GetPlayerInventory()
     {
         return _inventory;
     }
 
-    #endregion
-
-    public void TakeDamage(float damageTaken)
+    public Transform GetPlayerCameraTransform()
     {
-        currentHealth -= damageTaken;
+        return cameraTransform;
+    }
+
+    public void SetWeapons(GameObject prefab, bool twoHanded)
+    {
+        if(_rightHandTransform.childCount > 0)
+        {
+            Destroy(_rightHandTransform.GetChild(0).gameObject);
+        }
+        if (_leftHandTransform.childCount > 0)
+        {
+            Destroy(_leftHandTransform.GetChild(0).gameObject);
+        }
+
+        Instantiate(prefab, _rightHandTransform);
+        if (twoHanded)
+        {
+            Instantiate(prefab, _leftHandTransform);
+        }
+    }
+
+    public void TakeDamage(float damageTaken, float armourPenentration)
+    {
+        float armourLeft = Mathf.Max(_currentStats.Armour - armourPenentration, 0);
+
+        currentHealth -= damageTaken + armourLeft;
         if(currentHealth <= 0)
         {
             Debug.Log("dead"); // TODO respawn

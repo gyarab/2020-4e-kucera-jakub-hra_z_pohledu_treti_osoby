@@ -73,10 +73,11 @@ public class EnemyController : MonoBehaviour, IDamageable
         _healthBarCanvas = _healthBarGO.GetComponent<Canvas>();
         _healthBar = _healthBarCanvas.transform.GetChild(0).transform.GetChild(0).GetComponent<Image>();
 
-        _currentHealth = _stats.health;
+        _currentHealth = _stats.Health;
         _healthBarCanvas.enabled = false;
 
         _groundRayPosition = new Vector3(0, -_enemyHeight + _groundOffset, 0);
+        _grounded = true;
 
         _target = GameManager.Instance.Player.transform;
         ChangeState(LookForTarget());
@@ -93,7 +94,9 @@ public class EnemyController : MonoBehaviour, IDamageable
     private void ChangeState(IEnumerator nextState)
     {
         if (_coroutine != null)
+        {
             StopCoroutine(_coroutine);
+        }
 
         _coroutine = StartCoroutine(nextState);
     }
@@ -114,20 +117,29 @@ public class EnemyController : MonoBehaviour, IDamageable
     private IEnumerator WaitForPath()
     {
         // TODO change
-        GameManager.Instance.Pathfinding.GetPath(transform.position, _target.position, ReceivePath);
+        MazeManager.Instance.Pathfinding.GetPath(transform.position, _target.position, ReceivePath);
         yield return null;
     }
 
     private IEnumerator FollowPath()
     {
+        Debug.Log("Following path");
         int index = 0;
+
+        if(_path == null)
+        {
+            ChangeState(FollowTarget());
+        }
+
         SetDestination(_path[index]);
         index++;
 
         while (true)
         {
             // TODO change?
-            if(Vector2.Distance(new Vector2(transform.position.x - _destination.x, transform.position.z - _destination.z), Vector2.zero) <= _moveDistanceTolerance)
+            
+            Debug.Log("dist to path " + Vector2.Distance(new Vector2(transform.position.x, transform.position.z), new Vector2(_destination.x, _destination.z)));
+            if (Vector2.Distance(new Vector2(transform.position.x, transform.position.z), new Vector2(_destination.x, _destination.z)) <= _moveDistanceTolerance)
             {
                 if(index >= _path.Count)
                 {
@@ -140,39 +152,58 @@ public class EnemyController : MonoBehaviour, IDamageable
 
             CalculatePosition();
             transform.position += _velocity;
-            _grounded = true; // IsGrounded();
+            Debug.Log("walk cycle " + _velocity);
+            _grounded = IsGrounded();
 
             yield return new WaitForFixedUpdate();
         }
 
-        ChangeState(AttackTarget());
+        ChangeState(FollowTarget());
     }
 
     private IEnumerator LookForTarget()
     {
+        Debug.Log("Looking for target");
         while (!CheckForTarget())
         {
             yield return new WaitForFixedUpdate();
         }
 
-        ChangeState(FollowPath());
+        ChangeState(WaitForPath());
     }
 
     private IEnumerator AttackTarget()
     {
+        Debug.Log("Attacking target");
         yield return new WaitForSeconds(_delayBeforeAttack);
         Attack();
         yield return new WaitForSeconds(_delayAfterAttack);
 
         Debug.Log("Attack");
-        //ChangeState(FollowTarget());
+        ChangeState(WaitForPath());
     }
 
     public IEnumerator FollowTarget()
     {
-        // TODO
+        Debug.Log("Following target");
+        while (true) // while target is visible TODO
+        {
+            SetDestination(_target.position);
 
-        yield return new WaitForFixedUpdate();
+            Debug.Log("dist " + Vector2.Distance(new Vector2(transform.position.x, transform.position.z), new Vector2(_destination.x, _destination.z)));
+            if (Vector2.Distance(new Vector2(transform.position.x, transform.position.z), new Vector2(_destination.x, _destination.z)) <= _attackRange / 2)
+            {
+                break;
+            }
+
+            CalculatePosition();
+            transform.position += _velocity;
+            IsGrounded();
+
+            yield return new WaitForFixedUpdate();
+        }
+
+        ChangeState(AttackTarget());
     }
 
     #endregion
@@ -188,7 +219,7 @@ public class EnemyController : MonoBehaviour, IDamageable
             if (_attackAngleInDegrees > Vector3.Angle(transform.forward, attackDirection))
             {
                 // TODO rework damage method
-                _target.GetComponent<IDamageable>().TakeDamage(_damage);
+                _target.GetComponent<IDamageable>().TakeDamage(_damage, 0f); // TODO add character stats
                 Debug.Log("hit");
             }
         }
@@ -239,7 +270,6 @@ public class EnemyController : MonoBehaviour, IDamageable
         RaycastHit tempHit = new RaycastHit();
         if (Physics.SphereCast(ray, _sphereRadius, out tempHit, _groundOffset + _rayOverhead, _excludeCharacters))
         {
-            Debug.Log("hit");
             transform.position = new Vector3(transform.position.x, transform.position.y + _groundOffset - _sphereRadius - tempHit.distance, transform.position.z);
             return true;
         }
@@ -254,7 +284,7 @@ public class EnemyController : MonoBehaviour, IDamageable
         //goingToDestination = true;
         // face destination TODO - coroutine?
         _destination = location;
-        Vector2 temp = new Vector2(location.x - transform.position.x, location.z - transform.position.z).normalized * _speed;
+        Vector2 temp = new Vector2(_destination.x - transform.position.x, _destination.z - transform.position.z).normalized * _speed;
         _velocity = new Vector3(temp.x, 0, temp.y);
     }
 
@@ -286,14 +316,18 @@ public class EnemyController : MonoBehaviour, IDamageable
     private void GetDestroyed()
     {
         // TODO die and drop items
+        if (_coroutine != null)
+        {
+            StopCoroutine(_coroutine);
+        }
 
         Destroy(gameObject);
     }
 
-    public void TakeDamage(float damageTaken)
+    public void TakeDamage(float damage, float armourPenetration)
     {
-        _currentHealth -= damageTaken;
-        _healthBar.fillAmount = _currentHealth / _stats.health;
+        _currentHealth -= damage; // TODO add character stats
+        _healthBar.fillAmount = _currentHealth / _stats.Health;
 
         if (_currentHealth <= 0)
         {
