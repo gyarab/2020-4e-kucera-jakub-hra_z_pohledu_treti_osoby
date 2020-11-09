@@ -255,7 +255,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
             _equippedWeaponSlot = inventorySlot;
             _player.SwitchAnimationController(weapon.animationType);
-            _player.SetWeapons(weapon.model, weapon.animationType == AnimationType.TWOHANDED);
+            _player.SetWeapons(weapon.model, weapon.animationType == AnimationType.Twohanded);
         }
     }
 

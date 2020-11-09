@@ -19,7 +19,7 @@ public class Shopkeeper : FloatingButton
         _shopInventoryContainer = new InventorySlotContainer(path);
     }
 
-    public void Interact()
+    public void InteractGUI()
     {
         Debug.Log("Shop opened");
 

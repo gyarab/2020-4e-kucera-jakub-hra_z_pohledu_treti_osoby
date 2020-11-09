@@ -2,33 +2,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Portal : MonoBehaviour // TODO rework to button press?
+public class Door : MonoBehaviour
 {
     [SerializeField]
     private float _range = 2f;
-    [SerializeField]
-    private MazeSettingsSO _mazeSettings;
 
+    private IDoor doorImplementation;
     private Transform _target;
     private Vector3 _secondPoint;
     private int _side;
 
-    // Start is called before the first frame update
-    void Start()
+    private void Awake()
     {
         _secondPoint = transform.position + transform.right;
     }
 
-    // Update is called once per frame
     void FixedUpdate()
     {
-        if(_side != GetSide(_target.position))
+        if (_side != GetSide(_target.position))
         {
             _side = GetSide(_target.position);
             if (Vector3.Distance(_target.position, transform.position) < _range)
             {
                 // TODO load specific level; boss or puzzle etc...
-                GameManager.Instance.LoadMaze(_mazeSettings);
+                doorImplementation.Entered();
             }
         }
     }

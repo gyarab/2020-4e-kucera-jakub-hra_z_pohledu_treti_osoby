@@ -1,38 +1,61 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
-public class MazeManager : MonoBehaviour
+public class MazeManager : MonoBehaviour // TODO remove singleton ?
 {
-    public Pathfinding Pathfinding { get; set; }
-    private static MazeManager _instance;
+    private bool _completedWinCondition;
+    private int _coinsCollected;
 
-    public static MazeManager Instance
+    public void Awake()
     {
-        get
-        {
-            if (_instance == null)
-            {
-                _instance = (MazeManager)FindObjectOfType(typeof(MazeManager));
+        _completedWinCondition = false;
+        _coinsCollected = 0;
+    }
 
-                if (_instance == null)
-                {
-                    // Create a new GameObject to attach the singleton to.
-                    GameObject gameObject = new GameObject("_MazeManager");
-                    _instance = gameObject.AddComponent<MazeManager>();
-                }
-            }
-
-            return _instance;
-        }
+    public void Start()
+    {
+        GameManager.Instance.CurrentMazeManager = this; // why?
     }
 
     public void CreateMaze(MazeSettingsSO mazeSettings) // TODO IWIN
     {
-        IWinCondition winCondition = new CollectArtefacts(); // TODO add properly
-        MazeGenerator mazeGenerator = gameObject.AddComponent<MazeGenerator>();
-        int nodeCount;
-        PathfindingNode[] nodes = mazeGenerator.GenerateMaze(mazeSettings, winCondition, out nodeCount);
-        Pathfinding = new Pathfinding(nodes, nodeCount);
+        IWinCondition winCondition = gameObject.AddComponent<FindKey>(); // TODO add properly
+        winCondition.OnCompleted += WinConditionCompleted;
+
+        MazeGenerator mazeGenerator = GetComponent<MazeGenerator>();
+        PathfindingNode[] nodes = mazeGenerator.GenerateMaze(mazeSettings, winCondition, out int nodeCount);
+        Pathfinding pathfinding = new Pathfinding(nodes, nodeCount);
+        EnemyController.Pathfinder = pathfinding;
+    }
+
+    private void WinConditionCompleted()
+    {
+        Debug.Log("mission accomplished");
+        // TODO something
+        _completedWinCondition = true;
+    }
+
+    private void ReturnToHub()
+    {
+        GameManager.Instance.LoadHub(_completedWinCondition, _coinsCollected);
+    }
+
+    private void GotCoin(Transform transform)
+    {
+        _coinsCollected++;
+    }
+
+    private void OnEnable()
+    {
+        ReturnPortal.OnMazeExit += ReturnToHub;
+        EnemyController.OnEnemyDeath += GotCoin;
+    }
+
+    private void OnDisable()
+    {
+        ReturnPortal.OnMazeExit -= ReturnToHub;
+        EnemyController.OnEnemyDeath -= GotCoin;
     }
 }

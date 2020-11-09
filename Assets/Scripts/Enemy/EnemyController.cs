@@ -2,10 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
-public class EnemyController : MonoBehaviour, IDamageable
+public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TODO combine visual navigation w pathfinding, TODO attack as class with interface
 {
     #region Variables
+
+    public static Action<Transform> OnEnemyDeath; // TODO change to vector3?
+    public static Pathfinding Pathfinder { get; set; }
 
     [Header("Physics")]
     [SerializeField]
@@ -59,7 +63,6 @@ public class EnemyController : MonoBehaviour, IDamageable
     private List<Vector3> _path;
 
     private float _currentHealth;
-    private Coroutine _coroutine;
     private Vector3 _groundRayPosition, _velocity, _destination;
     private bool _grounded;
     private float _timeSinceGrounded, _currentGravity;
@@ -91,14 +94,9 @@ public class EnemyController : MonoBehaviour, IDamageable
         }
     }
 
-    private void ChangeState(IEnumerator nextState)
+    void FixedUpdate()
     {
-        if (_coroutine != null)
-        {
-            StopCoroutine(_coroutine);
-        }
-
-        _coroutine = StartCoroutine(nextState);
+        _grounded = IsGrounded();
     }
 
     public void ReceivePath(List<Vector3> path)
@@ -117,13 +115,13 @@ public class EnemyController : MonoBehaviour, IDamageable
     private IEnumerator WaitForPath()
     {
         // TODO change
-        MazeManager.Instance.Pathfinding.GetPath(transform.position, _target.position, ReceivePath);
+        Pathfinder.GetPath(transform.position, _target.position, ReceivePath);
         yield return null;
     }
 
     private IEnumerator FollowPath()
     {
-        Debug.Log("Following path");
+        //Debug.Log("Following path");
         int index = 0;
 
         if(_path == null)
@@ -138,7 +136,6 @@ public class EnemyController : MonoBehaviour, IDamageable
         {
             // TODO change?
             
-            Debug.Log("dist to path " + Vector2.Distance(new Vector2(transform.position.x, transform.position.z), new Vector2(_destination.x, _destination.z)));
             if (Vector2.Distance(new Vector2(transform.position.x, transform.position.z), new Vector2(_destination.x, _destination.z)) <= _moveDistanceTolerance)
             {
                 if(index >= _path.Count)
@@ -152,8 +149,6 @@ public class EnemyController : MonoBehaviour, IDamageable
 
             CalculatePosition();
             transform.position += _velocity;
-            Debug.Log("walk cycle " + _velocity);
-            _grounded = IsGrounded();
 
             yield return new WaitForFixedUpdate();
         }
@@ -163,7 +158,7 @@ public class EnemyController : MonoBehaviour, IDamageable
 
     private IEnumerator LookForTarget()
     {
-        Debug.Log("Looking for target");
+        //Debug.Log("Looking for target");
         while (!CheckForTarget())
         {
             yield return new WaitForFixedUpdate();
@@ -174,23 +169,22 @@ public class EnemyController : MonoBehaviour, IDamageable
 
     private IEnumerator AttackTarget()
     {
-        Debug.Log("Attacking target");
+        //Debug.Log("Attacking target");
         yield return new WaitForSeconds(_delayBeforeAttack);
         Attack();
         yield return new WaitForSeconds(_delayAfterAttack);
 
-        Debug.Log("Attack");
+        //Debug.Log("Attack");
         ChangeState(WaitForPath());
     }
 
     public IEnumerator FollowTarget()
     {
-        Debug.Log("Following target");
+        //Debug.Log("Following target");
         while (true) // while target is visible TODO
         {
             SetDestination(_target.position);
 
-            Debug.Log("dist " + Vector2.Distance(new Vector2(transform.position.x, transform.position.z), new Vector2(_destination.x, _destination.z)));
             if (Vector2.Distance(new Vector2(transform.position.x, transform.position.z), new Vector2(_destination.x, _destination.z)) <= _attackRange / 2)
             {
                 break;
@@ -198,7 +192,6 @@ public class EnemyController : MonoBehaviour, IDamageable
 
             CalculatePosition();
             transform.position += _velocity;
-            IsGrounded();
 
             yield return new WaitForFixedUpdate();
         }
@@ -313,13 +306,11 @@ public class EnemyController : MonoBehaviour, IDamageable
 
     #endregion
 
+    // TODO dont 
     private void GetDestroyed()
     {
-        // TODO die and drop items
-        if (_coroutine != null)
-        {
-            StopCoroutine(_coroutine);
-        }
+        // TODO drop drop coin / items
+        OnEnemyDeath?.Invoke(transform);
 
         Destroy(gameObject);
     }

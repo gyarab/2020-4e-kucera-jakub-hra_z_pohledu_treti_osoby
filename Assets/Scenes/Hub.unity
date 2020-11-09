@@ -261,7 +261,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1375593956}
-        m_MethodName: Interact
+        m_MethodName: InteractGUI
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -319,6 +319,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 252835089}
+  - component: {fileID: 252835090}
   - component: {fileID: 252835091}
   m_Layer: 0
   m_Name: Portal
@@ -344,6 +345,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &252835090
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 252835088}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74499b11aca26354d947f604845a8c52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _range: 2
 --- !u!114 &252835091
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -356,7 +370,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 888788410ee304c43a13b7c7bb319edc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _range: 2
   _mazeSettings: {fileID: 11400000, guid: f9ddd283ee8191142b767b65865c739d, type: 2}
 --- !u!1 &349826773
 GameObject:

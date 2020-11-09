@@ -177,7 +177,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         AttackSettings();
 
         // TODO set stats and rigth animation controller
-        SwitchAnimationController(AnimationType.ONEHANDED);
+        SwitchAnimationController(AnimationType.Onehanded);
     }
 
     // Staaaaaaaaaaart
@@ -743,16 +743,16 @@ public class PlayerController : MonoBehaviour, IDamageable
     {
         switch (type)
         {
-            case AnimationType.FISTS:
+            case AnimationType.Fists:
                 SetAnimationsController(fistsOverrideController);
                 break;
-            case AnimationType.ONEHANDED:
+            case AnimationType.Onehanded:
                 SetAnimationsController(onehandedOverrideController);
                 break;
-            case AnimationType.TWOHANDED:
+            case AnimationType.Twohanded:
                 SetAnimationsController(twohandedOverrideController);
                 break;
-            case AnimationType.BOTHHANDED:
+            case AnimationType.Bothhanded:
                 SetAnimationsController(bothhandedOverrideController);
                 break;
             default:

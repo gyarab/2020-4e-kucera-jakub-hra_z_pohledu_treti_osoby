@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum AnimationType
+public enum GenerationRule
 {
-    FISTS,
-    ONEHANDED,
-    TWOHANDED,
-    BOTHHANDED
+    OuterRoom
 }

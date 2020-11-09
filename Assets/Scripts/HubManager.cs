@@ -5,7 +5,7 @@ using UnityEngine;
 public class HubManager : MonoBehaviour
 {
     [SerializeField]
-    private Portal[] _portals;
+    private HubDoor[] _portals;
     [SerializeField]
     private Shopkeeper[] _shopkeepers;
 

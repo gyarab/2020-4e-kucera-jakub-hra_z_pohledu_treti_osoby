@@ -14,7 +14,7 @@ public class Pathfinding
         _nodes = nodes;
         _nodeCount = count;
         _openSet = new PathfindingHeap(_nodeCount); // TODO prob optimize 
-    }
+    } // TODO somehow make accessible
 
     public void GetPath(Vector3 position, Vector3 targetPosition, Action<List<Vector3>> action)
     {
@@ -59,12 +59,12 @@ public class Pathfinding
                         continue; // if it doesnt work put return here and instead of return return null;
                     }
 
-                    currentGCost = node.gCost + Vector2.Distance(node.position, node.neighbours[i].position);
+                    currentGCost = node.gCost + Vector2.Distance(new Vector2(node.position.x, node.position.z), new Vector2(node.neighbours[i].position.x, node.neighbours[i].position.z));
 
-                    if(node.neighbours[i].Status == Status.NOWHERE)
+                    if (node.neighbours[i].Status == Status.NOWHERE)
                     {
                         node.neighbours[i].gCost = currentGCost;
-                        node.neighbours[i].hCost = Vector2.Distance(node.neighbours[i].position, _nodes[endID].position);
+                        node.neighbours[i].hCost = Vector2.Distance(new Vector2(node.neighbours[i].position.x, node.neighbours[i].position.z), new Vector2(_nodes[endID].position.x, _nodes[endID].position.z));
                         node.neighbours[i].cameFromID = node.id;
                         node.neighbours[i].Status = Status.OPENSET;
                         _openSet.Insert(node.neighbours[i]);
@@ -93,12 +93,12 @@ public class Pathfinding
     {
         if (currentNode.id == startID)
         {
-            list.Add(new Vector3(currentNode.position.x, 0, currentNode.position.y));
+            list.Add(new Vector3(currentNode.position.x, 0, currentNode.position.z));
             return list;
         }
 
         AddStop(list, _nodes[currentNode.cameFromID], startID);
-        list.Add(new Vector3(currentNode.position.x, 0, currentNode.position.y));
+        list.Add(new Vector3(currentNode.position.x, 0, currentNode.position.z));
 
         return list;
     }
@@ -126,8 +126,8 @@ public class Pathfinding
         return minDistID;
     }
 
-    private float GetApproximateDistance(Vector3 objectPosition, Vector2 nodePosition)
+    private float GetApproximateDistance(Vector3 objectPosition, Vector3 nodePosition)
     {
-        return Mathf.Pow(nodePosition.x - objectPosition.x, 2) + Mathf.Pow(nodePosition.y - objectPosition.z, 2);
+        return Mathf.Pow(nodePosition.x - objectPosition.x, 2) + Mathf.Pow(nodePosition.z - objectPosition.z, 2);
     }
 }

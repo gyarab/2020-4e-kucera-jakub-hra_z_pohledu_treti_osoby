@@ -480,7 +480,7 @@ public class MazeGenerator : MonoBehaviour
         int centerID = currentEmptyNode + (dimensions.y * pathCoords.x) + pathCoords.y;
         cells[position.x, position.y].lowestPathfindingNodeID = currentEmptyNode;
 
-        PathfindingNode centerNode = new PathfindingNode(centerID, centerPosition.x, centerPosition.y);
+        PathfindingNode centerNode = new PathfindingNode(centerID, centerPosition.x, _startPoint.y, centerPosition.y);
         pathfindingNodes[centerID] = centerNode;
 
         // Top
@@ -489,7 +489,7 @@ public class MazeGenerator : MonoBehaviour
             if(pathCoords.x < (dimensions.x - 1))
             {
                 int id = centerID + dimensions.y;
-                pathfindingNodes[id] = new PathfindingNode(centerID + dimensions.y, centerPosition.x + distanceBetweenCells, centerPosition.y);
+                pathfindingNodes[id] = new PathfindingNode(centerID + dimensions.y, centerPosition.x + distanceBetweenCells, _startPoint.y, centerPosition.y);
                 ConnectTwoNodes(pathfindingNodes[id], centerNode, Side.Bottom);
             }
         }
@@ -499,7 +499,7 @@ public class MazeGenerator : MonoBehaviour
             if (pathCoords.y < (dimensions.y - 1))
             {
                 int id = centerID + 1;
-                pathfindingNodes[id] = new PathfindingNode(centerID + 1, centerPosition.x, centerPosition.y + distanceBetweenCells);
+                pathfindingNodes[id] = new PathfindingNode(centerID + 1, centerPosition.x, _startPoint.y, centerPosition.y + distanceBetweenCells);
                 ConnectTwoNodes(pathfindingNodes[id], centerNode, Side.Left);
             }
         }
@@ -509,7 +509,7 @@ public class MazeGenerator : MonoBehaviour
             if (pathCoords.x > 0)
             {
                 int id = centerID - dimensions.y;
-                pathfindingNodes[id] = new PathfindingNode(centerID - dimensions.y, centerPosition.x - distanceBetweenCells, centerPosition.y);
+                pathfindingNodes[id] = new PathfindingNode(centerID - dimensions.y, centerPosition.x - distanceBetweenCells, _startPoint.y, centerPosition.y);
                 ConnectTwoNodes(pathfindingNodes[id], centerNode, Side.Top);
             }
         }
@@ -519,7 +519,7 @@ public class MazeGenerator : MonoBehaviour
             if (pathCoords.y > 0)
             {
                 int id = centerID - 1;
-                pathfindingNodes[id] = new PathfindingNode(centerID - 1, centerPosition.x, centerPosition.y - distanceBetweenCells);
+                pathfindingNodes[id] = new PathfindingNode(centerID - 1, centerPosition.x, _startPoint.y, centerPosition.y - distanceBetweenCells);
                 ConnectTwoNodes(pathfindingNodes[id], centerNode, Side.Right);
             }
         }

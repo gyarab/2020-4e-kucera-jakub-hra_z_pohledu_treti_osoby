@@ -10,13 +10,16 @@ public class MazeGenerator : MonoBehaviour
     private Vector3 _spawnPoint;
     private Stack<Vector2Int> _cellStack;
     private Vector3 _startPoint;
-    private Cell[,] _cells;
+    private Cell[,] _cells; // Z, X
     private int[] _xDistance, _zDistance;
     private Vector2Int _firstCell;
     private int _maxNodeCount;
     private int _currentEmptyNode;
     private PathfindingNode[] _pathfindingNodes;
     private MazeSettingsSO _mazeSettings;
+    private List<GenerationRule> _generationsRules; 
+    private int _nodeIDconnectedToOuterRoom;
+    private IWinCondition _winCondition;
 
     private void Awake()
     {
@@ -26,9 +29,11 @@ public class MazeGenerator : MonoBehaviour
     }
 
     // Start is called before the first frame update
-    public PathfindingNode[] GenerateMaze(MazeSettingsSO mazeSettings, IWinCondition winCondition, out int count) // TODO IWIN
+    public PathfindingNode[] GenerateMaze(MazeSettingsSO mazeSettings, IWinCondition winCondition, out int nodeCount) // TODO IWIN, IWIN as getcomponent?;
     {
         _mazeSettings = mazeSettings;
+        _winCondition = winCondition;
+        _generationsRules = _winCondition.SpecialGenerationRules();
 
         // TODO move somwhere else or add initialization
         int generationCounter = 0;
@@ -45,26 +50,25 @@ public class MazeGenerator : MonoBehaviour
 
         CreateNodes();
 
+        if (_generationsRules.Contains(GenerationRule.OuterRoom))
+        {
+            CreatoOuterRoom();
+        }
+
         SpawnTiles();
 
         Debug.Log("Generation Done");
 
         // TODO remove or move?
-        GameManager.Instance.Player.transform.position = _spawnPoint;
+        Debug.Log("spawn " + _spawnPoint);
+        GetComponent<Spawner>().SpawnReturnPortal(_spawnPoint);
+        GameManager.Instance.Player.transform.position = new Vector3(_spawnPoint.x, _spawnPoint.y + 1, _spawnPoint.z); // TODO doesnt work?
 
         // TODO make better & move?
-        for (int i = 0; i < _currentEmptyNode; i++)
-        {
-            if (_pathfindingNodes[i] != null) {
-                if (Random.Range(0f, 1f) <= _mazeSettings.spawnChance)
-                {
-                    Instantiate(_enemyPrefab, new Vector3(_pathfindingNodes[i].position.x , _startPoint.y + 1, _pathfindingNodes[i].position.y), Quaternion.identity);
-                }
-            }
-        }
+        SpawnEnemies();
 
         Destroy(this); // TODO uncomment?
-        count = _currentEmptyNode;
+        nodeCount = _currentEmptyNode;
         return _pathfindingNodes;
     }
 
@@ -397,10 +401,10 @@ public class MazeGenerator : MonoBehaviour
     private void CreateNodes()
     {
         _currentEmptyNode = 0;
-        _pathfindingNodes = new PathfindingNode[_maxNodeCount];
+        _pathfindingNodes = new PathfindingNode[_maxNodeCount + 1];
 
         // First Cell
-        _spawnPoint = new Vector3(_startPoint.x + (_xDistance[_firstCell.y]) * _mazeSettings.distanceBetweenCells, _startPoint.y + 1f, _startPoint.z + (_zDistance[_firstCell.x]) * _mazeSettings.distanceBetweenCells); // TODO only points to the right cell; rework hardcoded?; TODO spawns somwhere else // RLpos
+        _spawnPoint = new Vector3(_startPoint.x + (_xDistance[_firstCell.y]) * _mazeSettings.distanceBetweenCells, _startPoint.y, _startPoint.z + (_zDistance[_firstCell.x]) * _mazeSettings.distanceBetweenCells); // TODO only points to the right cell; rework hardcoded?; TODO spawns somwhere else // RLpos
         CreateRoom(_firstCell);
         PushNeighbouringCells(_firstCell);
         _cells[_firstCell.x, _firstCell.y].generated = true;
@@ -445,7 +449,7 @@ public class MazeGenerator : MonoBehaviour
         {
             for (int j = 0; j < dimensions.y; j++) // X
             {
-                _pathfindingNodes[_currentEmptyNode] = new PathfindingNode(_currentEmptyNode, realPosition.x + _mazeSettings.distanceBetweenCells * j, realPosition.y + _mazeSettings.distanceBetweenCells * i, tileType); // RLpos
+                _pathfindingNodes[_currentEmptyNode] = new PathfindingNode(_currentEmptyNode, realPosition.x + _mazeSettings.distanceBetweenCells * j, _startPoint.y, realPosition.y + _mazeSettings.distanceBetweenCells * i, tileType); // RLpos
 
                 // 2nd column + (Y)
                 if (j > 0)
@@ -497,7 +501,7 @@ public class MazeGenerator : MonoBehaviour
         int centerID = _currentEmptyNode + (dimensions.y * pathCoords.x) + pathCoords.y;
         _cells[position.x, position.y].lowestPathfindingNodeID = _currentEmptyNode;
 
-        PathfindingNode centerNode = new PathfindingNode(centerID, centerPosition.x, centerPosition.y, tileType);
+        PathfindingNode centerNode = new PathfindingNode(centerID, centerPosition.x, _startPoint.y ,centerPosition.y, tileType);
         _pathfindingNodes[centerID] = centerNode;
 
         // Top
@@ -506,7 +510,7 @@ public class MazeGenerator : MonoBehaviour
             if (pathCoords.x < (dimensions.x - 1))
             {
                 int id = centerID + dimensions.y;
-                _pathfindingNodes[id] = new PathfindingNode(centerID + dimensions.y, centerPosition.x, centerPosition.y + _mazeSettings.distanceBetweenCells, tileType); // RLpos
+                _pathfindingNodes[id] = new PathfindingNode(centerID + dimensions.y, centerPosition.x, _startPoint.y, centerPosition.y + _mazeSettings.distanceBetweenCells, tileType); // RLpos
                 ConnectTwoNodes(_pathfindingNodes[id], centerNode, Side.Bottom);
             }
         }
@@ -516,7 +520,7 @@ public class MazeGenerator : MonoBehaviour
             if (pathCoords.y < (dimensions.y - 1))
             {
                 int id = centerID + 1;
-                _pathfindingNodes[id] = new PathfindingNode(centerID + 1, centerPosition.x + _mazeSettings.distanceBetweenCells, centerPosition.y, tileType); // RLpos
+                _pathfindingNodes[id] = new PathfindingNode(centerID + 1, centerPosition.x + _mazeSettings.distanceBetweenCells, _startPoint.y, centerPosition.y, tileType); // RLpos
                 ConnectTwoNodes(_pathfindingNodes[id], centerNode, Side.Left);
             }
         }
@@ -526,7 +530,7 @@ public class MazeGenerator : MonoBehaviour
             if (pathCoords.x > 0)
             {
                 int id = centerID - dimensions.y;
-                _pathfindingNodes[id] = new PathfindingNode(centerID - dimensions.y, centerPosition.x, centerPosition.y - _mazeSettings.distanceBetweenCells, tileType); // RLpos
+                _pathfindingNodes[id] = new PathfindingNode(centerID - dimensions.y, centerPosition.x, _startPoint.y, centerPosition.y - _mazeSettings.distanceBetweenCells, tileType); // RLpos
                 ConnectTwoNodes(_pathfindingNodes[id], centerNode, Side.Top);
             }
         }
@@ -536,7 +540,7 @@ public class MazeGenerator : MonoBehaviour
             if (pathCoords.y > 0)
             {
                 int id = centerID - 1;
-                _pathfindingNodes[id] = new PathfindingNode(centerID - 1, centerPosition.x - _mazeSettings.distanceBetweenCells, centerPosition.y, tileType); // RLpos
+                _pathfindingNodes[id] = new PathfindingNode(centerID - 1, centerPosition.x - _mazeSettings.distanceBetweenCells, _startPoint.y, centerPosition.y, tileType); // RLpos
                 ConnectTwoNodes(_pathfindingNodes[id], centerNode, Side.Right);
             }
         }
@@ -722,23 +726,23 @@ public class MazeGenerator : MonoBehaviour
             switch (node.GetDoorCount())
             {
                 case 1:
-                    Instantiate(_tiles[node.TileType].tiles[0], new Vector3(node.position.x, transform.position.y, node.position.y), Quaternion.Euler(new Vector3(0, firstDoor * 90, 0)), transform);
+                    Instantiate(_tiles[node.TileType].tiles[0], node.position, Quaternion.Euler(new Vector3(0, firstDoor * 90, 0)), transform);
                     break;
                 case 2:
                     if (node.neighbours[((firstDoor + 2) * 2) % 8] == null)
                     {
-                        Instantiate(_tiles[node.TileType].tiles[1], new Vector3(node.position.x, transform.position.y, node.position.y), Quaternion.Euler(new Vector3(0, firstDoor * 90, 0)), transform);
+                        Instantiate(_tiles[node.TileType].tiles[1], node.position, Quaternion.Euler(new Vector3(0, firstDoor * 90, 0)), transform);
                     }
                     else
                     {
-                        Instantiate(_tiles[node.TileType].tiles[2], new Vector3(node.position.x, transform.position.y, node.position.y), Quaternion.Euler(new Vector3(0, firstDoor * 90, 0)), transform);
+                        Instantiate(_tiles[node.TileType].tiles[2], node.position, Quaternion.Euler(new Vector3(0, firstDoor * 90, 0)), transform);
                     }
                     break;
                 case 3:
-                    Instantiate(_tiles[node.TileType].tiles[3], new Vector3(node.position.x, transform.position.y, node.position.y), Quaternion.Euler(new Vector3(0, (firstDoor - 1) * 90, 0)), transform);
+                    Instantiate(_tiles[node.TileType].tiles[3], node.position, Quaternion.Euler(new Vector3(0, (firstDoor - 1) * 90, 0)), transform);
                     break;
                 case 4:
-                    Instantiate(_tiles[node.TileType].tiles[4], new Vector3(node.position.x, transform.position.y, node.position.y), Quaternion.identity, transform);
+                    Instantiate(_tiles[node.TileType].tiles[4], node.position, Quaternion.identity, transform);
                     break;
                 default:
                     throw new System.Exception("Cell can't have more than four doors");
@@ -746,5 +750,219 @@ public class MazeGenerator : MonoBehaviour
         }
     }
 
+    // TODO remove
+    /*private void SpawnTilePrefab(PathfindingNode node, float yOffset)
+    {
+        if (node != null)
+        {
+            int firstDoor = node.GetFirstDoor();
+
+            switch (node.GetDoorCount())
+            {
+                case 1:
+                    Instantiate(_tiles[node.TileType].tiles[0], new Vector3(node.position.x, node.position.y + yOffset, node.position.z), Quaternion.Euler(new Vector3(0, firstDoor * 90, 0)), transform);
+                    break;
+                case 2:
+                    if (node.neighbours[((firstDoor + 2) * 2) % 8] == null)
+                    {
+                        Instantiate(_tiles[node.TileType].tiles[1], new Vector3(node.position.x, node.position.y + yOffset, node.position.z), Quaternion.Euler(new Vector3(0, firstDoor * 90, 0)), transform);
+                    }
+                    else
+                    {
+                        Instantiate(_tiles[node.TileType].tiles[2], new Vector3(node.position.x, node.position.y + yOffset, node.position.z), Quaternion.Euler(new Vector3(0, firstDoor * 90, 0)), transform);
+                    }
+                    break;
+                case 3:
+                    Instantiate(_tiles[node.TileType].tiles[3], new Vector3(node.position.x, node.position.y + yOffset, node.position.z), Quaternion.Euler(new Vector3(0, (firstDoor - 1) * 90, 0)), transform);
+                    break;
+                case 4:
+                    Instantiate(_tiles[node.TileType].tiles[4], new Vector3(node.position.x, node.position.y + yOffset, node.position.z), Quaternion.identity, transform);
+                    break;
+                default:
+                    throw new System.Exception("Cell can't have more than four doors");
+            }
+        }
+    }*/
+
     #endregion
+
+    #region Special Generation Rules
+
+    private void CreatoOuterRoom()
+    {
+        int side = Random.Range(0, 4);
+
+        Vector2Int cellPosition = GetOuterCell(side);
+        Vector2Int dimensions = GetDimensions(cellPosition);
+        Vector2Int path = GetPath(cellPosition, dimensions);
+        int currentNodeID = _cells[cellPosition.x, cellPosition.y].lowestPathfindingNodeID + (dimensions.y * path.x) + path.y;
+
+        PathfindingNode newNode = _pathfindingNodes[currentNodeID];
+        CreateOuterRoom(currentNodeID, side);
+
+        Vector3 outerRoomPosition = newNode.position;
+
+        
+
+        // TODO instantiate boss room and doors to the room
+        GetComponent<Spawner>().SpawnBossRoom(outerRoomPosition, side, _mazeSettings.distanceBetweenCells);
+    }
+
+    private Vector2Int GetOuterCell(int side)
+    {
+        Vector2Int startPos;
+        Vector2Int increment;
+        Vector2Int nextLine;
+
+        switch (side)
+        {
+            case 0: // TOP
+                startPos = new Vector2Int(_mazeSettings.length - 1, 0);
+                increment = new Vector2Int(0, 1);
+                nextLine = new Vector2Int(-1, 0);
+                break;
+            case 1: // RIGHT
+                startPos = new Vector2Int(0, _mazeSettings.width - 1);
+                increment = new Vector2Int(1, 0);
+                nextLine = new Vector2Int(0, -1);
+                break;
+            case 2: // BOTTOM
+                startPos = new Vector2Int(0, 0);
+                increment = new Vector2Int(0, 1);
+                nextLine = new Vector2Int(1, 0);
+                break;
+            case 3: // LEFT
+                startPos = new Vector2Int(0, 0);
+                increment = new Vector2Int(1, 0);
+                nextLine = new Vector2Int(0, 1);
+                break;
+            default:
+                throw new System.Exception("Index out of bounds");
+        }
+
+        bool zAxisIsMain;
+        int maxCellsInMainDirection;
+        int maxCellsInSecondaryDirection;
+        if (side % 2 == 0)
+        {
+            maxCellsInMainDirection = _mazeSettings.width;
+            maxCellsInSecondaryDirection = _mazeSettings.length;
+            zAxisIsMain = true;
+        } else
+        {
+            maxCellsInMainDirection = _mazeSettings.length;
+            maxCellsInSecondaryDirection = _mazeSettings.width;
+            zAxisIsMain = false;
+        }
+
+        int randomOffset = Random.Range(0, maxCellsInMainDirection);
+        Vector2Int currentPos = startPos;
+
+        for (int j = 0; j < maxCellsInSecondaryDirection; j++)
+        {
+            for (int i = 0; i < maxCellsInMainDirection; i++)
+            {
+                if (zAxisIsMain)
+                {
+                    if (_cells[currentPos.x, (currentPos.y + randomOffset) % maxCellsInMainDirection] != null)
+                    {
+                        return new Vector2Int(currentPos.x, (currentPos.y + randomOffset) % maxCellsInMainDirection);
+                    }
+                } else
+                {
+                    if (_cells[(currentPos.x + randomOffset) % maxCellsInMainDirection, currentPos.y] != null)
+                    {
+                        return new Vector2Int((currentPos.x + randomOffset) % maxCellsInMainDirection, currentPos.y);
+                    }
+                }
+
+                currentPos += increment;
+            }
+            startPos += nextLine;
+        }
+
+        throw new System.Exception("Could not find cell");
+    }
+
+    private void CreateOuterRoom(int nodeID, int side)
+    {
+        PathfindingNode currentNode = _pathfindingNodes[nodeID];
+        PathfindingNode newNode;
+
+        switch (side)
+        {
+            case 0: // TOP
+                while(currentNode.neighbours[0] != null)
+                {
+                    currentNode = currentNode.neighbours[0];
+                }
+
+                newNode = new PathfindingNode(_currentEmptyNode, currentNode.position.x, currentNode.position.y, currentNode.position.z + _mazeSettings.distanceBetweenCells, currentNode.TileType);
+                ConnectTwoNodes(currentNode, newNode, Side.Top);
+                break;
+            case 1: // RIGHT
+                while (currentNode.neighbours[2] != null)
+                {
+                    currentNode = currentNode.neighbours[2];
+                }
+
+                newNode = new PathfindingNode(_currentEmptyNode, currentNode.position.x + _mazeSettings.distanceBetweenCells, currentNode.position.y, currentNode.position.z, currentNode.TileType);
+                ConnectTwoNodes(currentNode, newNode, Side.Right);
+                break;
+            case 2: // BOTTOM
+                while (currentNode.neighbours[4] != null)
+                {
+                    currentNode = currentNode.neighbours[4];
+                }
+
+                newNode = new PathfindingNode(_currentEmptyNode, currentNode.position.x, currentNode.position.y, currentNode.position.z - _mazeSettings.distanceBetweenCells, currentNode.TileType);
+                ConnectTwoNodes(currentNode, newNode, Side.Bottom);
+                break;
+            case 3: // LEFT
+                while (currentNode.neighbours[6] != null)
+                {
+                    currentNode = currentNode.neighbours[6];
+                }
+
+                newNode = new PathfindingNode(_currentEmptyNode, currentNode.position.x - _mazeSettings.distanceBetweenCells, currentNode.position.y, currentNode.position.z, currentNode.TileType);
+                ConnectTwoNodes(currentNode, newNode, Side.Left);
+                
+                break;
+            default:
+                throw new System.Exception("Index out of bounds");
+        }
+
+        int rotation = (side % 2 == 0) ? 0 : 1;
+        //Instantiate(_tiles[newNode.TileType].tiles[2], new Vector3(newNode.position.x, newNode.position.y + 2, newNode.position.z), Quaternion.Euler(new Vector3(0, rotation * 90, 0)), transform); // TODO remove
+        Instantiate(_tiles[newNode.TileType].tiles[2], newNode.position, Quaternion.Euler(new Vector3(0, rotation * 90, 0)), transform);
+
+        _currentEmptyNode++;
+    }
+
+    #endregion
+
+    private void SpawnEnemies()
+    {
+        List<Vector3> positionsToSpawn = new List<Vector3>();
+        for (int i = 0; i < _currentEmptyNode; i++)
+        {
+            if (_pathfindingNodes[i] != null)
+            {
+                if (Random.Range(0f, 1f) <= _mazeSettings.spawnChance)
+                {
+                    positionsToSpawn.Add(_pathfindingNodes[i].position); // TODO add Y?
+                }
+            }
+        }
+
+        positionsToSpawn = _winCondition.ConfirmSpawnLocations(positionsToSpawn);
+
+
+        Spawner spawner = GetComponent<Spawner>();
+
+        foreach (Vector3 position in positionsToSpawn)
+        {
+            spawner.SpawnEnemy(position);
+        }
+    }
 }

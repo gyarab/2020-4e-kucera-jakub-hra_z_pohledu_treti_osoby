@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class StateMachine : MonoBehaviour
+public class EntitySM : MonoBehaviour
 {
     protected State State;
 

@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyListSO : ScriptableObject
+public enum AnimationType
 {
-    public SaveableEnemy[] enemies;
+    Fists,
+    Onehanded,
+    Twohanded,
+    Bothhanded
 }

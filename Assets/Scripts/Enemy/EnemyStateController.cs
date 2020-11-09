@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EnemyStateController : StateMachine, IDamageable // TODO remove?
+public class EnemyStateController : EntitySM, IDamageable // TODO remove?
 {
     [Header("Enemy")]
     [SerializeField]

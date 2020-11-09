@@ -16,10 +16,11 @@ public class GameManager : MonoBehaviour
     public GameObject Player { get; set; }
     public HubManager CurrentHubManager { get; set; }
     public Vector3 Spawnpoint { get; set; }
+    // TODO in a different way?
+    public MazeManager CurrentMazeManager { get; set; }
 
     private string _currentSavePath; // TODO remove useless?
 
-    //private ItemDatabaseObject _itemObjectDatabase;
     private ItemDatabase _itemDatabase;
 
     public static GameManager Instance
@@ -46,11 +47,6 @@ public class GameManager : MonoBehaviour
     {
         DontDestroyOnLoad(gameObject);
         _itemDatabase = Instantiate(Resources.Load<GameObject>("_ItemDatabase"), transform).GetComponent<ItemDatabase>();
-    }
-
-    private void Start()
-    {
-        //_itemObjectDatabase = Resources.Load<ItemDatabaseObject>("ItemDatabase");
     }
 
     public ItemObject GetItemObjectByID(int id)
@@ -87,14 +83,28 @@ public class GameManager : MonoBehaviour
     {
         _currentSavePath = path;
         // TODO do something w path; load inventory
-        StartCoroutine(LoadHubAsync("Hub", "Player"));
+        StartCoroutine(LoadGameAsync("Hub", "Player"));
     }
 
     public void LoadMaze(MazeSettingsSO mazeSettings)
     {
-        // TODO loading screen in player canvas
-        Player.SetActive(false);
+        Debug.Log("loading maze");
+
+        // TODO loading screen
         StartCoroutine(LoadMazeAsync("Maze", mazeSettings));
+    }
+
+    public void LoadHub(bool success, int coinsUnlocked)
+    {
+        Debug.Log("loading hub");
+
+        if (success)
+        {
+            // TODO transfer player coins to inv && unlock next level if possible
+        }
+
+        // TODO laoding screen
+        StartCoroutine(LoadHubAsync("Hub"));
     }
 
     public void UnloadScene(string name)
@@ -107,7 +117,7 @@ public class GameManager : MonoBehaviour
     // Loads game scene
     #region Enumerators
 
-    IEnumerator LoadHubAsync(string locationSceneName, string playerSceneName)
+    IEnumerator LoadGameAsync(string locationSceneName, string playerSceneName)
     {
         AsyncOperation locationSceneLoadingTask = SceneManager.LoadSceneAsync(locationSceneName, LoadSceneMode.Additive);
         locationSceneLoadingTask.allowSceneActivation = false;
@@ -127,24 +137,43 @@ public class GameManager : MonoBehaviour
 
         while (Player == null || CurrentHubManager == null) { yield return null; }
 
-        Player.GetComponent<PlayerController>().GetPlayerInventory().Load(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, "player.inv")); // TODO hardcoded
+        Player.GetComponent<PlayerController>().GetPlayerInventory().Load(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, PLAYER_INVENTORY));
 
         CurrentHubManager.EnablePlayerDependantObjects(Player.transform, Player.GetComponent<PlayerController>().GetPlayerCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, "shop.inv"));
         UnloadScene("Menu");
     }
 
-    IEnumerator LoadMazeAsync(string locationSceneName, MazeSettingsSO mazeSettings)
+    IEnumerator LoadHubAsync(string locationSceneName)
     {
+        Player.SetActive(false);
         AsyncOperation locationSceneLoadingTask = SceneManager.LoadSceneAsync(locationSceneName, LoadSceneMode.Additive);
 
         while (!locationSceneLoadingTask.isDone) { yield return null; }
 
         SceneManager.SetActiveScene(SceneManager.GetSceneByName(locationSceneName));
 
-        MazeManager.Instance.CreateMaze(mazeSettings); // TODO set spawnPoint?
+        while (CurrentHubManager == null) { yield return null; }
+
+        CurrentHubManager = null;
+        UnloadScene("Maze");
+
+        Player.SetActive(true);
+        // TODO hide player loading screen; add loading screen to GameManager?
+    }
+
+    IEnumerator LoadMazeAsync(string locationSceneName, MazeSettingsSO mazeSettings)
+    {
+        Player.SetActive(false);
+        AsyncOperation locationSceneLoadingTask = SceneManager.LoadSceneAsync(locationSceneName, LoadSceneMode.Additive);
+
+        while (!locationSceneLoadingTask.isDone) { yield return null; }
+
+        SceneManager.SetActiveScene(SceneManager.GetSceneByName(locationSceneName));
+
+        while (CurrentMazeManager == null) { yield return null; }
 
         // TODO Change (mazeGen); impossible?
-        //CurrentHubManager.EnablePlayerDependantObjects(Player.transform); ?
+        CurrentMazeManager.CreateMaze(mazeSettings);
 
         CurrentHubManager = null;
         UnloadScene("Hub");

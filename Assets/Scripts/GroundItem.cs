@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GroundItem : FloatingButton
+public class GroundItem : FloatingButton // TODO spawner script
 {
     // TODO remove or uncomment if it doesnt work
     /*[SerializeField]

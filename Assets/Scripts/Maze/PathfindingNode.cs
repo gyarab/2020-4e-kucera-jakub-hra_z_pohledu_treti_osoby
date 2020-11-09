@@ -7,7 +7,7 @@ using System;
 public class PathfindingNode : IComparable<PathfindingNode>
 {
     public PathfindingNode[] neighbours;
-    public Vector2 position;
+    public Vector3 position;
     public int id, cameFromID, indexInHeap;
     public Status Status { get; set; }
     // G - distance from start; H - estimate
@@ -15,10 +15,10 @@ public class PathfindingNode : IComparable<PathfindingNode>
 
     public int TileType { get; private set; }
 
-    public PathfindingNode(int id, float x, float y, int tileType)
+    public PathfindingNode(int id, float x, float y, float z, int tileType)
     {
         this.id = id;
-        position = new Vector2(x, y);
+        position = new Vector3(x, y, z);
         neighbours = new PathfindingNode[8];
         TileType = tileType;
     }
