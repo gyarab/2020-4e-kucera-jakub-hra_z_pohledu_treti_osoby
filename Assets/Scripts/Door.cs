@@ -7,7 +7,7 @@ public class Door : MonoBehaviour
     [SerializeField]
     private float _range = 2f;
 
-    private IDoor doorImplementation;
+    private IDoor _doorImplementation;
     private Transform _target;
     private Vector3 _secondPoint;
     private int _side;
@@ -15,6 +15,11 @@ public class Door : MonoBehaviour
     private void Awake()
     {
         _secondPoint = transform.position + transform.right;
+    }
+
+    private void Start()
+    {
+        _doorImplementation = GetComponent<IDoor>();
     }
 
     void FixedUpdate()
@@ -25,7 +30,7 @@ public class Door : MonoBehaviour
             if (Vector3.Distance(_target.position, transform.position) < _range)
             {
                 // TODO load specific level; boss or puzzle etc...
-                doorImplementation.Entered();
+                _doorImplementation.Entered();
             }
         }
     }
