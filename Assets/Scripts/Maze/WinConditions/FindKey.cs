@@ -20,19 +20,19 @@ public class FindKey : MonoBehaviour, IWinCondition
         EnemyController.OnEnemyDeath -= UpdateWinCondition;
     }
 
-    public void UpdateWinCondition(Transform transform)
+    public void UpdateWinCondition(Vector3 position)
     {
         _enemiesAlive--;
         Debug.Log(_enemiesAlive + " alive out of " + _totalEnemies);
 
         if(_enemiesAlive == 0)
         {
-            SpawnKey(transform.position);
+            SpawnKey(position);
         } else if(((float)_enemiesAlive / (float)_totalEnemies) < 0.5f)
         {
             if(UnityEngine.Random.Range(0,3) == 0) // TODO move?
             {
-                SpawnKey(transform.position);
+                SpawnKey(position);
             }
         }
     }

@@ -12,17 +12,9 @@ public class Spawner : MonoBehaviour
     [SerializeField]
     private GameObject _returnPortal;
     [SerializeField]
-    private GameObject _bossRoom;
+    private GameObject _bossRoom, _bossRoomDoors, _boss;
     [SerializeField]
-    float _zOuterRoomOffset;
-    [SerializeField]
-    private GameObject _bossRoomDoors;
-
-    // Start is called before the first frame update
-    void Awake()
-    {
-        // TODO load enemy and item prefabs from resources; prob not;
-    }
+    float _zOuterRoomOffset, _zBossOffset, _yDoorOffset;
 
     public void SpawnEnemy(Vector3 position)
     {
@@ -46,12 +38,13 @@ public class Spawner : MonoBehaviour
         float yRotation = side * 90f;
 
         position = AddDistanceInMainDirection(position, side, distanceBetweenCells * 0.5f);
-        Instantiate(_bossRoomDoors, position, Quaternion.Euler(0, yRotation, 0));
+        Instantiate(_bossRoomDoors, new Vector3(position.x, position.y + _yDoorOffset, position.z), Quaternion.Euler(0, yRotation, 0));
 
-        // TODO Spawn boss too?
-
-        position = AddDistanceInMainDirection(position, side, distanceBetweenCells * _zOuterRoomOffset);
+        position = AddDistanceInMainDirection(position, side, _zOuterRoomOffset);
         Instantiate(_bossRoom, position, Quaternion.Euler(0, yRotation, 0));
+
+        position = AddDistanceInMainDirection(position, side, _zBossOffset - _zOuterRoomOffset);
+        Instantiate(_boss, position, Quaternion.Euler(0, yRotation - 180, 0));
     }
 
     private Vector3 AddDistanceInMainDirection(Vector3 position, int side, float distanceToAdd)
@@ -73,10 +66,5 @@ public class Spawner : MonoBehaviour
         }
 
         return position;
-    }
-
-    public void SpawnBoss(Vector3 position, Vector3 rotation)
-    {
-        Debug.Log("Spawn boss");
     }
 }

@@ -3,133 +3,117 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public enum ActionType
-{
-    None,
-    Attack,
-    Roll,
-    Jump
-}
-
 public class PlayerController : MonoBehaviour, IDamageable
 {
     #region Basic Variables
 
     [Header("General")]
-    public float controllerGroundHeightOffset;
+    [SerializeField]
+    private float _controllerGroundHeightOffset;
     [Range(0.0f, 89.0f)]
-    public float walkAngle; // not working rn
-    public float rollDuration;
+    [SerializeField]
+    private float _walkAngle; // not working rn
+    [SerializeField]
+    private float _rollDuration;
 
     [Header("Speeds")]
-    public float moveSpeed;
-    [Range(0.0f, 1.0f)]
-    public float inAirSpeed;
-    [Range(0.0f, 2.0f)]
-    public float rollSpeedMultiplier;
-    public float playerRotationSpeed;
+    [SerializeField]
+    private float _moveSpeed;
+    [SerializeField]
+    private float _playerRotationSpeed;
+    [Range(0.0f, 1.0f), SerializeField]
+    private float _inAirSpeed;
+    [Range(0.0f, 2.0f), SerializeField]
+    private float _rollSpeedMultiplier;
 
-    [Header("Physics")]
-    public float gravity;
-    public float jumpForce;
+    [Header("Physics"), SerializeField]
+    private float gravity;
+    [SerializeField]
+    private float jumpForce;
 
     [Header("Rays")]
-    public float groundRayOffset;
-    public float groundRayOverhead;
-    public float groundRayJumpDecrease;
-    public float sphereOffset;
-    public float sphereRadius;
-    public LayerMask excludePlayer;
-    public float groundOffset;
-    //public float groundSphereRadius; why?
+    [SerializeField]
+    private LayerMask _excludePlayer;
+    [SerializeField]
+    private float _groundRayOffset, _groundRayOverhead, _groundRayJumpDecrease, _sphereOffset, _sphereRadius, _groundOffset;
 
-    [Header("Components")]
-    public SphereCollider sphereCollider;
-    public SphereCollider sphereFeetCollider;
-    public Transform cameraTransform;
-    public Joystick joystick;
 
-    [Header("Camera")]
-    public float cameraSensitivityX;
-    public float cameraSensitivityY;
-    public float distanceFromTarget;
-    public Vector2 pitchMinMax;
-    public float rotationSmoothTime;
-    public Vector3 cameraOffset;
-    public float cameraClippingOffset;
-    public float automaticCameraRotationSpeed;
+    [Header("Components"), SerializeField]
+    private SphereCollider _sphereCollider;
+    [SerializeField]
+    private SphereCollider _sphereFeetCollider;
+    [SerializeField]
+    private Transform _cameraTransform;
+    [SerializeField]
+    private Joystick joystick;
 
-    [Header("Target Lock")]
-    [Range(0f, 1f)]
-    public float targetLockTimeWindow;
-    public float targetLockMaxFingerDistance;
-    [Range(1, 10)]
-    public int recordedTouchesLimit;
-    public float targetLockRayDistance;
-    public LayerMask excludeUILayer;
+    [Header("Camera"), SerializeField]
+    private Vector3 _cameraOffset;
+    [SerializeField]
+    private Vector2 _pitchMinMax;
+    [SerializeField]
+    private float _cameraSensitivityX, _cameraSensitivityY, _distanceFromTarget, _rotationSmoothTime, _cameraClippingOffset, _automaticCameraRotationSpeed;
+
+    [Header("Target Lock"), Range(0f, 1f), SerializeField]
+    private float _targetLockTimeWindow;
+    [SerializeField]
+    public float _targetLockMaxFingerDistance, _targetLockRayDistance;
+    [Range(1, 10), SerializeField]
+    private int _recordedTouchesLimit;
+    [SerializeField]
+    private LayerMask _excludeUILayer;
 
     [Header("Inventory and UI")]
     [SerializeField]
     private InventoryMonoBehaviour _inventory;
-
-    [Header("Stats temporary")] // TODO remove, prob not
     [SerializeField]
-    private CharacterStatsSO baseStats;
-    private CharacterStats _currentStats;
+    private HealthBar _healthBar;
+
+    [Header("Stats")]
+    [SerializeField]
+    private CharacterStatsSO _baseStats;
     [SerializeField]
     private float currentHealth;
 
     [Header("Animatons")]
     [SerializeField]
-    private Animator animator; // TODO change w weapon
+    private Animator animator;
     [SerializeField]
-    private AnimatorOverrideController fistsOverrideController;
-    [SerializeField]
-    private AnimatorOverrideController onehandedOverrideController, twohandedOverrideController, bothhandedOverrideController; 
+    private AnimatorOverrideController _fistsOverrideController, _onehandedOverrideController, _twohandedOverrideController, _bothhandedOverrideController; 
 
     private InventorySlotContainer _inventoryContainer;
+    private CharacterStats _currentStats;
 
-    private Vector3 rotationSmoothVelocity;
-    private Vector3 currentRotation;
-    private float yaw;
-    private float pitch;
+    private Vector3 _rotationSmoothVelocity, cur_rentRotation;
+    private float _yaw, _pitch;
 
-    private float currentGravity;
-    private RaycastHit groundHit;
+    private float _currentGravity;
+    private RaycastHit _groundHit;
 
     // const
-    private Vector3 groundRayPosition;
-    private Vector3 spherePos;
-    private Vector3 groundPos;
-    private float maxStep;
+    private Vector3 _groundRayPosition, _spherePos, _groundPos;
+    private float _maxStep;
 
     // Actions
-    private ActionType nextAction;
-    private bool canDoAction, acceptingInput;
+    private PlayerActionType _nextAction;
+    private bool _canDoAction, _acceptingInput;
 
     // FixedUpdate
-    private Vector3 velocity, collisionCorectionVector;
-    private Vector3 joystickInput;
-    private bool grounded;
-    private bool jumpNow;
-    private bool jumping;
-    private float timeSinceGrounded;
-    private bool rollPressed;
-    private bool rolling;
-    private float rollTimer;
-    private Vector3 rollVector;
-    private Vector3 velocityRotation;
+    private Vector3 _velocity, _collisionCorectionVector;
+    private Vector3 _joystickInput;
+    private bool _grounded, _jumpNow, _jumping, _rollPressed, _rolling;
+    private float _timeSinceGrounded, _rollTimer;
+    private Vector3 _rollVector, _velocityRotation;
 
     // Camera
-    private int rightFingerId;
-    private Vector2 lookInput;
-    private Dictionary<int, float> fingerTouchTimeDictionary;
-    private Transform cameraLockedTarget;
-    private bool lockedOnTarget;
+    private int _rightFingerId;
+    private Vector2 _lookInput;
+    private Dictionary<int, float> _fingerTouchTimeDictionary;
+    private Transform _cameraLockedTarget;
+    private bool _lockedOnTarget;
 
     #endregion
 
-    // TODO public -> private + serializeField
     #region Attack Variables 
 
     [Header("Attack General")]
@@ -137,26 +121,28 @@ public class PlayerController : MonoBehaviour, IDamageable
     private Transform _rightHandTransform;
     [SerializeField]
     private Transform _leftHandTransform;
-    public bool findEnemy;
-    public LayerMask enemies;
-    public Vector3 offsetPosition, offsetRotation; // TODO
+    [SerializeField]
+    private LayerMask _enemies;
+    [SerializeField]
+    private Vector3 _offsetPosition, _offsetRotation;
 
-    [Header("Attack Timings")]
-    public float attackDuration;
-    public float attackTime;
+    [Header("Attack Timings"), SerializeField]
+    public float _attackDuration;
+    [SerializeField]
+    private float _attackTime;
 
-    [Header("Attack Collisions")]
-    public float weaponRange;
-    public float angleInDegrees;
-    public int maxAttackCollisions;
+    [Header("Attack Collisions"), SerializeField]
+    private float _weaponRange;
+    [SerializeField]
+    private float _angleInDegrees;
+    [SerializeField]
+    private int _maxAttackCollisions;
 
-    private bool attackPressed;
-    private bool attacking;
-    private bool attacked;
-    private float attackingForSeconds;
-    private Vector3 attackDirection;
-    private Collider[] attackOverlaps;
-    private int attackCollisions;
+    private bool _attackPressed, _findEnemy , _attacking, _attacked;
+    private float _attackingForSeconds;
+    private Vector3 _attackDirection;
+    private Collider[] _attackOverlaps;
+    private int _attackCollisions;
 
     #endregion
 
@@ -164,15 +150,15 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     private void Awake()
     {
-        groundRayPosition = new Vector3(0, -controllerGroundHeightOffset + groundRayOffset, 0);
-        spherePos = new Vector3(0, -sphereOffset, 0);
-        groundPos = new Vector3(0, -groundOffset, 0);
-        maxStep = sphereRadius / Mathf.Cos(walkAngle * Mathf.Deg2Rad);
+        _groundRayPosition = new Vector3(0, -_controllerGroundHeightOffset + _groundRayOffset, 0);
+        _spherePos = new Vector3(0, -_sphereOffset, 0);
+        _groundPos = new Vector3(0, -_groundOffset, 0);
+        _maxStep = _sphereRadius / Mathf.Cos(_walkAngle * Mathf.Deg2Rad);
 
-        rightFingerId = -1;
-        fingerTouchTimeDictionary = new Dictionary<int, float>(recordedTouchesLimit);
-        canDoAction = true;
-        acceptingInput = true;
+        _rightFingerId = -1;
+        _fingerTouchTimeDictionary = new Dictionary<int, float>(_recordedTouchesLimit);
+        _canDoAction = true;
+        _acceptingInput = true;
 
         AttackSettings();
 
@@ -184,7 +170,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     private void Start()
     {
         GameManager.Instance.Player = gameObject;
-        currentHealth = baseStats.health;
+        currentHealth = _baseStats.health;
     }
 
     // Directional Input
@@ -199,42 +185,42 @@ public class PlayerController : MonoBehaviour, IDamageable
         Vector3 newCamPos;
         RaycastHit hit;
 
-        if (rightFingerId != -1 && lookInput != Vector2.zero)
+        if (_rightFingerId != -1 && _lookInput != Vector2.zero)
         {
             // Ony look around if the right finger is being tracked
             //Debug.Log("Rotating");
             LookAround();
-            lockedOnTarget = false; // TODO
+            _lockedOnTarget = false; // TODO
         }
         else
         {
-            if (lockedOnTarget)
+            if (_lockedOnTarget)
             {
-                currentRotation = new Vector3(currentRotation.x, Mathf.LerpAngle(currentRotation.y, Quaternion.LookRotation(cameraLockedTarget.position - transform.position).eulerAngles.y, automaticCameraRotationSpeed * Time.deltaTime));
-                cameraTransform.eulerAngles = currentRotation;
+                cur_rentRotation = new Vector3(cur_rentRotation.x, Mathf.LerpAngle(cur_rentRotation.y, Quaternion.LookRotation(_cameraLockedTarget.position - transform.position).eulerAngles.y, _automaticCameraRotationSpeed * Time.deltaTime));
+                _cameraTransform.eulerAngles = cur_rentRotation;
             }
-            else if (velocityRotation != Vector3.zero) // CHANGE x and z != 0
+            else if (_velocityRotation != Vector3.zero) // CHANGE x and z != 0
             {
                 // TODO hopefully works; Rotates camera so it faces player movement direction  
                 /*Debug.Log("Current rot: " + currentRotation.y);
                 Debug.Log("Quaternion look rot: " + Quaternion.LookRotation(velocityRotation).eulerAngles.y);
                 Debug.Log("Result: " + Quaternion.LookRotation(velocityRotation).eulerAngles.y);*/
-                currentRotation = new Vector3(currentRotation.x, Mathf.LerpAngle(currentRotation.y, Quaternion.LookRotation(velocityRotation).eulerAngles.y, automaticCameraRotationSpeed * Time.deltaTime));
-                cameraTransform.eulerAngles = currentRotation;
+                cur_rentRotation = new Vector3(cur_rentRotation.x, Mathf.LerpAngle(cur_rentRotation.y, Quaternion.LookRotation(_velocityRotation).eulerAngles.y, _automaticCameraRotationSpeed * Time.deltaTime));
+                _cameraTransform.eulerAngles = cur_rentRotation;
             }
         }
 
-        newCamPos = transform.position - cameraTransform.forward * distanceFromTarget + cameraOffset;
+        newCamPos = transform.position - _cameraTransform.forward * _distanceFromTarget + _cameraOffset;
 
         // Camera Collision Check
-        Ray ray = new Ray(transform.position + cameraOffset, newCamPos - (transform.position + cameraOffset));
-        if (Physics.Raycast(ray, out hit, distanceFromTarget, excludePlayer))
+        Ray ray = new Ray(transform.position + _cameraOffset, newCamPos - (transform.position + _cameraOffset));
+        if (Physics.Raycast(ray, out hit, _distanceFromTarget, _excludePlayer))
         {
-            cameraTransform.position = hit.point + cameraTransform.forward * cameraClippingOffset;
+            _cameraTransform.position = hit.point + _cameraTransform.forward * _cameraClippingOffset;
         }
         else
         {
-            cameraTransform.position = newCamPos;
+            _cameraTransform.position = newCamPos;
         }
     }
 
@@ -242,49 +228,49 @@ public class PlayerController : MonoBehaviour, IDamageable
     void FixedUpdate()
     {
         // FixedUpdate or Update?
-        if (canDoAction && grounded)
+        if (_canDoAction && _grounded)
         {
-            switch (nextAction)
+            switch (_nextAction)
             {
-                case ActionType.None:
+                case PlayerActionType.None:
                     break;
-                case ActionType.Attack:
-                    acceptingInput = false;
-                    canDoAction = false;
-                    nextAction = ActionType.None;
+                case PlayerActionType.Attack:
+                    _acceptingInput = false;
+                    _canDoAction = false;
+                    _nextAction = PlayerActionType.None;
 
-                    attackingForSeconds = 0;
-                    attacked = false;
-                    attacking = true;
+                    _attackingForSeconds = 0;
+                    _attacked = false;
+                    _attacking = true;
                     animator.SetBool("Attack", true);
                     break;
-                case ActionType.Roll:
-                    acceptingInput = false;
-                    canDoAction = false;
-                    nextAction = ActionType.None;
+                case PlayerActionType.Roll:
+                    _acceptingInput = false;
+                    _canDoAction = false;
+                    _nextAction = PlayerActionType.None;
 
-                    rolling = true;
+                    _rolling = true;
                     animator.SetTrigger("Roll");
 
-                    if (joystickInput.x == 0 && joystickInput.z == 0)
+                    if (_joystickInput.x == 0 && _joystickInput.z == 0)
                     {
-                        rollVector = transform.forward * moveSpeed * rollSpeedMultiplier;
+                        _rollVector = transform.forward * _moveSpeed * _rollSpeedMultiplier;
                     }
                     else
                     {
-                        rollVector = new Vector3(joystickInput.x, currentGravity, joystickInput.z) * moveSpeed * rollSpeedMultiplier;
-                        rollVector = cameraTransform.TransformDirection(rollVector);
+                        _rollVector = new Vector3(_joystickInput.x, _currentGravity, _joystickInput.z) * _moveSpeed * _rollSpeedMultiplier;
+                        _rollVector = _cameraTransform.TransformDirection(_rollVector);
                     }
 
-                    rollTimer = 0;
+                    _rollTimer = 0;
                     break;
-                case ActionType.Jump:
-                    acceptingInput = false;
-                    canDoAction = false;
-                    nextAction = ActionType.None;
+                case PlayerActionType.Jump:
+                    _acceptingInput = false;
+                    _canDoAction = false;
+                    _nextAction = PlayerActionType.None;
 
-                    jumping = true;
-                    jumpNow = true;
+                    _jumping = true;
+                    _jumpNow = true;
                     animator.SetTrigger("Jump");
                     break;
                 default:
@@ -292,25 +278,23 @@ public class PlayerController : MonoBehaviour, IDamageable
             }
         }
 
-        if (attacking)
+        if (_attacking)
         {
             Attack();
         }
 
         CalculatePosition();
-        transform.position += velocity;
+        transform.position += _velocity;
         //Debug.Log("1: " + velocity.x + ", " + velocity.y + ", " + velocity.z);
 
         Rotate();
 
         CheckForCollisions();
-        transform.position += collisionCorectionVector;
+        transform.position += _collisionCorectionVector;
         //Debug.Log("2: " + collisionCorectionVector.x + ", " + collisionCorectionVector.y + ", " + collisionCorectionVector.z);
 
-        grounded = IsGrounded();
-        animator.SetBool("Grounded", grounded);
-        //Debug.Log("g " + grounded);
-        //Debug.Log("r " + rolling);
+        _grounded = IsGrounded();
+        animator.SetBool("Grounded", _grounded);
     }
 
     #endregion
@@ -319,93 +303,95 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     private void Attack()
     {
-        attackingForSeconds += Time.fixedDeltaTime;
-        if (!attacked && attackTime < attackingForSeconds)
+        _attackingForSeconds += Time.fixedDeltaTime;
+        if (!_attacked && _attackTime < _attackingForSeconds)
         {
             CalculateAttack();
-            attacked = true;
+            _attacked = true;
             animator.SetBool("Attack", false);
-        } else if(attackDuration < attackingForSeconds)
+        } else if(_attackDuration < _attackingForSeconds)
         {
-            if(nextAction != ActionType.Attack)
+            if(_nextAction != PlayerActionType.Attack)
             {
-                attacking = false;
-                canDoAction = true;
-                acceptingInput = true;
+                _attacking = false;
+                _canDoAction = true;
+                _acceptingInput = true;
             } else
             {
-                nextAction = ActionType.None;
-                attackingForSeconds = 0;
-                attacked = false;
-                attacking = true;
+                _nextAction = PlayerActionType.None;
+                _attackingForSeconds = 0;
+                _attacked = false;
+                _attacking = true;
             }
         }
     }
 
     private void Rotate()
     {
-        velocityRotation = new Vector3(velocity.x, 0, velocity.z);
-        if (velocityRotation != Vector3.zero) // CHANGE x and z != 0
+        transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, _velocity, _playerRotationSpeed);
+        /*_velocityRotation = new Vector3(_velocity.x, 0, _velocity.z); TODO remove
+        if (_velocityRotation != Vector3.zero)
         {
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(velocityRotation), playerRotationSpeed * Time.deltaTime);
-        }
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(_velocityRotation), _playerRotationSpeed);
+        }*/
     }
 
+    // TODO use method form Game Physics + rework
     private void CalculatePosition()
     {
-        if(grounded)
+        if(_grounded)
         {
-            if (jumping)
+            if (_jumping)
             {
-                if(jumpNow == true)
+                if(_jumpNow == true)
                 {
-                    jumpNow = false;
+                    _jumpNow = false;
                 } else
                 {
-                    jumping = false;
-                    canDoAction = true;
-                    acceptingInput = true;
+                    _jumping = false;
+                    _canDoAction = true;
+                    _acceptingInput = true;
                 }
             }
             //timeSinceGrounded = Time.fixedDeltaTime; // If gravity doesnt work
-            timeSinceGrounded = 0;
+            _timeSinceGrounded = 0;
         } else
         {
-            timeSinceGrounded += Time.fixedDeltaTime;
+            _timeSinceGrounded += Time.fixedDeltaTime;
         }
 
-        if (jumping)
+        if (_jumping)
         {
-            currentGravity = jumpForce * timeSinceGrounded - 0.5f * gravity * Mathf.Pow(timeSinceGrounded, 2);
+            _currentGravity = jumpForce * _timeSinceGrounded - 0.5f * gravity * Mathf.Pow(_timeSinceGrounded, 2);
         } else
         {
-            currentGravity = (-gravity) * Mathf.Pow(timeSinceGrounded, 2);
+            _currentGravity = (-gravity) * Mathf.Pow(_timeSinceGrounded, 2);
         }
 
-        if (attacking)
+        if (_attacking)
         {
-            velocity = new Vector3(0, currentGravity, 0) * moveSpeed;
+            _velocity = new Vector3(0, _currentGravity, 0) * _moveSpeed;
         }
-        else if (rolling)
+        else if (_rolling)
         {
-            velocity = rollVector;
-            if(rollTimer < rollDuration)
+            _velocity = _rollVector;
+            if(_rollTimer < _rollDuration)
             {
-                rollTimer += Time.fixedDeltaTime;
+                _rollTimer += Time.fixedDeltaTime;
             } else
             {
-                rolling = false;
-                canDoAction = true;
-                acceptingInput = true;
+                _rolling = false;
+                _canDoAction = true;
+                _acceptingInput = true;
             }
         } else
         {
-            velocity = new Vector3(joystickInput.x, currentGravity, joystickInput.z) * moveSpeed;
-            velocity = cameraTransform.TransformDirection(velocity);
+            _velocity = new Vector3(_joystickInput.x, _currentGravity, _joystickInput.z) * _moveSpeed;
+            _velocity = _cameraTransform.TransformDirection(_velocity);
 
-            if (!jumping)
+            if (!_jumping)
             {
-                if (joystickInput.x == 0 && joystickInput.z == 0)
+                if (_joystickInput.x == 0 && _joystickInput.z == 0)
                 {
                     animator.SetBool("Run", false);
                 }
@@ -417,44 +403,29 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
     }
 
+    // TODO use method form Game Physics + rework
     private void CheckForCollisions()
     {
-        Collider[] overlaps = new Collider[4];
-        int num = Physics.OverlapSphereNonAlloc(transform.TransformPoint(sphereCollider.center), sphereCollider.radius, overlaps, excludePlayer);
-
-        collisionCorectionVector = Vector3.zero;
-        for (int i = 0; i < num; i++)
-        {
-            Transform t = overlaps[i].transform;
-            Vector3 dir;
-            float dist;
-
-            if (Physics.ComputePenetration(sphereCollider, transform.position, transform.rotation, overlaps[i], t.position, t.rotation, out dir, out dist))
-            {
-                Vector3 penetrationVector = dir * dist;
-                collisionCorectionVector += penetrationVector;
-            }
-        }
-        collisionCorectionVector = GetXZVector(collisionCorectionVector); // Remove if collisions dont work
+        transform.position += GamePhysics.ResolveCollisions(transform.position, transform.rotation, transform.TransformPoint(_sphereCollider.center), _sphereCollider, _excludePlayer);
     }
 
+    // TODO use method form Game Physics + rework
     private bool IsGrounded()
     {
-        Ray ray = new Ray(transform.TransformPoint(groundRayPosition), Vector3.down);
+        Ray ray = new Ray(transform.TransformPoint(_groundRayPosition), Vector3.down);
 
-        //Debug.DrawRay(transform.TransformPoint(groundRayPosition), Vector3.down, Color.red);
         float rayDistance;
-        if (jumping)
+        if (_jumping)
         {
-            rayDistance = groundRayOffset - sphereRadius - groundRayJumpDecrease;
+            rayDistance = _groundRayOffset - _sphereRadius - _groundRayJumpDecrease;
         } else
         {
-            rayDistance = groundRayOffset - sphereRadius + groundRayOverhead;
+            rayDistance = _groundRayOffset - _sphereRadius + _groundRayOverhead;
         }
 
         RaycastHit[] hits = new RaycastHit[4];
-        int num = Physics.SphereCastNonAlloc(ray, sphereRadius, hits, rayDistance, excludePlayer);
-        float moveY = (rayDistance + sphereRadius) * 2;
+        int num = Physics.SphereCastNonAlloc(ray, _sphereRadius, hits, rayDistance, _excludePlayer);
+        float moveY = (rayDistance + _sphereRadius) * 2;
         float actualYDistance;
 
         if(num < 1)
@@ -464,11 +435,10 @@ public class PlayerController : MonoBehaviour, IDamageable
 
         for (int i = 0; i < num; i++)
         {
-            actualYDistance = hits[i].distance + sphereRadius;
+            actualYDistance = hits[i].distance + _sphereRadius;
 
-            if (!grounded || actualYDistance >= (groundRayOffset - maxStep))
+            if (!_grounded || actualYDistance >= (_groundRayOffset - _maxStep))
             {
-                //Debug.Log("hit " + actualYDistance + ", hit " + i);
                 if (actualYDistance < moveY)
                 {
                     moveY = actualYDistance;
@@ -476,72 +446,37 @@ public class PlayerController : MonoBehaviour, IDamageable
             }
         }
 
-        //Debug.Log("ray dist " + (rayDistance + sphereRadius));
-        if(moveY <= rayDistance + sphereRadius)
+        if(moveY <= rayDistance + _sphereRadius)
         {
-            //Debug.Log("moveY " + moveY);
-            transform.position = new Vector3(transform.position.x, transform.position.y + groundRayOffset - moveY, transform.position.z);
+            transform.position = new Vector3(transform.position.x, transform.position.y + _groundRayOffset - moveY, transform.position.z);
         }
 
-        if (grounded)
+        if (_grounded)
         {
             for (int i = 0; i < num; i++)
             {
-                actualYDistance = hits[i].distance + sphereRadius;
+                actualYDistance = hits[i].distance + _sphereRadius;
 
-                if (actualYDistance < (groundRayOffset - maxStep))
+                if (actualYDistance < (_groundRayOffset - _maxStep))
                 {
                     //Debug.Log("too high " + actualYDistance + ", hit " + i);
                     Transform t = hits[i].collider.transform;
                     Vector3 dir;
                     float dist;
 
-                    if (Physics.ComputePenetration(sphereFeetCollider, transform.position, transform.rotation, hits[i].collider, t.position, t.rotation, out dir, out dist))
+                    if (Physics.ComputePenetration(_sphereFeetCollider, transform.position, transform.rotation, hits[i].collider, t.position, t.rotation, out dir, out dist))
                     {
-                        //Debug.Log("Collision");
                         Vector3 penetrationVector = dir * dist;
-                        transform.position += GetXZVector(penetrationVector);
+                        // 2D vector
+                        transform.position += penetrationVector;
                     }
                 }
             }
         }
 
         return true;
-        /*
-        RaycastHit tempHit = new RaycastHit();
-        if (Physics.SphereCast(ray, sphereRadius, out tempHit, rayDistance, excludePlayer)) // OLD script
-        {
-            //ConfirmGround(tempHit); from tutorial
-            transform.position = new Vector3(transform.position.x, transform.position.y + groundRayOffset - sphereRadius - tempHit.distance, transform.position.z);
-            return true;
-        }
-        else
-        {
-            return false;
-        }*/
-    }
 
-    // TODO Rework? 
-    public Vector3 GetXZVector(Vector3 input)
-    {
-        //Debug.Log("Input" + input.x + ", " + input.y + ", " + input.z);
-        if(input.y == 0)
-        {
-            //Debug.Log("Unchanged");
-            return input;
-        } else if (input.x == 0 && input.z == 0)
-        {
-            return Vector3.zero;
-        }
-
-        float k;
-        Vector3 result;
-
-        k = Mathf.Pow(input.y, 2) / (Mathf.Pow(input.x, 2) + Mathf.Pow(input.z, 2));
-        result = new Vector3(input.x * (k + 1), 0, input.z * (k + 1));
-
-        //Debug.Log("Result" + result.x + ", " + result.y + ", " + result.z);
-        return input + result;
+        // check again if player is grounded?
     }
 
     #endregion
@@ -550,29 +485,29 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     public void AttackInput()
     {
-        if (acceptingInput)
+        if (_acceptingInput)
         {
-            nextAction = ActionType.Attack;
-        } else if (attacking && attacked)
+            _nextAction = PlayerActionType.Attack;
+        } else if (_attacking && _attacked)
         {
-            nextAction = ActionType.Attack;
+            _nextAction = PlayerActionType.Attack;
             animator.SetBool("Attack", true);
         }
     }
 
     public void JumpInput()
     {
-        if (acceptingInput)
+        if (_acceptingInput)
         {
-            nextAction = ActionType.Jump;
+            _nextAction = PlayerActionType.Jump;
         }
     }
 
     public void RollInput()
     {
-        if (acceptingInput)
+        if (_acceptingInput)
         {
-            nextAction = ActionType.Roll;
+            _nextAction = PlayerActionType.Roll;
         }
     }
 
@@ -599,17 +534,17 @@ public class PlayerController : MonoBehaviour, IDamageable
                     // Didn¨t touch UI
                     if (!EventSystem.current.IsPointerOverGameObject(t.fingerId))
                     {
-                        if (rightFingerId == -1)
+                        if (_rightFingerId == -1)
                         {
                             // Start tracking the rightfinger if it was not previously being tracked
-                            rightFingerId = t.fingerId;
+                            _rightFingerId = t.fingerId;
                             //Debug.Log("Started tracking right finger");
                         }
 
-                        if (fingerTouchTimeDictionary.Count < recordedTouchesLimit)
+                        if (_fingerTouchTimeDictionary.Count < _recordedTouchesLimit)
                         {
                             // and if it hits enemy; maybe not
-                            fingerTouchTimeDictionary.Add(t.fingerId, 0);
+                            _fingerTouchTimeDictionary.Add(t.fingerId, 0);
                         }
                     }
 
@@ -617,27 +552,27 @@ public class PlayerController : MonoBehaviour, IDamageable
                 case TouchPhase.Ended:
                 case TouchPhase.Canceled:
 
-                    if (t.fingerId == rightFingerId)
+                    if (t.fingerId == _rightFingerId)
                     {
                         // Stop tracking the right finger
-                        rightFingerId = -1;
+                        _rightFingerId = -1;
                         //Debug.Log("Stopped tracking right finger");
                     }
 
-                    if (fingerTouchTimeDictionary.ContainsKey(t.fingerId))
+                    if (_fingerTouchTimeDictionary.ContainsKey(t.fingerId))
                     {
-                        fingerTouchTimeDictionary.Remove(t.fingerId);
+                        _fingerTouchTimeDictionary.Remove(t.fingerId);
 
-                        Ray ray = cameraTransform.GetComponent<Camera>().ScreenPointToRay(t.position);
+                        Ray ray = _cameraTransform.GetComponent<Camera>().ScreenPointToRay(t.position);
                         RaycastHit hit;
-                        if (Physics.Raycast(ray, out hit, targetLockRayDistance, excludeUILayer))
+                        if (Physics.Raycast(ray, out hit, _targetLockRayDistance, _excludeUILayer))
                         {
                             if(hit.transform.tag == "Damageable")
                             {
                                 Debug.Log("Enemy Lock; dst: " + hit.distance);
                                 // TODO camera movement
-                                lockedOnTarget = true;
-                                cameraLockedTarget = hit.transform;
+                                _lockedOnTarget = true;
+                                _cameraLockedTarget = hit.transform;
                             }
                         }
                     }
@@ -646,52 +581,52 @@ public class PlayerController : MonoBehaviour, IDamageable
                 case TouchPhase.Moved:
 
                     // Get input for looking around
-                    if (t.fingerId == rightFingerId)
+                    if (t.fingerId == _rightFingerId)
                     {
-                        lookInput = t.deltaPosition * Time.deltaTime;
+                        _lookInput = t.deltaPosition * Time.deltaTime;
                     }
 
-                    if (fingerTouchTimeDictionary.ContainsKey(t.fingerId))
+                    if (_fingerTouchTimeDictionary.ContainsKey(t.fingerId))
                     {
-                        fingerTouchTimeDictionary[t.fingerId] += t.deltaTime;
-                        if (Vector2.SqrMagnitude(t.deltaPosition) > targetLockMaxFingerDistance || fingerTouchTimeDictionary[t.fingerId] > targetLockTimeWindow)
+                        _fingerTouchTimeDictionary[t.fingerId] += t.deltaTime;
+                        if (Vector2.SqrMagnitude(t.deltaPosition) > _targetLockMaxFingerDistance || _fingerTouchTimeDictionary[t.fingerId] > _targetLockTimeWindow)
                         {
-                            fingerTouchTimeDictionary.Remove(t.fingerId);
+                            _fingerTouchTimeDictionary.Remove(t.fingerId);
                         }
                     }
 
                     break;
                 case TouchPhase.Stationary:
                     // Set the look input to zero if the finger is still
-                    if (t.fingerId == rightFingerId)
+                    if (t.fingerId == _rightFingerId)
                     {
-                        lookInput = Vector2.zero;
+                        _lookInput = Vector2.zero;
                     }
 
-                    if (fingerTouchTimeDictionary.ContainsKey(t.fingerId))
+                    if (_fingerTouchTimeDictionary.ContainsKey(t.fingerId))
                     {
-                        fingerTouchTimeDictionary[t.fingerId] += t.deltaTime;
-                        if (fingerTouchTimeDictionary[t.fingerId] > targetLockTimeWindow)
+                        _fingerTouchTimeDictionary[t.fingerId] += t.deltaTime;
+                        if (_fingerTouchTimeDictionary[t.fingerId] > _targetLockTimeWindow)
                         {
-                            fingerTouchTimeDictionary.Remove(t.fingerId);
+                            _fingerTouchTimeDictionary.Remove(t.fingerId);
                         }
                     }
                     break;
             }
         }
 
-        joystickInput = new Vector3(joystick.Horizontal, 0, joystick.Vertical);
+        _joystickInput = new Vector3(joystick.Horizontal, 0, joystick.Vertical);
     }
 
     private void LookAround()
     {
         // Moving camera
-        yaw += lookInput.x * cameraSensitivityX;
-        pitch -= lookInput.y * cameraSensitivityY;
-        pitch = Mathf.Clamp(pitch, pitchMinMax.x, pitchMinMax.y);
+        _yaw += _lookInput.x * _cameraSensitivityX;
+        _pitch -= _lookInput.y * _cameraSensitivityY;
+        _pitch = Mathf.Clamp(_pitch, _pitchMinMax.x, _pitchMinMax.y);
 
-        currentRotation = Vector3.SmoothDamp(currentRotation, new Vector3(pitch, yaw), ref rotationSmoothVelocity, rotationSmoothTime);
-        cameraTransform.eulerAngles = currentRotation;
+        cur_rentRotation = Vector3.SmoothDamp(cur_rentRotation, new Vector3(_pitch, _yaw), ref _rotationSmoothVelocity, _rotationSmoothTime);
+        _cameraTransform.eulerAngles = cur_rentRotation;
 
         // change rotation based on movement; prob useless
         /*Vector3 e = cameraTransform.eulerAngles;
@@ -706,26 +641,26 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     private void AttackSettings()
     {
-        attackDirection = new Vector3(0, 0, 1.0f);
-        attackOverlaps = new Collider[maxAttackCollisions];
+        _attackDirection = new Vector3(0, 0, 1.0f);
+        _attackOverlaps = new Collider[_maxAttackCollisions];
     }
 
     private void CalculateAttack()
     {
-        attackCollisions = Physics.OverlapSphereNonAlloc(transform.position, weaponRange, attackOverlaps, enemies);
+        _attackCollisions = Physics.OverlapSphereNonAlloc(transform.position, _weaponRange, _attackOverlaps, _enemies);
 
-        for (int i = 0; i < attackCollisions; i++)
+        for (int i = 0; i < _attackCollisions; i++)
         {
-            if (attackOverlaps[i].GetType() == typeof(MeshCollider))
+            if (_attackOverlaps[i].GetType() == typeof(MeshCollider))
             {
                 continue;
             }
 
-            Vector3 attackDirection = attackOverlaps[i].ClosestPoint(transform.position) - transform.position;
+            Vector3 attackDirection = _attackOverlaps[i].ClosestPoint(transform.position) - transform.position;
 
-            if (angleInDegrees > Vector3.Angle(transform.TransformVector(this.attackDirection), attackDirection))
+            if (_angleInDegrees > Vector3.Angle(transform.TransformVector(this._attackDirection), attackDirection))
             {
-                attackOverlaps[i].GetComponent<IDamageable>().TakeDamage(_currentStats.Damage, _currentStats.ArmourPenetration);
+                _attackOverlaps[i].GetComponent<IDamageable>().TakeDamage(_currentStats.Damage, _currentStats.ArmourPenetration);
                 Debug.DrawRay(transform.position, attackDirection, Color.green);
             }
             else
@@ -744,16 +679,16 @@ public class PlayerController : MonoBehaviour, IDamageable
         switch (type)
         {
             case AnimationType.Fists:
-                SetAnimationsController(fistsOverrideController);
+                SetAnimationsController(_fistsOverrideController);
                 break;
             case AnimationType.Onehanded:
-                SetAnimationsController(onehandedOverrideController);
+                SetAnimationsController(_onehandedOverrideController);
                 break;
             case AnimationType.Twohanded:
-                SetAnimationsController(twohandedOverrideController);
+                SetAnimationsController(_twohandedOverrideController);
                 break;
             case AnimationType.Bothhanded:
-                SetAnimationsController(bothhandedOverrideController);
+                SetAnimationsController(_bothhandedOverrideController);
                 break;
             default:
                 Debug.Log("Really?");
@@ -774,74 +709,20 @@ public class PlayerController : MonoBehaviour, IDamageable
     public void SetStats(CharacterStats equipmentStats)
     {
         // TODO add equipment stats
-        _currentStats = new CharacterStats(baseStats.health, baseStats.armour, baseStats.damage, baseStats.armourPenetration);
+        _currentStats = new CharacterStats(_baseStats.health, _baseStats.armour, _baseStats.damage, _baseStats.armourPenetration);
         _currentStats.AddStats(equipmentStats);
+
+        if(currentHealth > _currentStats.Health)
+        {
+            currentHealth = _currentStats.Health;
+            _healthBar.SetValue(currentHealth / _currentStats.Health);
+        }
     }
 
     public CharacterStats GetStats()
     {
         return _currentStats;
     }
-
-    #endregion
-
-    // Useless
-    #region Tutorial
-
-    /*private void ConfirmGround(RaycastHit hit)
-    {
-        Collider[] colliders = new Collider[3];
-        int num = Physics.OverlapSphereNonAlloc(transform.TransformPoint(groundPos), groundSphereRadius, colliders, excludePlayer);
-        grounded = false;
-
-        foreach (Collider c in colliders)
-        {
-            if(c.transform == hit.transform)
-            {
-                groundHit = hit;
-                grounded = true;
-                break;
-            }
-        }
-        
-        if(num <= 1 && hit.distance <= 3f)
-        {
-            if(colliders[0] != null)
-            {
-                Ray ray = new Ray(transform.TransformPoint(spherePos), Vector3.down);
-                RaycastHit tempHit;
-
-                if(Physics.Raycast(ray, out tempHit, excludePlayer))
-                {
-                    if(hit.transform != colliders[0].transform)
-                    {
-                        return;
-                    }
-                }
-            }
-        }
-
-        grounded = true;
-    }
-
-    private void CollisionCheck()
-    {
-        Collider[] overlaps = new Collider[4];
-        int num = Physics.OverlapSphereNonAlloc(transform.TransformPoint(sphereCollider.center), sphereCollider.radius, overlaps, excludePlayer);
-
-        foreach (Collider c in overlaps)
-        {
-            Transform t = c.transform;
-            Vector3 dir;
-            float dist;
-
-            if(Physics.ComputePenetration(sphereCollider, transform.position, transform.rotation, c, t.position, t.rotation, out dir, out dist))
-            {
-                Vector3 penetrationVector = dir * dist;
-                velocity -= penetrationVector;
-            }
-        }
-    }*/
 
     #endregion
 
@@ -852,7 +733,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     public Transform GetPlayerCameraTransform()
     {
-        return cameraTransform;
+        return _cameraTransform;
     }
 
     public void SetWeapons(GameObject prefab, bool twoHanded)
@@ -878,6 +759,8 @@ public class PlayerController : MonoBehaviour, IDamageable
         float armourLeft = Mathf.Max(_currentStats.Armour - armourPenentration, 0);
 
         currentHealth -= damageTaken + armourLeft;
+        _healthBar.SetValue(currentHealth / _currentStats.Health);
+
         if(currentHealth <= 0)
         {
             Debug.Log("dead"); // TODO respawn

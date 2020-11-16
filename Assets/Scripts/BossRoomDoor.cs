@@ -9,7 +9,7 @@ public class BossRoomDoor : MonoBehaviour, IDoor
 
     public void Entered()
     {
-        // TODO fog + close doors, add listenet to boss for activation
+        // TODO fog + close doors, add listenet to boss for activation?
         OnDoorsOpened?.Invoke();
     }
 }

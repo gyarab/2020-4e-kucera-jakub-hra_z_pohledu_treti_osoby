@@ -16,6 +16,16 @@ public class EnemyStateMachineMonoBehaviour : MonoBehaviour
         _coroutine = StartCoroutine(nextState);
     }
 
+    protected void ChangeState(Coroutine startedCoroutine)
+    {
+        if (_coroutine != null)
+        {
+            StopCoroutine(_coroutine);
+        }
+
+        _coroutine = startedCoroutine;
+    }
+
     protected void OnDestroy()
     {
         if (_coroutine != null)

@@ -42,7 +42,7 @@ public class MazeManager : MonoBehaviour // TODO remove singleton ?
         GameManager.Instance.LoadHub(_completedWinCondition, _coinsCollected);
     }
 
-    private void GotCoin(Transform transform)
+    private void GotCoin(Vector3 position)
     {
         _coinsCollected++;
     }

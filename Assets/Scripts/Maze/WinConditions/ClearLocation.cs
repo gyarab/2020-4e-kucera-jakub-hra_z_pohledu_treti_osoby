@@ -18,7 +18,7 @@ public class ClearLocation : MonoBehaviour, IWinCondition
         EnemyController.OnEnemyDeath -= UpdateWinCondition;
     }
 
-    public void UpdateWinCondition(Transform transform)
+    public void UpdateWinCondition(Vector3 position)
     {
         _enemiesAlive--;
 

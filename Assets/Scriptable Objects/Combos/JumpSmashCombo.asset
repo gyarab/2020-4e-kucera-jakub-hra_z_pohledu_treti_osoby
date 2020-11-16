@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49e6669f567f1c546b7d84f97a62f362, type: 3}
+  m_Name: JumpSmashCombo
+  m_EditorClassIdentifier: 
+  actions: 000000000400000005000000
+  waitTime:
+  - 1
+  optimalAngle: 30
+  optimalMinDistance: 3
+  optimalMaxDistance: 100

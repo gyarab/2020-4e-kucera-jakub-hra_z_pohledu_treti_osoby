@@ -4,11 +4,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 
-public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TODO combine visual navigation w pathfinding, TODO attack as class with interface
+public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TODO combine visual navigation w pathfinding / rework nav; attack as class with interface
 {
     #region Variables
 
-    public static Action<Transform> OnEnemyDeath; // TODO change to vector3?
+    public static Action<Vector3> OnEnemyDeath; // TODO change to vector3?
     public static Pathfinding Pathfinder { get; set; }
 
     [Header("Physics")]
@@ -19,7 +19,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
     [SerializeField]
     private CharacterStats _stats;
     [SerializeField]
-    private float _speed;
+    private float _movementSpeed, _rotationSpeed;
     [SerializeField]
     private GameObject _healthBarGO;
 
@@ -63,13 +63,12 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
     private List<Vector3> _path;
 
     private float _currentHealth;
-    private Vector3 _groundRayPosition, _velocity, _destination;
+    private Vector3 _velocity, _destination;
     private bool _grounded;
     private float _timeSinceGrounded, _currentGravity;
 
     #endregion
 
-    // Start is called before the first frame update
     void Start()
     {
         _mainCamera = Camera.main;
@@ -79,7 +78,6 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         _currentHealth = _stats.Health;
         _healthBarCanvas.enabled = false;
 
-        _groundRayPosition = new Vector3(0, -_enemyHeight + _groundOffset, 0);
         _grounded = true;
 
         _target = GameManager.Instance.Player.transform;
@@ -97,6 +95,8 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
     void FixedUpdate()
     {
         _grounded = IsGrounded();
+        CalculateYSpeed();
+        transform.position += _velocity;
     }
 
     public void ReceivePath(List<Vector3> path)
@@ -147,11 +147,11 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
                 index++;
             }
 
-            CalculatePosition();
-            transform.position += _velocity;
-
+            transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, _velocity, _rotationSpeed);
             yield return new WaitForFixedUpdate();
         }
+
+        _velocity = Vector3.zero;
 
         ChangeState(FollowTarget());
     }
@@ -190,11 +190,11 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
                 break;
             }
 
-            CalculatePosition();
-            transform.position += _velocity;
-
+            transform.rotation = GamePhysics.RotateTowardsTarget(transform.rotation, transform.position, _target.position, _rotationSpeed);
             yield return new WaitForFixedUpdate();
         }
+
+        _velocity = Vector3.zero;
 
         ChangeState(AttackTarget());
     }
@@ -207,8 +207,8 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
     {
         if (Vector3.Distance(transform.position, _target.transform.position) <= _attackRange)
         {
-
             Vector3 attackDirection = _target.transform.position - transform.position;
+
             if (_attackAngleInDegrees > Vector3.Angle(transform.forward, attackDirection))
             {
                 // TODO rework damage method
@@ -235,11 +235,10 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
     #region Physics Methods
 
-    public void CalculatePosition()
+    public void CalculateYSpeed()
     {
         if (_grounded)
         {
-            //timeSinceGrounded = Time.fixedDeltaTime; // If gravity doesnt work
             _timeSinceGrounded = 0;
         }
         else
@@ -247,29 +246,16 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
             _timeSinceGrounded += Time.fixedDeltaTime;
         }
 
+        _velocity.y = GamePhysics.GetGravitationalForce(_timeSinceGrounded);
+
         //currentGravity = jumpForce * timeSinceGrounded - 0.5f * gravity * Mathf.Pow(timeSinceGrounded, 2);
-        _currentGravity = (-_gravity) * Mathf.Pow(_timeSinceGrounded, 2);
-
-        //velocity = new Vector3(direction.x, 0, direction.z);
-        _velocity.y = _currentGravity;
-
-        //velocity = transform.TransformDirection(velocity);
     }
 
     public bool IsGrounded()
     {
-        Ray ray = new Ray(transform.TransformPoint(_groundRayPosition), Vector3.down);
-
-        RaycastHit tempHit = new RaycastHit();
-        if (Physics.SphereCast(ray, _sphereRadius, out tempHit, _groundOffset + _rayOverhead, _excludeCharacters))
-        {
-            transform.position = new Vector3(transform.position.x, transform.position.y + _groundOffset - _sphereRadius - tempHit.distance, transform.position.z);
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        bool grounded = GamePhysics.IsGroundedRayCast(transform.position, _groundOffset, _rayOverhead, _excludeCharacters, out float yCorrection);
+        transform.position = new Vector3(transform.position.x, transform.position.y + yCorrection, transform.position.z);
+        return grounded;
     }
 
     public void SetDestination(Vector3 location)
@@ -277,7 +263,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         //goingToDestination = true;
         // face destination TODO - coroutine?
         _destination = location;
-        Vector2 temp = new Vector2(_destination.x - transform.position.x, _destination.z - transform.position.z).normalized * _speed;
+        Vector2 temp = new Vector2(_destination.x - transform.position.x, _destination.z - transform.position.z).normalized * _movementSpeed;
         _velocity = new Vector3(temp.x, 0, temp.y);
     }
 
@@ -305,12 +291,11 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
     }
 
     #endregion
-
-    // TODO dont 
+ 
     private void GetDestroyed()
     {
         // TODO drop drop coin / items
-        OnEnemyDeath?.Invoke(transform);
+        OnEnemyDeath?.Invoke(transform.position);
 
         Destroy(gameObject);
     }

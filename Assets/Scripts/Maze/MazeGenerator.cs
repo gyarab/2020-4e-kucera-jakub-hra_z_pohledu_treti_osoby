@@ -797,12 +797,7 @@ public class MazeGenerator : MonoBehaviour
         Vector2Int path = GetPath(cellPosition, dimensions);
         int currentNodeID = _cells[cellPosition.x, cellPosition.y].lowestPathfindingNodeID + (dimensions.y * path.x) + path.y;
 
-        PathfindingNode newNode = _pathfindingNodes[currentNodeID];
-        CreateOuterRoom(currentNodeID, side);
-
-        Vector3 outerRoomPosition = newNode.position;
-
-        
+        Vector3 outerRoomPosition = CreateOuterRoom(currentNodeID, side);
 
         // TODO instantiate boss room and doors to the room
         GetComponent<Spawner>().SpawnBossRoom(outerRoomPosition, side, _mazeSettings.distanceBetweenCells);
@@ -884,7 +879,7 @@ public class MazeGenerator : MonoBehaviour
         throw new System.Exception("Could not find cell");
     }
 
-    private void CreateOuterRoom(int nodeID, int side)
+    private Vector3 CreateOuterRoom(int nodeID, int side)
     {
         PathfindingNode currentNode = _pathfindingNodes[nodeID];
         PathfindingNode newNode;
@@ -937,6 +932,8 @@ public class MazeGenerator : MonoBehaviour
         Instantiate(_tiles[newNode.TileType].tiles[2], newNode.position, Quaternion.Euler(new Vector3(0, rotation * 90, 0)), transform);
 
         _currentEmptyNode++;
+
+        return newNode.position;
     }
 
     #endregion
@@ -950,7 +947,7 @@ public class MazeGenerator : MonoBehaviour
             {
                 if (Random.Range(0f, 1f) <= _mazeSettings.spawnChance)
                 {
-                    positionsToSpawn.Add(_pathfindingNodes[i].position); // TODO add Y?
+                    positionsToSpawn.Add(new Vector3(_pathfindingNodes[i].position.x, _pathfindingNodes[i].position.y + 0.5f, _pathfindingNodes[i].position.z)); // TODO hardcoded
                 }
             }
         }

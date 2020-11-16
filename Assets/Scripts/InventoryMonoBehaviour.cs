@@ -10,6 +10,7 @@ using TMPro;
 public class InventoryMonoBehaviour : MonoBehaviour
 {
     public int Coins { get; set; } // TODO loading and saving
+    public HealthBar BossHealthBar => _bossHealthBar;
 
     [Header("General")]
     [SerializeField]
@@ -51,6 +52,10 @@ public class InventoryMonoBehaviour : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI _statsDeltaTMPT;
 
+    [Header("BossHealthBar")]
+    [SerializeField]
+    private HealthBar _bossHealthBar;
+
     private InventorySlotContainer _secondaryShopInventoryContainer;
 
     private string _savePath;
@@ -69,6 +74,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
     {
         HideInventoryUI();
         PassStatsToPlayer();
+        _bossHealthBar.SetVisibility(false);
     }
 
     public void ShowInventory(bool shop)
