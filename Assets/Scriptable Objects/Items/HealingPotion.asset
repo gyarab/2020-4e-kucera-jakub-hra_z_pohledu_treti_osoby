@@ -10,14 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8bad2bd45eb0a1d4287a50ba26d8208e, type: 3}
-  m_Name: DmgPotion
+  m_Name: HealingPotion
   m_EditorClassIdentifier: 
-  itemID: 3
+  itemID: 5
   uiSprite: {fileID: 0}
-  type: 0
-  itemName: Damage Potion
-  description: Drink this potion to gain inhuman strength (increased damage).
-  price: 0
-  healthBuff: 1
-  damageBuff: 2
-  staminaBuff: 1
+  type: 1
+  itemName: Healing Potion
+  description: This potion brewed during full moon might save you life or win a boss
+    fight.
+  price: 5
+  healthRegen: 50

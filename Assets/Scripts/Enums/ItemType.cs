@@ -4,8 +4,8 @@ using UnityEngine;
 
 public enum ItemType
 {
+    Quest,
     Consumable,
     Equipment,
-    Default,
     Weapon
 }

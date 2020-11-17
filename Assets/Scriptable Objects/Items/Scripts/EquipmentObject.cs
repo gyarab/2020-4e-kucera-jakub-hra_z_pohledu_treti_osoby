@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Equipment Object", menuName = "InventorySystem/Items/Equipment")]
-public class EquipmentObject : ItemObject
+public class EquipmentObject : ItemObject // TODO remove or implement
 {
     public float defenceBonus = 0;
     [Range(0,2)]

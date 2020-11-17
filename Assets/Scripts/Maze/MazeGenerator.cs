@@ -60,9 +60,8 @@ public class MazeGenerator : MonoBehaviour
         Debug.Log("Generation Done");
 
         // TODO remove or move?
-        Debug.Log("spawn " + _spawnPoint);
         GetComponent<Spawner>().SpawnReturnPortal(_spawnPoint);
-        GameManager.Instance.Player.transform.position = new Vector3(_spawnPoint.x, _spawnPoint.y + 1, _spawnPoint.z); // TODO doesnt work?
+        GameManager.Instance.Player.transform.position = new Vector3(_spawnPoint.x, _spawnPoint.y + 2, _spawnPoint.z); // TODO doesnt work?
 
         // TODO make better & move?
         SpawnEnemies();

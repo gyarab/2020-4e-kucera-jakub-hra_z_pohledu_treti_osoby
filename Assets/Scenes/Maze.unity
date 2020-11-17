@@ -168,8 +168,8 @@ MonoBehaviour:
   _bossRoomDoors: {fileID: 7105246559672747822, guid: 9181a48b9cdfdc44fbc7e43e69266f14,
     type: 3}
   _boss: {fileID: 1903210996428242009, guid: e3b826cd9d78a284c93fd3abfa8784a5, type: 3}
-  _zOuterRoomOffset: 0
-  _zBossOffset: 25
+  _zOuterRoomOffset: 25
+  _zBossOffset: 40
   _yDoorOffset: 2
 --- !u!114 &1994751313
 MonoBehaviour:

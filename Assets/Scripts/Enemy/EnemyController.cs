@@ -6,10 +6,10 @@ using System;
 
 public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TODO combine visual navigation w pathfinding / rework nav; attack as class with interface
 {
-    #region Variables
-
-    public static Action<Vector3> OnEnemyDeath; // TODO change to vector3?
+    public static Action<Vector3> OnEnemyDeath;
     public static Pathfinding Pathfinder { get; set; }
+
+    #region Variables
 
     [Header("Physics")]
     [SerializeField]
@@ -260,8 +260,6 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
     public void SetDestination(Vector3 location)
     {
-        //goingToDestination = true;
-        // face destination TODO - coroutine?
         _destination = location;
         Vector2 temp = new Vector2(_destination.x - transform.position.x, _destination.z - transform.position.z).normalized * _movementSpeed;
         _velocity = new Vector3(temp.x, 0, temp.y);

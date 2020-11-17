@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8729eaba13c9cce44bde41f210497f73, type: 3}
   m_Name: LongKatana
   m_EditorClassIdentifier: 
-  itemID: 0
+  itemID: 2
   uiSprite: {fileID: 0}
   type: 3
   itemName: Very Long Katana

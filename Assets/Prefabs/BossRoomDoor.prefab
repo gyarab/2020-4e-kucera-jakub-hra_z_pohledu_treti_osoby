@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7323985641311397518}
   - component: {fileID: 8063327998811924202}
   - component: {fileID: 3600059775087129324}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: BossRoomDoor1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -27,8 +27,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1646381112072813234}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 4, z: 1}
+  m_LocalPosition: {x: 3, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 6, z: 1}
   m_Children: []
   m_Father: {fileID: 5011610506193783406}
   m_RootOrder: 0
@@ -103,7 +103,7 @@ GameObject:
   - component: {fileID: 1040731107866422833}
   - component: {fileID: 3858244906410994946}
   - component: {fileID: 7690276306221600974}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: BossRoomDoor3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -118,8 +118,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2690442407746959245}
   m_LocalRotation: {x: -0, y: -0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 1.5, z: 0}
-  m_LocalScale: {x: 1, y: 3, z: 1}
+  m_LocalPosition: {x: 0, y: 3.5, z: 0}
+  m_LocalScale: {x: 1, y: 5, z: 1}
   m_Children: []
   m_Father: {fileID: 5011610506193783406}
   m_RootOrder: 2
@@ -193,7 +193,7 @@ GameObject:
   - component: {fileID: 5011610506193783406}
   - component: {fileID: 6026991262730413299}
   - component: {fileID: 6650610916560408121}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: BossRoomDoor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -254,7 +254,7 @@ GameObject:
   - component: {fileID: 160084755946752690}
   - component: {fileID: 1160178164081801856}
   - component: {fileID: 8492708800911806843}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: BossRoomDoor2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -269,8 +269,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8832081097129750904}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -2, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 4, z: 1}
+  m_LocalPosition: {x: -3, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 6, z: 1}
   m_Children: []
   m_Father: {fileID: 5011610506193783406}
   m_RootOrder: 1

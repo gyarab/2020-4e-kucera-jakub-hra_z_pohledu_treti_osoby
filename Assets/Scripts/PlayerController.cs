@@ -15,6 +15,8 @@ public class PlayerController : MonoBehaviour, IDamageable
     private float _walkAngle; // not working rn
     [SerializeField]
     private float _rollDuration;
+    [SerializeField]
+    private Vector2 _rollInvincibilityTiming;
 
     [Header("Speeds")]
     [SerializeField]
@@ -29,13 +31,13 @@ public class PlayerController : MonoBehaviour, IDamageable
     [Header("Physics"), SerializeField]
     private float gravity;
     [SerializeField]
-    private float jumpForce;
+    private float _jumpForce, _maxStep;
 
     [Header("Rays")]
     [SerializeField]
     private LayerMask _excludePlayer;
     [SerializeField]
-    private float _groundRayOffset, _groundRayOverhead, _groundRayJumpDecrease, _sphereOffset, _sphereRadius, _groundOffset;
+    private float _groundRayOffset, _groundRayOverhead, _groundRayJumpDecrease, _sphereOffset, _sphereRadius, _groundOffset; // TODO remove _sphereRadius?
 
 
     [Header("Components"), SerializeField]
@@ -73,7 +75,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     [SerializeField]
     private CharacterStatsSO _baseStats;
     [SerializeField]
-    private float currentHealth;
+    private float _currentHealth;
 
     [Header("Animatons")]
     [SerializeField]
@@ -84,7 +86,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     private InventorySlotContainer _inventoryContainer;
     private CharacterStats _currentStats;
 
-    private Vector3 _rotationSmoothVelocity, cur_rentRotation;
+    private Vector3 _rotationSmoothVelocity, _currentRotation;
     private float _yaw, _pitch;
 
     private float _currentGravity;
@@ -92,7 +94,6 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     // const
     private Vector3 _groundRayPosition, _spherePos, _groundPos;
-    private float _maxStep;
 
     // Actions
     private PlayerActionType _nextAction;
@@ -153,7 +154,6 @@ public class PlayerController : MonoBehaviour, IDamageable
         _groundRayPosition = new Vector3(0, -_controllerGroundHeightOffset + _groundRayOffset, 0);
         _spherePos = new Vector3(0, -_sphereOffset, 0);
         _groundPos = new Vector3(0, -_groundOffset, 0);
-        _maxStep = _sphereRadius / Mathf.Cos(_walkAngle * Mathf.Deg2Rad);
 
         _rightFingerId = -1;
         _fingerTouchTimeDictionary = new Dictionary<int, float>(_recordedTouchesLimit);
@@ -170,7 +170,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     private void Start()
     {
         GameManager.Instance.Player = gameObject;
-        currentHealth = _baseStats.health;
+        _currentHealth = _baseStats.health;
     }
 
     // Directional Input
@@ -196,8 +196,8 @@ public class PlayerController : MonoBehaviour, IDamageable
         {
             if (_lockedOnTarget)
             {
-                cur_rentRotation = new Vector3(cur_rentRotation.x, Mathf.LerpAngle(cur_rentRotation.y, Quaternion.LookRotation(_cameraLockedTarget.position - transform.position).eulerAngles.y, _automaticCameraRotationSpeed * Time.deltaTime));
-                _cameraTransform.eulerAngles = cur_rentRotation;
+                _currentRotation = new Vector3(_currentRotation.x, Mathf.LerpAngle(_currentRotation.y, Quaternion.LookRotation(_cameraLockedTarget.position - transform.position).eulerAngles.y, _automaticCameraRotationSpeed * Time.deltaTime));
+                _cameraTransform.eulerAngles = _currentRotation;
             }
             else if (_velocityRotation != Vector3.zero) // CHANGE x and z != 0
             {
@@ -205,8 +205,8 @@ public class PlayerController : MonoBehaviour, IDamageable
                 /*Debug.Log("Current rot: " + currentRotation.y);
                 Debug.Log("Quaternion look rot: " + Quaternion.LookRotation(velocityRotation).eulerAngles.y);
                 Debug.Log("Result: " + Quaternion.LookRotation(velocityRotation).eulerAngles.y);*/
-                cur_rentRotation = new Vector3(cur_rentRotation.x, Mathf.LerpAngle(cur_rentRotation.y, Quaternion.LookRotation(_velocityRotation).eulerAngles.y, _automaticCameraRotationSpeed * Time.deltaTime));
-                _cameraTransform.eulerAngles = cur_rentRotation;
+                _currentRotation = new Vector3(_currentRotation.x, Mathf.LerpAngle(_currentRotation.y, Quaternion.LookRotation(_velocityRotation).eulerAngles.y, _automaticCameraRotationSpeed * Time.deltaTime));
+                _cameraTransform.eulerAngles = _currentRotation;
             }
         }
 
@@ -284,16 +284,18 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
 
         CalculatePosition();
+        //Debug.Log("1: " + transform.position.x + ", " + transform.position.y + ", " + transform.position.z);
         transform.position += _velocity;
-        //Debug.Log("1: " + velocity.x + ", " + velocity.y + ", " + velocity.z);
+        //Debug.Log("2: " + transform.position.x + ", " + transform.position.y + ", " + transform.position.z);
+        //Debug.Log("1: " + _velocity.x + ", " + _velocity.y + ", " + _velocity.z);
 
         Rotate();
-
+        //Debug.Log("3: " + transform.position.x + ", " + transform.position.y + ", " + transform.position.z);
         CheckForCollisions();
-        transform.position += _collisionCorectionVector;
-        //Debug.Log("2: " + collisionCorectionVector.x + ", " + collisionCorectionVector.y + ", " + collisionCorectionVector.z);
+        //Debug.Log("4: " + transform.position.x + ", " + transform.position.y + ", " + transform.position.z);
 
         _grounded = IsGrounded();
+        //Debug.Log("5: " + transform.position.x + ", " + transform.position.y + ", " + transform.position.z);
         animator.SetBool("Grounded", _grounded);
     }
 
@@ -329,31 +331,22 @@ public class PlayerController : MonoBehaviour, IDamageable
     private void Rotate()
     {
         transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, _velocity, _playerRotationSpeed);
-        /*_velocityRotation = new Vector3(_velocity.x, 0, _velocity.z); TODO remove
-        if (_velocityRotation != Vector3.zero)
-        {
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(_velocityRotation), _playerRotationSpeed);
-        }*/
+        _velocityRotation = new Vector3(_velocity.x, 0, _velocity.z); // TODO try to get rid of it
     }
 
-    // TODO use method form Game Physics + rework
     private void CalculatePosition()
     {
         if(_grounded)
         {
             if (_jumping)
             {
-                if(_jumpNow == true)
-                {
-                    _jumpNow = false;
-                } else
+                if(_jumpNow == false)
                 {
                     _jumping = false;
                     _canDoAction = true;
                     _acceptingInput = true;
                 }
             }
-            //timeSinceGrounded = Time.fixedDeltaTime; // If gravity doesnt work
             _timeSinceGrounded = 0;
         } else
         {
@@ -362,7 +355,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
         if (_jumping)
         {
-            _currentGravity = jumpForce * _timeSinceGrounded - 0.5f * gravity * Mathf.Pow(_timeSinceGrounded, 2);
+            _currentGravity = _jumpForce * _timeSinceGrounded - 0.5f * gravity * Mathf.Pow(_timeSinceGrounded, 2);
         } else
         {
             _currentGravity = (-gravity) * Mathf.Pow(_timeSinceGrounded, 2);
@@ -403,80 +396,22 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
     }
 
-    // TODO use method form Game Physics + rework
     private void CheckForCollisions()
     {
         transform.position += GamePhysics.ResolveCollisions(transform.position, transform.rotation, transform.TransformPoint(_sphereCollider.center), _sphereCollider, _excludePlayer);
     }
 
-    // TODO use method form Game Physics + rework
     private bool IsGrounded()
     {
-        Ray ray = new Ray(transform.TransformPoint(_groundRayPosition), Vector3.down);
-
-        float rayDistance;
-        if (_jumping)
+        if(_velocity.y > 0 || _jumpNow)
         {
-            rayDistance = _groundRayOffset - _sphereRadius - _groundRayJumpDecrease;
-        } else
-        {
-            rayDistance = _groundRayOffset - _sphereRadius + _groundRayOverhead;
-        }
-
-        RaycastHit[] hits = new RaycastHit[4];
-        int num = Physics.SphereCastNonAlloc(ray, _sphereRadius, hits, rayDistance, _excludePlayer);
-        float moveY = (rayDistance + _sphereRadius) * 2;
-        float actualYDistance;
-
-        if(num < 1)
-        {
+            _jumpNow = false;
             return false;
         }
 
-        for (int i = 0; i < num; i++)
-        {
-            actualYDistance = hits[i].distance + _sphereRadius;
-
-            if (!_grounded || actualYDistance >= (_groundRayOffset - _maxStep))
-            {
-                if (actualYDistance < moveY)
-                {
-                    moveY = actualYDistance;
-                }
-            }
-        }
-
-        if(moveY <= rayDistance + _sphereRadius)
-        {
-            transform.position = new Vector3(transform.position.x, transform.position.y + _groundRayOffset - moveY, transform.position.z);
-        }
-
-        if (_grounded)
-        {
-            for (int i = 0; i < num; i++)
-            {
-                actualYDistance = hits[i].distance + _sphereRadius;
-
-                if (actualYDistance < (_groundRayOffset - _maxStep))
-                {
-                    //Debug.Log("too high " + actualYDistance + ", hit " + i);
-                    Transform t = hits[i].collider.transform;
-                    Vector3 dir;
-                    float dist;
-
-                    if (Physics.ComputePenetration(_sphereFeetCollider, transform.position, transform.rotation, hits[i].collider, t.position, t.rotation, out dir, out dist))
-                    {
-                        Vector3 penetrationVector = dir * dist;
-                        // 2D vector
-                        transform.position += penetrationVector;
-                    }
-                }
-            }
-        }
-
-        return true;
-
-        // check again if player is grounded?
+        bool grounded = GamePhysics.IsGroundedWithMaxStepDistanceAndCollisions(transform.TransformPoint(_groundRayPosition), _groundRayOffset, _groundRayOverhead, _maxStep, _sphereFeetCollider, transform.TransformPoint(_sphereFeetCollider.center), _excludePlayer, out Vector3 correction);
+        transform.position += correction;
+        return grounded;
     }
 
     #endregion
@@ -625,8 +560,8 @@ public class PlayerController : MonoBehaviour, IDamageable
         _pitch -= _lookInput.y * _cameraSensitivityY;
         _pitch = Mathf.Clamp(_pitch, _pitchMinMax.x, _pitchMinMax.y);
 
-        cur_rentRotation = Vector3.SmoothDamp(cur_rentRotation, new Vector3(_pitch, _yaw), ref _rotationSmoothVelocity, _rotationSmoothTime);
-        _cameraTransform.eulerAngles = cur_rentRotation;
+        _currentRotation = Vector3.SmoothDamp(_currentRotation, new Vector3(_pitch, _yaw), ref _rotationSmoothVelocity, _rotationSmoothTime);
+        _cameraTransform.eulerAngles = _currentRotation;
 
         // change rotation based on movement; prob useless
         /*Vector3 e = cameraTransform.eulerAngles;
@@ -691,8 +626,7 @@ public class PlayerController : MonoBehaviour, IDamageable
                 SetAnimationsController(_bothhandedOverrideController);
                 break;
             default:
-                Debug.Log("Really?");
-                break;
+                throw new System.NotImplementedException("Unimplmented player animation");
         }
     }
 
@@ -712,16 +646,35 @@ public class PlayerController : MonoBehaviour, IDamageable
         _currentStats = new CharacterStats(_baseStats.health, _baseStats.armour, _baseStats.damage, _baseStats.armourPenetration);
         _currentStats.AddStats(equipmentStats);
 
-        if(currentHealth > _currentStats.Health)
+        if(_currentHealth > _currentStats.Health)
         {
-            currentHealth = _currentStats.Health;
-            _healthBar.SetValue(currentHealth / _currentStats.Health);
+            _currentHealth = _currentStats.Health;
+            _healthBar.SetValue(_currentHealth / _currentStats.Health);
         }
     }
 
     public CharacterStats GetStats()
     {
         return _currentStats;
+    }
+
+    public bool RestoreHealth(float healAmount)
+    {
+        if (_currentHealth < _currentStats.Health)
+        {
+            _currentHealth += healAmount;
+
+            if(_currentHealth > _currentStats.Health)
+            {
+                _currentHealth = _currentStats.Health;
+            }
+
+            return true;
+        }
+        else
+        {
+            return true;
+        }
     }
 
     #endregion
@@ -756,12 +709,20 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     public void TakeDamage(float damageTaken, float armourPenentration)
     {
+        if (_rolling)
+        {
+            if(_rollInvincibilityTiming.x <= _rollTimer && _rollTimer <= _rollInvincibilityTiming.y)
+            {
+                return;
+            }
+        }
+
         float armourLeft = Mathf.Max(_currentStats.Armour - armourPenentration, 0);
 
-        currentHealth -= damageTaken + armourLeft;
-        _healthBar.SetValue(currentHealth / _currentStats.Health);
+        _currentHealth -= damageTaken + armourLeft;
+        _healthBar.SetValue(_currentHealth / _currentStats.Health);
 
-        if(currentHealth <= 0)
+        if(_currentHealth <= 0)
         {
             Debug.Log("dead"); // TODO respawn
         }

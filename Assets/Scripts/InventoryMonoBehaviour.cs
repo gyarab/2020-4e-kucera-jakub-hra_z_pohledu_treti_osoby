@@ -12,6 +12,8 @@ public class InventoryMonoBehaviour : MonoBehaviour
     public int Coins { get; set; } // TODO loading and saving
     public HealthBar BossHealthBar => _bossHealthBar;
 
+    #region Variables
+
     [Header("General")]
     [SerializeField]
     private Canvas _inventoryCanvas;
@@ -64,6 +66,8 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
     // Current equipment
     private InventorySlot _equippedWeaponSlot;
+
+    #endregion
 
     public void Awake()
     {
@@ -188,7 +192,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
     {
         slot.GetComponent<Image>().sprite = item.ItemObject.uiSprite;
         slot.GetComponent<Button>().onClick.RemoveAllListeners();
-        slot.GetComponent<Image>().color = Color.white; // TODO do smth else
+        slot.GetComponent<Image>().color = Color.white; // TODO dehighlight
 
         item.SlotHolderChildPosition = index;
         int id = item.ItemObject.itemID;
@@ -197,7 +201,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         {
             if (CheckIfEquipped(item))
             {
-                slot.GetComponent<Image>().color = Color.green; // TODO do smth else
+                slot.GetComponent<Image>().color = Color.green; // TODO highlight
             }
         }
 
@@ -235,7 +239,6 @@ public class InventoryMonoBehaviour : MonoBehaviour
         return false;
     }
 
-    // TODO
     public void EquipItem(int itemID)
     {
         InventorySlot inventorySlot = _playerInventoryContainer.GetSlotByItemID(itemID);
@@ -247,16 +250,17 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
     public void EquipItemInSlot(InventorySlot inventorySlot, bool visualEffect)
     {
-        if (inventorySlot.ItemObject.GetType() == typeof(WeaponObject)) // ADD CATEGORY
+        if (inventorySlot.ItemObject.GetType() == typeof(WeaponObject)) // ADD more equippable categories
         {
             WeaponObject weapon = (WeaponObject)inventorySlot.ItemObject;
+
             if (visualEffect)
             {
                 if (_equippedWeaponSlot != null)
                 {
-                    _slotHolder.GetChild(_equippedWeaponSlot.SlotHolderChildPosition).GetComponent<Image>().color = Color.white;  // TODO do smth else
+                    _slotHolder.GetChild(_equippedWeaponSlot.SlotHolderChildPosition).GetComponent<Image>().color = Color.white;  // TODO dehighlight
                 }
-                _slotHolder.GetChild(inventorySlot.SlotHolderChildPosition).GetComponent<Image>().color = Color.green; // TODO do smth else
+                _slotHolder.GetChild(inventorySlot.SlotHolderChildPosition).GetComponent<Image>().color = Color.green; // TODO highlight
             }
 
             _equippedWeaponSlot = inventorySlot;
@@ -267,8 +271,34 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
     public void ConsumeItem(int itemID)
     {
-        // TODO
-        Debug.Log("CONSUME id " + itemID);
+        InventorySlot inventorySlot = _playerInventoryContainer.GetSlotByItemID(itemID);
+
+        ConsumeItemInSlot(inventorySlot);
+    }
+
+    private void ConsumeItemInSlot(InventorySlot inventorySlot)
+    {
+        bool consumed = false;
+
+        if (inventorySlot.ItemObject.GetType() == typeof(ConsumableObject)) // ADD more equippable categories
+        {
+            ConsumableObject consumable = (ConsumableObject)inventorySlot.ItemObject;
+
+            consumed = _player.RestoreHealth(consumable.healthRegen);
+        }
+
+        if (consumed)
+        {
+            if (_playerInventoryContainer.RemoveItem(inventorySlot.ItemObject.itemID))
+            {
+                _slotHolder.transform.GetChild(inventorySlot.SlotHolderChildPosition).gameObject.SetActive(false);
+
+                if (_playerInventoryContainer.Slots.Count > 0)
+                {
+                    DisplayInfo(_playerInventoryContainer.Slots[0].ItemObject.itemID);
+                }
+            }
+        }
     }
 
     public void BuyItem(int itemID)

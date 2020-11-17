@@ -114,7 +114,7 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
-    // Loads game scene
+    // TODO add check if its already loadings something
     #region Enumerators
 
     IEnumerator LoadGameAsync(string locationSceneName, string playerSceneName)

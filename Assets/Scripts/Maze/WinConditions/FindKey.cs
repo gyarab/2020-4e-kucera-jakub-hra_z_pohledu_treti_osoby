@@ -8,7 +8,7 @@ public class FindKey : MonoBehaviour, IWinCondition
     private int _enemiesAlive, _totalEnemies;
     public Action OnCompleted { get; set; }
 
-    private const int KEY_ITEM_ID = 1; // TODO rework?
+    private const int KEY_ITEM_ID = 5; // TODO rework?
 
     private void OnEnable()
     {

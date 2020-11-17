@@ -13,7 +13,8 @@ public static class GamePhysics // TODO rename to Physics And Movement
         {
             return rotation;
         }
-        return Quaternion.Slerp(rotation, Quaternion.LookRotation(velocityRotation), rotationSpeed);
+
+        return Quaternion.Slerp(rotation, Quaternion.LookRotation(velocityRotation, Vector3.up), rotationSpeed);
     }
 
     public static Quaternion RotateTowardsTarget(Quaternion rotation, Vector3 position, Vector3 targetPosition, float rotationSpeed)
@@ -92,35 +93,90 @@ public static class GamePhysics // TODO rename to Physics And Movement
         }
     }
 
-    public static Vector3 ResolveCollisions(Vector3 position, Quaternion rotation, Vector3 collisionCenter, SphereCollider sphereCollider, LayerMask excludeCaster)
+    public static bool IsGroundedWithMaxStepDistanceAndCollisions(Vector3 rayPosition, float groundOffset, float rayOverhead, float maxStep, SphereCollider feetSphereCollider, Vector3 sphereColliderParentPosition, LayerMask layer, out Vector3 correction)
+    {
+        correction = Vector3.zero;
+        Ray ray = new Ray(rayPosition, Vector3.down);
+        RaycastHit[] hits = new RaycastHit[4];
+        float rayDistance = groundOffset + rayOverhead;
+
+        int countOfCollisions = Physics.SphereCastNonAlloc(ray, feetSphereCollider.radius, hits, rayDistance, layer);
+
+        if (countOfCollisions < 1)
+        {
+            return false;
+        }
+
+        float maxYDelta = -rayOverhead;
+        float currentDistanceFromGround;
+
+        for (int i = 0; i < countOfCollisions; i++)
+        {
+            currentDistanceFromGround = groundOffset - feetSphereCollider.radius - hits[i].distance;
+
+            if (currentDistanceFromGround >= maxYDelta)
+            {
+                Debug.Log(hits[i].transform.name);
+                maxYDelta = currentDistanceFromGround;
+            }
+        }
+
+        if(maxYDelta < 0)
+        {
+            return false;
+        }
+        if (maxYDelta <= maxStep)
+        {
+            correction.y += maxYDelta;
+        }
+        else
+        {
+            for (int i = 0; i < countOfCollisions; i++)
+            {
+                Transform transform = hits[i].collider.transform;
+                Vector3 dir;
+                float magnitude;
+
+                if (Physics.ComputePenetration(feetSphereCollider, sphereColliderParentPosition, Quaternion.identity, hits[i].collider, transform.position, transform.rotation, out dir, out magnitude))
+                {
+                    Vector3 penetrationVector = dir * magnitude;
+                    correction += GetXZPlaneVector(penetrationVector, feetSphereCollider.radius);
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public static Vector3 ResolveCollisions(Vector3 position, Quaternion rotation, Vector3 sphereColliderPosition, SphereCollider sphereCollider, LayerMask excludeCaster)
     {
         Vector3 collisionCorectionVector = Vector3.zero;
 
         Collider[] overlaps = new Collider[4];
-        int num = Physics.OverlapSphereNonAlloc(collisionCenter, sphereCollider.radius, overlaps, excludeCaster);
+        int num = Physics.OverlapSphereNonAlloc(sphereColliderPosition, sphereCollider.radius, overlaps, excludeCaster);
 
         for (int i = 0; i < num; i++)
         {
-            Transform t = overlaps[i].transform;
-            Vector3 dir;
-            float dist;
+            Transform transform = overlaps[i].transform;
+            Vector3 direction;
+            float magnitude;
 
-            if (Physics.ComputePenetration(sphereCollider, position, rotation, overlaps[i], t.position, t.rotation, out dir, out dist))
+            if (Physics.ComputePenetration(sphereCollider, position, rotation, overlaps[i], transform.position, transform.rotation, out direction, out magnitude))
             {
-                Vector3 penetrationVector = dir * dist;
+                Vector3 penetrationVector = direction * magnitude;
+                penetrationVector = GetXZPlaneVector(penetrationVector, sphereCollider.radius);
                 collisionCorectionVector += penetrationVector;
             }
         }
 
-        // 2D vector?
-        return GetXZPlaneVector(collisionCorectionVector, sphereCollider.radius);
+        return collisionCorectionVector;
     }
 
     public static Vector3 GetXZPlaneVector(Vector3 vector, float radius)
     {
         if(vector.x * vector.z == 0)
         {
-            return Vector3.zero;
+            return vector;
         }
 
         float horizontalCathetus = Mathf.Sqrt((vector.x * vector.x) + (vector.z * vector.z));
@@ -130,28 +186,11 @@ public static class GamePhysics // TODO rename to Physics And Movement
         float yDistanceFromCenter = (vector.y * hypotenuseDelta) / shorterHypotenuse; // sphere center - [0;0]
         float rho = Mathf.Sqrt((radius * radius) - (yDistanceFromCenter * yDistanceFromCenter));
         float distanceFromYAxis = Mathf.Sqrt((hypotenuseDelta * hypotenuseDelta) - (yDistanceFromCenter * yDistanceFromCenter)); // x = 0 && z = 0; Triangle - hypotenuseDelta, yDistanceFromCenter, distanceFromYAxis;
-        float missingPiece = rho - horizontalCathetus;
+        float missingPiece = rho - distanceFromYAxis - horizontalCathetus;
         float multiplier = 1 + (missingPiece / horizontalCathetus);
 
         Vector3 result = new Vector3(vector.x, 0, vector.z);
 
         return result * multiplier;
-
-        /*if (vector.y == 0) // TODO remove old and probably not functioning code?
-        {
-            return vector;
-        }
-        if (vector.x == 0 && vector.z == 0)
-        {
-            return Vector3.zero;
-        }
-
-        float k;
-        Vector3 result;
-
-        k = Mathf.Pow(vector.y, 2) / (Mathf.Pow(vector.x, 2) + Mathf.Pow(vector.z, 2));
-        result = new Vector3(vector.x * (k + 1), 0, vector.z * (k + 1));
-
-        return vector + result;*/
     }
 }

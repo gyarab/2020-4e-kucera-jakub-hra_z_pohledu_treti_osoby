@@ -7,7 +7,7 @@ public class CollectArtefacts : MonoBehaviour, IWinCondition
 {
     public Action OnCompleted { get; set; }
 
-    private const int ARTEFACT_ITEM_ID = 1; // TODO rework?; set id
+    private const int ARTEFACT_ITEM_ID = 5; // TODO rework?; set id
 
     public List<Vector3> ConfirmSpawnLocations(List<Vector3> array)
     {
