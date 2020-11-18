@@ -8,12 +8,8 @@ public class MazeGenerator : MonoBehaviour
     private GameObject _enemyPrefab;
 
     private Vector3 _spawnPoint;
-    private Stack<Vector2Int> _cellStack;
     private Vector3 _startPoint;
-    private Cell[,] _cells; // Z, X
-    private int[] _xDistance, _zDistance;
-    private Vector2Int _firstCell;
-    private int _maxNodeCount;
+    private CellData _cellData;
     private int _currentEmptyNode;
     private PathfindingNode[] _pathfindingNodes;
     private MazeSettingsSO _mazeSettings;
@@ -35,24 +31,26 @@ public class MazeGenerator : MonoBehaviour
         _winCondition = winCondition;
         _generationsRules = _winCondition.SpecialGenerationRules();
 
-        // TODO move somwhere else or add initialization
+        ICellGenerator cellGenerator = GetComponent<ICellGenerator>();
+        _startPoint = new Vector3(_mazeSettings.centerPoint.x - ((float)_mazeSettings.width / 2f) * _mazeSettings.distanceBetweenCells, _mazeSettings.centerPoint.y, _mazeSettings.centerPoint.z - ((float)_mazeSettings.length / 2f) * _mazeSettings.distanceBetweenCells); // RLpos
         int generationCounter = 0;
         while (generationCounter < _mazeSettings.triesToGenerateMaze)
         {
-            if ((float)GenerateCells() / (float)(_mazeSettings.length * _mazeSettings.width) >= _mazeSettings.minTilesPercentage)
+            _cellData = cellGenerator.GenerateCells(_mazeSettings, _startPoint);
+            if ((float)_cellData.CellCount / (float)(_mazeSettings.length * _mazeSettings.width) >= _mazeSettings.minCellPercentage)
             {
                 break;
             }
             generationCounter++;
         }
         //Debug.Log("Tries: " + generationCounter);
-        Debug.Log("Max Nodes: " + _maxNodeCount);
+        Debug.Log("Max Nodes: " + _cellData.MaximumNodeCount);
 
         CreateNodes();
 
         if (_generationsRules.Contains(GenerationRule.OuterRoom))
         {
-            CreatoOuterRoom();
+            CreateOuterRoom();
         }
 
         SpawnTiles();
@@ -116,7 +114,7 @@ public class MazeGenerator : MonoBehaviour
     }
     private void DrawCells()
     {
-        if (_cells != null)
+        if (_cellData.Cells != null)
         {
             float xPos, zPos;
 
@@ -124,11 +122,11 @@ public class MazeGenerator : MonoBehaviour
             {
                 for (int j = 0; j < _mazeSettings.width; j++)
                 {
-                    if (_cells[i, j] != null)
+                    if (_cellData.Cells[i, j] != null)
                     {
                         Gizmos.color = Color.cyan;
-                        xPos = _xDistance[j] * _mazeSettings.distanceBetweenCells;
-                        zPos = _zDistance[i] * _mazeSettings.distanceBetweenCells;
+                        xPos = _cellData.XDistance[j] * _mazeSettings.distanceBetweenCells;
+                        zPos = _cellData.ZDistance[i] * _mazeSettings.distanceBetweenCells;
 
                         Gizmos.DrawSphere(new Vector3(_startPoint.x + xPos, _startPoint.y, _startPoint.z + zPos), 0.3f);
 
@@ -139,257 +137,46 @@ public class MazeGenerator : MonoBehaviour
             }
         }
     }
+
     private void DrawPaths(int x, int y)
     {
-        float xPos = _xDistance[x] * _mazeSettings.distanceBetweenCells;
-        float yPos = _zDistance[y] * _mazeSettings.distanceBetweenCells;
+        float xPos = _cellData.XDistance[x] * _mazeSettings.distanceBetweenCells;
+        float yPos = _cellData.ZDistance[y] * _mazeSettings.distanceBetweenCells;
 
         Vector3 start = new Vector3(_startPoint.x + xPos, _startPoint.y, _startPoint.z + yPos);
         Vector3 end;
 
         // Top
-        if (_cells[x, y].IsDoor(Side.Top))
+        if (_cellData.Cells[x, y].IsDoor(Side.Top))
         {
-            xPos = _xDistance[x + 1] * _mazeSettings.distanceBetweenCells;
-            yPos = _zDistance[y] * _mazeSettings.distanceBetweenCells;
+            xPos = _cellData.XDistance[x + 1] * _mazeSettings.distanceBetweenCells;
+            yPos = _cellData.ZDistance[y] * _mazeSettings.distanceBetweenCells;
             end = new Vector3(_startPoint.x + xPos, _startPoint.y, _startPoint.z + yPos);
             Gizmos.DrawLine(start, end);
         }
         // Right
-        if (_cells[x, y].IsDoor(Side.Right))
+        if (_cellData.Cells[x, y].IsDoor(Side.Right))
         {
-            xPos = _xDistance[x] * _mazeSettings.distanceBetweenCells;
-            yPos = _zDistance[y + 1] * _mazeSettings.distanceBetweenCells;
+            xPos = _cellData.XDistance[x] * _mazeSettings.distanceBetweenCells;
+            yPos = _cellData.ZDistance[y + 1] * _mazeSettings.distanceBetweenCells;
             end = new Vector3(_startPoint.x + xPos, _startPoint.y, _startPoint.z + yPos);
             Gizmos.DrawLine(start, end);
         }
         // Bottom
-        if (_cells[x, y].IsDoor(Side.Bottom))
+        if (_cellData.Cells[x, y].IsDoor(Side.Bottom))
         {
-            xPos = _xDistance[x - 1] * _mazeSettings.distanceBetweenCells;
-            yPos = _zDistance[y] * _mazeSettings.distanceBetweenCells;
+            xPos = _cellData.XDistance[x - 1] * _mazeSettings.distanceBetweenCells;
+            yPos = _cellData.ZDistance[y] * _mazeSettings.distanceBetweenCells;
             end = new Vector3(_startPoint.x + xPos, _startPoint.y, _startPoint.z + yPos);
             Gizmos.DrawLine(start, end);
         }
         // Left
-        if (_cells[x, y].IsDoor(Side.Left))
+        if (_cellData.Cells[x, y].IsDoor(Side.Left))
         {
-            xPos = _xDistance[x] * _mazeSettings.distanceBetweenCells;
-            yPos = _zDistance[y - 1] * _mazeSettings.distanceBetweenCells;
+            xPos = _cellData.XDistance[x] * _mazeSettings.distanceBetweenCells;
+            yPos = _cellData.ZDistance[y - 1] * _mazeSettings.distanceBetweenCells;
             end = new Vector3(_startPoint.x + xPos, _startPoint.y, _startPoint.z + yPos);
             Gizmos.DrawLine(start, end);
-        }
-    }
-
-    #endregion
-
-    #region Cell Generation
-
-    private int GenerateCells()
-    {
-        int tileCounter = 1;
-        // Z, X
-        _cells = new Cell[_mazeSettings.length, _mazeSettings.width];
-        _startPoint = new Vector3(_mazeSettings.centerPoint.x - ((float)_mazeSettings.width / 2f) * _mazeSettings.distanceBetweenCells, _mazeSettings.centerPoint.y, _mazeSettings.centerPoint.z - ((float)_mazeSettings.length / 2f) * _mazeSettings.distanceBetweenCells); // RLpos
-        _cellStack = new Stack<Vector2Int>();
-        _xDistance = new int[_mazeSettings.width + 1];
-        _zDistance = new int[_mazeSettings.length + 1];
-
-        _zDistance[0] = _xDistance[0] = 0;
-        for (int i = 1; i < _mazeSettings.length + 1; i++)
-        {
-            if (_mazeSettings.randomDistanceBetweenCells)
-            {
-                _zDistance[i] = _zDistance[i - 1] + Random.Range(_mazeSettings.minDistanceMultiplyer, _mazeSettings.maxDistanceMultiplyer);
-            }
-            else
-            {
-                _zDistance[i] = i;
-            }
-        }
-
-        for (int i = 1; i < _mazeSettings.width + 1; i++)
-        {
-            if (_mazeSettings.randomDistanceBetweenCells)
-            {
-                _xDistance[i] = _xDistance[i - 1] + Random.Range(_mazeSettings.minDistanceMultiplyer, _mazeSettings.maxDistanceMultiplyer);
-            }
-            else
-            {
-                _xDistance[i] = i;
-            }
-        }
-
-        // First Cell - add all possible neighbours, Z, X
-        Vector2Int currentCellPositionInArray = _firstCell = new Vector2Int(Random.Range(1, _mazeSettings.length - 1), Random.Range(1, _mazeSettings.width - 1));
-        _cells[currentCellPositionInArray.x, currentCellPositionInArray.y] = new Cell(true, true, true, true);
-        PushNeighbouringCells(currentCellPositionInArray);
-        _maxNodeCount = (_zDistance[currentCellPositionInArray.x + 1] - _zDistance[currentCellPositionInArray.x]) * (_xDistance[currentCellPositionInArray.y + 1] - _xDistance[currentCellPositionInArray.y]);
-
-        // All other Cells
-        while (_cellStack.Count > 0)
-        {
-            currentCellPositionInArray = _cellStack.Pop();
-            if (_cells[currentCellPositionInArray.x, currentCellPositionInArray.y] != null)
-            {
-                continue;
-            }
-            CreateNewCell(currentCellPositionInArray);
-            CreateNewDoors(currentCellPositionInArray);
-            PushNeighbouringCells(currentCellPositionInArray);
-            tileCounter++;
-            _maxNodeCount += (_zDistance[currentCellPositionInArray.x + 1] - _zDistance[currentCellPositionInArray.x]) * (_xDistance[currentCellPositionInArray.y + 1] - _xDistance[currentCellPositionInArray.y]);
-        }
-
-        return tileCounter;
-    }
-
-    // TODO move somwhere else, cuz used from other region
-    // Pushes neighbouring Cells into Stack
-    private void PushNeighbouringCells(Vector2Int position)
-    {
-        Cell cell = _cells[position.x, position.y];
-
-        if (cell.IsDoor(Side.Top))
-        {
-            _cellStack.Push(new Vector2Int(position.x + 1, position.y));
-        }
-        if (cell.IsDoor(Side.Right))
-        {
-            _cellStack.Push(new Vector2Int(position.x, position.y + 1));
-        }
-        if (cell.IsDoor(Side.Bottom))
-        {
-            _cellStack.Push(new Vector2Int(position.x - 1, position.y));
-        }
-        if (cell.IsDoor(Side.Left))
-        {
-            _cellStack.Push(new Vector2Int(position.x, position.y - 1));
-        }
-    }
-
-    // Creates new Cell and copies the door positions of surrounding Cells
-    private void CreateNewCell(Vector2Int position)
-    {
-        Cell cell = new Cell();
-
-        // Top - Z
-        if (position.x < _mazeSettings.length - 1)
-        {
-            if (_cells[position.x + 1, position.y] != null)
-            {
-                if (_cells[position.x + 1, position.y].IsDoor(Side.Bottom))
-                {
-                    cell.OpenWall(Side.Top);
-                }
-            }
-        }
-        // Right - X
-        if (position.y < _mazeSettings.width - 1)
-        {
-            if (_cells[position.x, position.y + 1] != null)
-            {
-                if (_cells[position.x, position.y + 1].IsDoor(Side.Left))
-                {
-                    cell.OpenWall(Side.Right);
-                }
-            }
-        }
-        // Bottom - Z
-        if (position.x > 0)
-        {
-            if (_cells[position.x - 1, position.y] != null)
-            {
-                if (_cells[position.x - 1, position.y].IsDoor(Side.Top))
-                {
-                    cell.OpenWall(Side.Bottom);
-                }
-            }
-        }
-        // Left - X
-        if (position.y > 0)
-        {
-            if (_cells[position.x, position.y - 1] != null)
-            {
-                if (_cells[position.x, position.y - 1].IsDoor(Side.Right))
-                {
-                    cell.OpenWall(Side.Left);
-                }
-            }
-        }
-
-        _cells[position.x, position.y] = cell;
-    }
-
-    // Try to create new doors
-    private void CreateNewDoors(Vector2Int position)
-    {
-        int doorCount = _cells[position.x, position.y].GetDoorCount();
-        //Debug.Log(doorCount);
-        int offset = Random.Range(0, 4);
-
-        for (int i = 0; i < 4; i++)
-        {
-            // Offset - random starting direction
-            switch ((i + offset) % 4)
-            {
-                case 0:
-                    // Top
-                    if (position.x < _mazeSettings.length - 1)
-                    {
-                        if (_cells[position.x + 1, position.y] == null)
-                        {
-                            if (Random.Range(0f, 1) <= _mazeSettings.doorDirectionChance[0] * _mazeSettings.doorChanceFallOff[doorCount])
-                            {
-                                doorCount++;
-                                _cells[position.x, position.y].OpenWall(Side.Top);
-                            }
-                        }
-                    }
-                    break;
-                case 1:
-                    // Rigth
-                    if (position.y < _mazeSettings.width - 1)
-                    {
-                        if (_cells[position.x, position.y + 1] == null)
-                        {
-                            if (Random.Range(0f, 1) <= _mazeSettings.doorDirectionChance[1] * _mazeSettings.doorChanceFallOff[doorCount])
-                            {
-                                doorCount++;
-                                _cells[position.x, position.y].OpenWall(Side.Right);
-                            }
-                        }
-                    }
-                    break;
-                case 2:
-                    // bottom
-                    if (position.x > 0)
-                    {
-                        if (_cells[position.x - 1, position.y] == null)
-                        {
-                            if (Random.Range(0f, 1) <= _mazeSettings.doorDirectionChance[2] * _mazeSettings.doorChanceFallOff[doorCount])
-                            {
-                                doorCount++;
-                                _cells[position.x, position.y].OpenWall(Side.Bottom);
-                            }
-                        }
-                    }
-                    break;
-                case 3:
-                    // Left
-                    if (position.y > 0)
-                    {
-                        if (_cells[position.x, position.y - 1] == null)
-                        {
-                            if (Random.Range(0f, 1) <= _mazeSettings.doorDirectionChance[3] * _mazeSettings.doorChanceFallOff[doorCount])
-                            {
-                                doorCount++;
-                                _cells[position.x, position.y].OpenWall(Side.Left);
-                            }
-                        }
-                    }
-                    break;
-            }
         }
     }
 
@@ -400,25 +187,26 @@ public class MazeGenerator : MonoBehaviour
     private void CreateNodes()
     {
         _currentEmptyNode = 0;
-        _pathfindingNodes = new PathfindingNode[_maxNodeCount + 1];
+        _pathfindingNodes = new PathfindingNode[_cellData.MaximumNodeCount + 1];
+        Stack<Vector2Int> cellStack = new Stack<Vector2Int>();
 
         // First Cell
-        _spawnPoint = new Vector3(_startPoint.x + (_xDistance[_firstCell.y]) * _mazeSettings.distanceBetweenCells, _startPoint.y, _startPoint.z + (_zDistance[_firstCell.x]) * _mazeSettings.distanceBetweenCells); // TODO only points to the right cell; rework hardcoded?; TODO spawns somwhere else // RLpos
-        CreateRoom(_firstCell);
-        PushNeighbouringCells(_firstCell);
-        _cells[_firstCell.x, _firstCell.y].generated = true;
+        _spawnPoint = new Vector3(_startPoint.x + (_cellData.XDistance[_cellData.FirstCell.y]) * _mazeSettings.distanceBetweenCells, _startPoint.y, _startPoint.z + (_cellData.ZDistance[_cellData.FirstCell.x]) * _mazeSettings.distanceBetweenCells); // TODO only points to the right cell; rework hardcoded?; TODO spawns somwhere else // RLpos
+        CreateRoom(_cellData.FirstCell);
+        PushNeighbouringCellsIntoStack(cellStack, _cellData.FirstCell);
+        _cellData.Cells[_cellData.FirstCell.x, _cellData.FirstCell.y].generated = true;
 
         // Other Cells, Z, X
         Vector2Int currentCell;
-        while (_cellStack.Count > 0)
+        while (cellStack.Count > 0)
         {
-            currentCell = _cellStack.Pop();
-            if (_cells[currentCell.x, currentCell.y].generated == true)
+            currentCell = cellStack.Pop();
+            if (_cellData.Cells[currentCell.x, currentCell.y].generated == true)
             {
                 continue;
             }
 
-            if (Random.Range(0f, 1f) <= _mazeSettings.roomChance[_cells[currentCell.x, currentCell.y].GetDoorCount() - 1])
+            if (Random.Range(0f, 1f) <= _mazeSettings.roomChance[_cellData.Cells[currentCell.x, currentCell.y].GetDoorCount() - 1])
             {
                 CreateRoom(currentCell);
                 //Debug.Log("Room");
@@ -429,8 +217,8 @@ public class MazeGenerator : MonoBehaviour
                 //Debug.Log("Corridor");
             }
 
-            PushNeighbouringCells(currentCell);
-            _cells[currentCell.x, currentCell.y].generated = true;
+            PushNeighbouringCellsIntoStack(cellStack, currentCell);
+            _cellData.Cells[currentCell.x, currentCell.y].generated = true;
         }
     }
 
@@ -440,8 +228,8 @@ public class MazeGenerator : MonoBehaviour
 
         Vector2Int dimensions = GetDimensions(position);
         // X, Z
-        Vector2 realPosition = new Vector2(_startPoint.x + _xDistance[position.y] * _mazeSettings.distanceBetweenCells, _startPoint.z + _zDistance[position.x] * _mazeSettings.distanceBetweenCells); // RLpos
-        _cells[position.x, position.y].lowestPathfindingNodeID = _currentEmptyNode;
+        Vector2 realPosition = new Vector2(_startPoint.x + _cellData.XDistance[position.y] * _mazeSettings.distanceBetweenCells, _startPoint.z + _cellData.ZDistance[position.x] * _mazeSettings.distanceBetweenCells); // RLpos
+        _cellData.Cells[position.x, position.y].lowestPathfindingNodeID = _currentEmptyNode;
 
         // From bottom left corner 
         for (int i = 0; i < dimensions.x; i++) // Z
@@ -492,19 +280,19 @@ public class MazeGenerator : MonoBehaviour
         int tileType = _mazeSettings.corridorTileTypes[Random.Range(0, _mazeSettings.corridorTileTypes.Length)];
 
         // X, Z
-        Vector2 realPosition = new Vector2(_startPoint.x + _xDistance[position.y] * _mazeSettings.distanceBetweenCells, _startPoint.z + _zDistance[position.x] * _mazeSettings.distanceBetweenCells); // RLpos
+        Vector2 realPosition = new Vector2(_startPoint.x + _cellData.XDistance[position.y] * _mazeSettings.distanceBetweenCells, _startPoint.z + _cellData.ZDistance[position.x] * _mazeSettings.distanceBetweenCells); // RLpos
         Vector2Int dimensions = GetDimensions(position);
         Vector2Int pathCoords = GetPath(position, dimensions);
         Vector2 centerPosition = new Vector2(realPosition.x + _mazeSettings.distanceBetweenCells * pathCoords.y, realPosition.y + _mazeSettings.distanceBetweenCells * pathCoords.x); // RLpos
         // Z, X
         int centerID = _currentEmptyNode + (dimensions.y * pathCoords.x) + pathCoords.y;
-        _cells[position.x, position.y].lowestPathfindingNodeID = _currentEmptyNode;
+        _cellData.Cells[position.x, position.y].lowestPathfindingNodeID = _currentEmptyNode;
 
         PathfindingNode centerNode = new PathfindingNode(centerID, centerPosition.x, _startPoint.y ,centerPosition.y, tileType);
         _pathfindingNodes[centerID] = centerNode;
 
         // Top
-        if (_cells[position.x, position.y].IsDoor(Side.Top))
+        if (_cellData.Cells[position.x, position.y].IsDoor(Side.Top))
         {
             if (pathCoords.x < (dimensions.x - 1))
             {
@@ -514,7 +302,7 @@ public class MazeGenerator : MonoBehaviour
             }
         }
         // Right
-        if (_cells[position.x, position.y].IsDoor(Side.Right))
+        if (_cellData.Cells[position.x, position.y].IsDoor(Side.Right))
         {
             if (pathCoords.y < (dimensions.y - 1))
             {
@@ -524,7 +312,7 @@ public class MazeGenerator : MonoBehaviour
             }
         }
         // Bottom
-        if (_cells[position.x, position.y].IsDoor(Side.Bottom))
+        if (_cellData.Cells[position.x, position.y].IsDoor(Side.Bottom))
         {
             if (pathCoords.x > 0)
             {
@@ -534,7 +322,7 @@ public class MazeGenerator : MonoBehaviour
             }
         }
         // Left
-        if (_cells[position.x, position.y].IsDoor(Side.Left))
+        if (_cellData.Cells[position.x, position.y].IsDoor(Side.Left))
         {
             if (pathCoords.y > 0)
             {
@@ -554,12 +342,12 @@ public class MazeGenerator : MonoBehaviour
 
     private Vector2Int GetDimensions(Vector2Int position)
     {
-        return new Vector2Int(_zDistance[position.x + 1] - _zDistance[position.x], _xDistance[position.y + 1] - _xDistance[position.y]);
+        return new Vector2Int(_cellData.ZDistance[position.x + 1] - _cellData.ZDistance[position.x], _cellData.XDistance[position.y + 1] - _cellData.XDistance[position.y]);
     }
 
     private Vector2Int GetDimensions(int positionZ, int positionX)
     {
-        return new Vector2Int(_zDistance[positionZ + 1] - _zDistance[positionZ], _xDistance[positionX + 1] - _xDistance[positionX]);
+        return new Vector2Int(_cellData.ZDistance[positionZ + 1] - _cellData.ZDistance[positionZ], _cellData.XDistance[positionX + 1] - _cellData.XDistance[positionX]);
     }
 
     private Vector2Int GetPath(Vector2Int position, Vector2Int dimension)
@@ -641,7 +429,7 @@ public class MazeGenerator : MonoBehaviour
     // Connects nodes between cells
     private void ConnectNodesFromDifferentCells(Vector2Int position, Vector2Int firstDimensions)
     {
-        Cell cell = _cells[position.x, position.y];
+        Cell cell = _cellData.Cells[position.x, position.y];
         Vector2Int paths = GetPath(position, firstDimensions);
         Vector2Int secondDimension;
         int firstBaseID = cell.lowestPathfindingNodeID;
@@ -652,18 +440,18 @@ public class MazeGenerator : MonoBehaviour
         // Top
         if (cell.IsDoor(Side.Top))
         {
-            if (_cells[position.x + 1, position.y].generated)
+            if (_cellData.Cells[position.x + 1, position.y].generated)
             {
-                secondBaseID = _cells[position.x + 1, position.y].lowestPathfindingNodeID;
+                secondBaseID = _cellData.Cells[position.x + 1, position.y].lowestPathfindingNodeID;
                 ConnectTwoNodes(_pathfindingNodes[firstBaseID + (firstDimensions.y * (firstDimensions.x - 1)) + paths.y], _pathfindingNodes[secondBaseID + paths.y], Side.Top);
             }
         }
         // Right
         if (cell.IsDoor(Side.Right))
         {
-            if (_cells[position.x, position.y + 1].generated)
+            if (_cellData.Cells[position.x, position.y + 1].generated)
             {
-                secondBaseID = _cells[position.x, position.y + 1].lowestPathfindingNodeID;
+                secondBaseID = _cellData.Cells[position.x, position.y + 1].lowestPathfindingNodeID;
                 secondDimension = GetDimensions(position.x, position.y + 1);
                 ConnectTwoNodes(_pathfindingNodes[firstBaseID + (firstDimensions.y * paths.x) + firstDimensions.y - 1], _pathfindingNodes[secondBaseID + (secondDimension.y * paths.x)], Side.Right);
             }
@@ -671,9 +459,9 @@ public class MazeGenerator : MonoBehaviour
         // Bottom
         if (cell.IsDoor(Side.Bottom))
         {
-            if (_cells[position.x - 1, position.y].generated)
+            if (_cellData.Cells[position.x - 1, position.y].generated)
             {
-                secondBaseID = _cells[position.x - 1, position.y].lowestPathfindingNodeID;
+                secondBaseID = _cellData.Cells[position.x - 1, position.y].lowestPathfindingNodeID;
                 secondDimension = GetDimensions(position.x - 1, position.y);
                 ConnectTwoNodes(_pathfindingNodes[firstBaseID + paths.y], _pathfindingNodes[secondBaseID + (secondDimension.y * (secondDimension.x - 1)) + paths.y], Side.Bottom);
             }
@@ -681,12 +469,20 @@ public class MazeGenerator : MonoBehaviour
         // Left
         if (cell.IsDoor(Side.Left))
         {
-            if (_cells[position.x, position.y - 1].generated)
+            if (_cellData.Cells[position.x, position.y - 1].generated)
             {
-                secondBaseID = _cells[position.x, position.y - 1].lowestPathfindingNodeID;
+                secondBaseID = _cellData.Cells[position.x, position.y - 1].lowestPathfindingNodeID;
                 secondDimension = GetDimensions(position.x, position.y - 1);
                 ConnectTwoNodes(_pathfindingNodes[firstBaseID + (firstDimensions.y * paths.x)], _pathfindingNodes[secondBaseID + (secondDimension.y * paths.x) + secondDimension.y - 1], Side.Left);
             }
+        }
+    }
+
+    private void PushNeighbouringCellsIntoStack(Stack<Vector2Int> stack, Vector2Int currentCellposition)
+    {
+        foreach (Vector2Int position in _cellData.GetNeighbouringCellPositions(currentCellposition))
+        {
+            stack.Push(position);
         }
     }
 
@@ -702,13 +498,13 @@ public class MazeGenerator : MonoBehaviour
         {
             for (int j = 0; j < _mazeSettings.width; j++)
             {
-                if (_cells[i, j] != null)
+                if (_cellData.Cells[i, j] != null)
                 {
 
                     dimensions = GetDimensions(i, j);
                     for (int k = 0; k < dimensions.x * dimensions.y; k++)
                     {
-                        SpawnTilePrefab(_pathfindingNodes[_cells[i, j].lowestPathfindingNodeID + k]);
+                        SpawnTilePrefab(_pathfindingNodes[_cellData.Cells[i, j].lowestPathfindingNodeID + k]);
                     }
                 }
             }
@@ -787,14 +583,14 @@ public class MazeGenerator : MonoBehaviour
 
     #region Special Generation Rules
 
-    private void CreatoOuterRoom()
+    private void CreateOuterRoom()
     {
         int side = Random.Range(0, 4);
 
         Vector2Int cellPosition = GetOuterCell(side);
         Vector2Int dimensions = GetDimensions(cellPosition);
         Vector2Int path = GetPath(cellPosition, dimensions);
-        int currentNodeID = _cells[cellPosition.x, cellPosition.y].lowestPathfindingNodeID + (dimensions.y * path.x) + path.y;
+        int currentNodeID = _cellData.Cells[cellPosition.x, cellPosition.y].lowestPathfindingNodeID + (dimensions.y * path.x) + path.y;
 
         Vector3 outerRoomPosition = CreateOuterRoom(currentNodeID, side);
 
@@ -858,13 +654,13 @@ public class MazeGenerator : MonoBehaviour
             {
                 if (zAxisIsMain)
                 {
-                    if (_cells[currentPos.x, (currentPos.y + randomOffset) % maxCellsInMainDirection] != null)
+                    if (_cellData.Cells[currentPos.x, (currentPos.y + randomOffset) % maxCellsInMainDirection] != null)
                     {
                         return new Vector2Int(currentPos.x, (currentPos.y + randomOffset) % maxCellsInMainDirection);
                     }
                 } else
                 {
-                    if (_cells[(currentPos.x + randomOffset) % maxCellsInMainDirection, currentPos.y] != null)
+                    if (_cellData.Cells[(currentPos.x + randomOffset) % maxCellsInMainDirection, currentPos.y] != null)
                     {
                         return new Vector2Int((currentPos.x + randomOffset) % maxCellsInMainDirection, currentPos.y);
                     }

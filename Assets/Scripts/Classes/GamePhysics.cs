@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class GamePhysics // TODO rename to Physics And Movement
+public static class GamePhysics
 {
     private const float GRAVITY = 10f;
 
@@ -23,7 +23,6 @@ public static class GamePhysics // TODO rename to Physics And Movement
         return Quaternion.Slerp(rotation, Quaternion.LookRotation(direction), rotationSpeed);
     }
 
-    // TODO change return bool?
     public static Vector3 MoveTowardsPositionNonYUnclamped(Vector3 position, Vector3 targetLocation, float speed)
     {
         Vector2 temp = new Vector2(targetLocation.x - position.x, targetLocation.z - position.z);
@@ -31,7 +30,6 @@ public static class GamePhysics // TODO rename to Physics And Movement
         return new Vector3(temp.x, 0, temp.y);
     }
 
-    // TODO change return bool?
     public static Vector3 MoveTowardsPositionNonYUnclamped(Vector3 position, Vector3 targetLocation, float speed, out float initialDistance)
     {
         Vector2 temp = new Vector2(targetLocation.x - position.x, targetLocation.z - position.z);
@@ -40,7 +38,6 @@ public static class GamePhysics // TODO rename to Physics And Movement
         return new Vector3(temp.x, 0, temp.y);
     }
 
-    // TODO change return bool?
     public static Vector3 MoveTowardsPositionNonYClamped(Vector3 position, Vector3 targetLocation, float speed, out float initialDistance)
     {
         Vector2 temp = new Vector2(targetLocation.x - position.x, targetLocation.z - position.z);
@@ -52,6 +49,11 @@ public static class GamePhysics // TODO rename to Physics And Movement
 
         temp = temp.normalized * speed;
         return new Vector3(temp.x, 0, temp.y);
+    }
+
+    public static Vector3 MoveTowardsPositionProgressivelyNonYClamped(Vector3 position, Vector3 targetLocation, float progress)
+    {
+        return Vector3.Slerp(position, new Vector3(targetLocation.x, position.y, targetLocation.z), progress); // TODO fix; remove Y
     }
 
     public static float GetGravitationalForce(float timeSinceGrounded)
@@ -107,7 +109,7 @@ public static class GamePhysics // TODO rename to Physics And Movement
             return false;
         }
 
-        float maxYDelta = -rayOverhead;
+        float maxYDelta = -rayDistance - rayOverhead;
         float currentDistanceFromGround;
 
         for (int i = 0; i < countOfCollisions; i++)
@@ -121,11 +123,11 @@ public static class GamePhysics // TODO rename to Physics And Movement
             }
         }
 
-        if(maxYDelta < 0)
+        if (maxYDelta < -rayOverhead)
         {
             return false;
         }
-        if (maxYDelta <= maxStep)
+        else if (maxYDelta <= maxStep)
         {
             correction.y += maxYDelta;
         }

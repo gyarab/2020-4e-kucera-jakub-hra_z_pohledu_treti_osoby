@@ -20,3 +20,8 @@ public interface IDoor
 {
     void Entered();
 }
+
+public interface ICellGenerator
+{
+    CellData GenerateCells(MazeSettingsSO mazeSettings, Vector3 position);
+}

@@ -124,6 +124,7 @@ GameObject:
   - component: {fileID: 1994751314}
   - component: {fileID: 1994751313}
   - component: {fileID: 1994751312}
+  - component: {fileID: 1994751315}
   m_Layer: 0
   m_Name: _Maze
   m_TagString: Untagged
@@ -193,5 +194,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 430b9317159b39f46a2d75a5d1c4af31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1994751315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1994751310}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9f805d5d8471554198f4792870985a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

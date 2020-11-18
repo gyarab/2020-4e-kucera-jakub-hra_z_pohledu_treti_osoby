@@ -20,7 +20,7 @@ MonoBehaviour:
   maxDistanceMultiplyer: 4
   randomDistanceBetweenCells: 1
   triesToGenerateMaze: 10
-  minTilesPercentage: 0.6
+  minCellPercentage: 0.6
   roomChance:
   - 1
   - 0.5

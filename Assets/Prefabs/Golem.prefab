@@ -10,7 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1903210996428242015}
   - component: {fileID: 1903210996428242008}
-  m_Layer: 0
+  - component: {fileID: 205144934065903731}
+  m_Layer: 11
   m_Name: Golem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -49,19 +50,67 @@ MonoBehaviour:
   _movementSpeed: 0.1
   _maxAngleDifference: 10
   _maxTargetDistance: 4
+  _ground:
+    serializedVersion: 2
+    m_Bits: 512
+  _groundOffset: 3
+  _rayOverhead: 0.5
+  _yRayPositionOffset: 3
   _bossStats: {fileID: 11400000, guid: f04895b4dfad7284e8fa1f6241e0ed73, type: 2}
   _healthBarGO: {fileID: 0}
   _delayAfterEntering: 2
+  _grounded: 0
   _combos:
   - {fileID: 11400000, guid: 8bce520cee9414d4387c17905b362858, type: 2}
   - {fileID: 11400000, guid: e3da00e56d8bced4b8fd464cdfd08c8e, type: 2}
   - {fileID: 11400000, guid: 19c415d21d28f1044af4b87812854eac, type: 2}
   _rightHand: {fileID: 1903210996540571224}
   _leftHand: {fileID: 1903210996540571230}
-  _groundSmashRadius: 8
-  _jumpSmashRadius: 5
+  _groundSmashRadius: 5
+  _jumpSmashRadius: 8
   _swipeRadius: 3
+  _landDistanceOffset: 2
+  _minLandDistanceProgress: 0.5
   _animator: {fileID: 1903210996550078900}
+--- !u!65 &205144934065903731
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1903210996428242009}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 7, y: 5, z: 3}
+  m_Center: {x: 0, y: 2.5, z: 0}
+--- !u!135 &1963590163599484683
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1903210996540727928}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.015
+  m_Center: {x: 0, y: 0.013, z: 0.002}
+--- !u!135 &6997590774243576641
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1903210996540727934}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.015
+  m_Center: {x: 0, y: 0.013, z: 0.002}
 --- !u!1001 &1903210996540695764
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -72,6 +121,18 @@ PrefabInstance:
     - target: {fileID: 100020, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
       propertyPath: m_Name
       value: golem
+      objectReference: {fileID: 0}
+    - target: {fileID: 100020, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100018, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100022, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 400020, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
       propertyPath: m_LocalPosition.x
@@ -121,10 +182,98 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: 5ed5c296270702f43b38992edc29ba1b, type: 2}
+    - target: {fileID: 100010, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100012, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
     - target: {fileID: 13700000, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 35efa75cdadc43640828b8ee18ba9fbd, type: 2}
+    - target: {fileID: 100024, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100026, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100004, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100006, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100008, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100014, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100016, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100028, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100030, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100032, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100034, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100036, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100038, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100040, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100042, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100044, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100046, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 100048, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b529d4741b63c2548a4b0c8db8efcbaa, type: 3}
 --- !u!4 &1903210996540571200 stripped
@@ -139,9 +288,21 @@ Animator:
     type: 3}
   m_PrefabInstance: {fileID: 1903210996540695764}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1903210996540727934 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100010, guid: b529d4741b63c2548a4b0c8db8efcbaa,
+    type: 3}
+  m_PrefabInstance: {fileID: 1903210996540695764}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1903210996540571230 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400010, guid: b529d4741b63c2548a4b0c8db8efcbaa,
+    type: 3}
+  m_PrefabInstance: {fileID: 1903210996540695764}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1903210996540727928 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100012, guid: b529d4741b63c2548a4b0c8db8efcbaa,
     type: 3}
   m_PrefabInstance: {fileID: 1903210996540695764}
   m_PrefabAsset: {fileID: 0}

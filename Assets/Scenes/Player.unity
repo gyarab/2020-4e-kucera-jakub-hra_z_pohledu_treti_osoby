@@ -1697,7 +1697,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 359923990}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.99999994
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -3044,7 +3044,7 @@ MonoBehaviour:
   _controllerGroundHeightOffset: 1.8
   _walkAngle: 45
   _rollDuration: 1
-  _rollInvincibilityTiming: {x: 0, y: 0}
+  _rollInvincibilityTiming: {x: 0.1, y: 0.4}
   _moveSpeed: 0.15
   _playerRotationSpeed: 0.5
   _inAirSpeed: 0.8
@@ -3054,7 +3054,7 @@ MonoBehaviour:
   _maxStep: 0.3
   _excludePlayer:
     serializedVersion: 2
-    m_Bits: 512
+    m_Bits: 2560
   _groundRayOffset: 1.5
   _groundRayOverhead: 0.006
   _groundRayJumpDecrease: 0.1
@@ -3083,7 +3083,7 @@ MonoBehaviour:
   _inventory: {fileID: 664949143}
   _healthBar: {fileID: 1049739907}
   _baseStats: {fileID: 11400000, guid: 9d54f92b57923f3478283fa6e3da87a7, type: 2}
-  currentHealth: 0
+  _currentHealth: 0
   animator: {fileID: 1406508879}
   _fistsOverrideController: {fileID: 22100000, guid: a02d2ba51e29ccd488e7763cedefb160,
     type: 2}
@@ -4183,7 +4183,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000061035156, y: 0.000007270135}
+  m_AnchoredPosition: {x: -0.000061035156, y: 0.000020711483}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1642604803

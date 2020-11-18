@@ -7,11 +7,12 @@ using System;
 public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 {
     //public static Action OnBossDeath; TODO do smth?
+    private Vector3 drawCenter; // TODO remove
+    private float drawRadius; // TODO remove
 
     #region Variables
 
-    [Header("Physics")]
-    [SerializeField]
+    [Header("Physics"), SerializeField]
     private float _gravity; // TODO physics script
     [SerializeField]
     private float _rotationSpeed, _movementSpeed;
@@ -20,8 +21,12 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
     [SerializeField]
     private float _maxTargetDistance;
 
-    [Header("Stats")]
+    [Header("Rays"), SerializeField]
+    private LayerMask _ground;
     [SerializeField]
+    private float _groundOffset, _rayOverhead, _yRayPositionOffset;
+
+    [Header("Stats"), SerializeField]
     private CharacterStatsSO _bossStats;
     [SerializeField]
     private GameObject _healthBarGO; // TODO health bar fixed on screen?
@@ -29,24 +34,25 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
     [Header("Miscellaneous")] // TODO rename
     [SerializeField]
     private float _delayAfterEntering;
-
-    [Header("Attacks")]
     [SerializeField]
+    private bool _grounded;
+
+    [Header("Attacks"), SerializeField]
     private ComboSO[] _combos;
     [SerializeField]
     private Transform _rightHand, _leftHand;
     [SerializeField]
-    private float _groundSmashRadius, _jumpSmashRadius, _swipeRadius;
+    private float _groundSmashRadius, _jumpSmashRadius, _swipeRadius, _landDistanceOffset, _minLandDistanceProgress;
 
-    [Header("Animations")]
-    [SerializeField]
+    [Header("Animations"), SerializeField]
     private Animator _animator;
 
     private Transform _target;
     private Coroutine _coroutine;
     private HealthBar _healthBar;
 
-    private float _currentHealth;
+    private float _currentHealth, _timeSinceGrounded;
+    private Vector3 _rayPosition;
 
     // Combos
     private int[] _comboBias;
@@ -62,11 +68,20 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
     {
         _currentHealth = _bossStats.health;
         _comboBias = new int[_combos.Length];
+
+        _timeSinceGrounded = 0;
+        _rayPosition = new Vector3(0, _yRayPositionOffset, 0);
     }
 
     void Start()
     {
         _target = GameManager.Instance.Player.transform;
+    }
+
+    void FixedUpdate()
+    {
+        IsGrounded();
+        ApplyGravity();
     }
 
     private void OnEnable()
@@ -77,6 +92,31 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
     private void OnDisable()
     {
         BossRoomDoor.OnDoorsOpened -= PlayIntro;
+    }
+
+    #endregion
+
+    #region Physics
+
+    private void IsGrounded()
+    {
+        _grounded = GamePhysics.IsGroundedRayCast(transform.TransformPoint(_rayPosition), _groundOffset, _rayOverhead, _ground, out float yCorrection);
+        transform.position = new Vector3(transform.position.x, transform.position.y + yCorrection, transform.position.z);
+    }
+
+    private void ApplyGravity()
+    {
+        if (_grounded)
+        {
+            _timeSinceGrounded = 0;
+        }
+        else
+        {
+            _timeSinceGrounded += Time.fixedDeltaTime;
+        }
+
+        float gravitationalForce = GamePhysics.GetGravitationalForce(_timeSinceGrounded);
+        transform.position = new Vector3(transform.position.x, transform.position.y + gravitationalForce, transform.position.z);
     }
 
     #endregion
@@ -235,6 +275,8 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
         Vector3 initialPosition = transform.position;
         Vector3 location = _target.position;
+        float maxProgress = Mathf.Max(((_target.position - transform.position).magnitude - _landDistanceOffset) / (_target.position - transform.position).magnitude, _minLandDistanceProgress);
+
         transform.rotation = GamePhysics.RotateTowardsTarget(transform.rotation, transform.position, _target.position, 1);
         float timePlaying = 0, progress;
         _animator.SetTrigger("JumpSmash");
@@ -242,13 +284,13 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         while(timePlaying <= TIME_TO_HIT)
         {
             timePlaying += Time.fixedDeltaTime;
-            progress = timePlaying / TIME_TO_HIT;
+            progress = (timePlaying / TIME_TO_HIT) * maxProgress;
 
-            transform.position += GamePhysics.MoveTowardsPositionNonYUnclamped(initialPosition, _target.position, progress);
+            transform.position = GamePhysics.MoveTowardsPositionProgressivelyNonYClamped(initialPosition, location, progress);
             yield return new WaitForFixedUpdate();
         }
 
-        SphericalHitDetection(_jumpSmashRadius, GetHandsCenterPosition());
+        SphericalHitDetection(_jumpSmashRadius, GetBossCenterPosition());
 
         while (timePlaying <= TIME_TO_END)
         {
@@ -261,12 +303,12 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
     private IEnumerator GroundSmash()
     {
-        const float TIME_TO_HIT = 0.96f;
+        const float TIME_TO_HIT = 1f;
         const float TIME_TO_END = 1.58f;
 
         transform.rotation = GamePhysics.RotateTowardsTarget(transform.rotation, transform.position, _target.position, 1);
         float timePlaying = 0;
-        _animator.SetTrigger("JumpSmash");
+        _animator.SetTrigger("GroundSmash");
 
         while (timePlaying <= TIME_TO_HIT)
         {
@@ -330,77 +372,6 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         StartNextAction();
     }
 
-    /*private IEnumerator SwipeRight()
-    {
-        Debug.Log("SwipeR");
-        const float TIME_TO_HIT = 0.67f;
-        const float TIME_TO_END = 1.5f;
-
-        transform.rotation = GamePhysics.RotateTowardsTarget(transform.rotation, transform.position, _target.position, 1);
-        float timePlaying = 0;
-        _animator.SetTrigger("SwipeRight");
-
-        while (timePlaying <= TIME_TO_HIT)
-        {
-            timePlaying += Time.fixedDeltaTime;
-            yield return new WaitForFixedUpdate();
-        }
-
-        SphericalHitDetection(_swipeRadius);
-
-        while (timePlaying <= TIME_TO_END)
-        {
-            timePlaying += Time.fixedDeltaTime;
-            yield return new WaitForFixedUpdate();
-        }
-
-        StartNextAction();
-    }
-
-    private IEnumerator SwipeLeft()
-    {
-        Debug.Log("SwipeL");
-        const float TIME_TO_HIT = 0.67f;
-        const float TIME_TO_END = 1.5f;
-        const float TIME_BETWEEN_HITS = 0.084f;
-
-        transform.rotation = GamePhysics.RotateTowardsTarget(transform.rotation, transform.position, _target.position, 1);
-        float timePlaying = 0;
-        _animator.SetTrigger("SwipeLeft");
-
-        while (timePlaying <= TIME_TO_HIT)
-        {
-            timePlaying += Time.fixedDeltaTime;
-            yield return new WaitForFixedUpdate();
-        }
-
-        SphericalHitDetection(_swipeRadius);
-
-        while (timePlaying <= TIME_TO_HIT + TIME_BETWEEN_HITS)
-        {
-            timePlaying += Time.fixedDeltaTime;
-            yield return new WaitForFixedUpdate();
-        }
-
-        // TODO wait for the end of anim + check for hit
-
-        while (timePlaying <= TIME_TO_HIT + TIME_BETWEEN_HITS * 2)
-        {
-            timePlaying += Time.fixedDeltaTime;
-            yield return new WaitForFixedUpdate();
-        }
-
-        // TODO wait for the end of anim + check for hit
-
-        while (timePlaying <= TIME_TO_END)
-        {
-            timePlaying += Time.fixedDeltaTime;
-            yield return new WaitForFixedUpdate();
-        }
-
-        StartNextAction();
-    }*/
-
     #endregion
 
     #region Attacks
@@ -412,10 +383,9 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
             _target.GetComponent<IDamageable>().TakeDamage(_bossStats.damage, _bossStats.armourPenetration);
         }
 
-        // TODO remove
-        /*GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        sphere.transform.position = position;
-        sphere.transform.localScale = new Vector3(radius, radius, radius);*/
+        // TODO remove code below
+        drawCenter = position;
+        drawRadius = radius;
     }
 
     private Vector3 GetHandsCenterPosition()
@@ -423,9 +393,15 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         return (_rightHand.position + _leftHand.position) / 2;
     }
 
+    private Vector3 GetBossCenterPosition()
+    {
+        Vector3 handsPosition = GetHandsCenterPosition();
+        return (new Vector3(handsPosition.x + transform.position.x, handsPosition.y * 2, handsPosition.z + transform.position.z)) / 2;
+    }
+
     #endregion
 
-    public void GetDestroyed()
+    private void GetDestroyed()
     {
         _healthBar.SetVisibility(false);
         Destroy(gameObject);
@@ -441,5 +417,14 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         {
             GetDestroyed();
         }
+    }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawSphere(drawCenter, drawRadius);
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawLine(transform.TransformPoint(_rayPosition), new Vector3(transform.position.x, transform.position.y - _groundOffset, transform.position.z));
     }
 }

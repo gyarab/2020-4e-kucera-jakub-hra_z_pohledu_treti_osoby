@@ -16,7 +16,7 @@ public class MazeSettingsSO : ScriptableObject
     [Header("General Probability")]
     public int triesToGenerateMaze = 10;
     [Range(0f,1f)]
-    public float minTilesPercentage;
+    public float minCellPercentage;
 
     [Header("Specific Probability")]
     [Range(0f, 1f)]
