@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public class Pathfinding
+public class Pathfinding<T> where T : IPathfindingNode<T>
 {
-    private PathfindingNode[] _nodes;
+    private T[] _nodes;
     private int _nodeCount;
-    private PathfindingHeap _openSet;
+    private PathfindingHeap<T> _openSet;
 
-    public Pathfinding(PathfindingNode[] nodes, int count)
+    public Pathfinding(T[] nodes, int count)
     {
         _nodes = nodes;
         _nodeCount = count;
-        _openSet = new PathfindingHeap(_nodeCount); // TODO prob optimize 
-    } // TODO somehow make accessible
+        _openSet = new PathfindingHeap<T>(_nodeCount); // TODO prob optimize 
+    }
 
     public void GetPath(Vector3 position, Vector3 targetPosition, Action<List<Vector3>> action)
     {
@@ -24,7 +24,7 @@ public class Pathfinding
     private List<Vector3> FindPath(int startID, int endID)
     {
         _openSet.Reset();
-        PathfindingNode node;
+        T node;
 
         float currentGCost;
         for (int i = 0; i < _nodeCount; i++)
@@ -42,7 +42,7 @@ public class Pathfinding
             node = _openSet.RemoveFirst();
 
             // After reaching goal return path
-            if (node.id == endID)
+            if (node.ID == endID)
             {
                 return ReconstructPath(startID, endID);
             }
@@ -52,27 +52,27 @@ public class Pathfinding
             // Check every neighbour
             for (int i = 0; i < 8; i++)
             {
-                if(node.neighbours[i] != null)
+                if(node.Neighbours[i] != null)
                 {
-                    if (node.neighbours[i].Status == Status.CLOSEDSET)
+                    if (node.Neighbours[i].Status == Status.CLOSEDSET)
                     {
                         continue; // if it doesnt work put return here and instead of return return null;
                     }
 
-                    currentGCost = node.gCost + Vector2.Distance(new Vector2(node.position.x, node.position.z), new Vector2(node.neighbours[i].position.x, node.neighbours[i].position.z));
+                    currentGCost = node.GCost + Vector2.Distance(new Vector2(node.Position.x, node.Position.z), new Vector2(node.Neighbours[i].Position.x, node.Neighbours[i].Position.z));
 
-                    if (node.neighbours[i].Status == Status.NOWHERE)
+                    if (node.Neighbours[i].Status == Status.NOWHERE)
                     {
-                        node.neighbours[i].gCost = currentGCost;
-                        node.neighbours[i].hCost = Vector2.Distance(new Vector2(node.neighbours[i].position.x, node.neighbours[i].position.z), new Vector2(_nodes[endID].position.x, _nodes[endID].position.z));
-                        node.neighbours[i].cameFromID = node.id;
-                        node.neighbours[i].Status = Status.OPENSET;
-                        _openSet.Insert(node.neighbours[i]);
-                    } else if (currentGCost < node.neighbours[i].gCost)
+                        node.Neighbours[i].GCost = currentGCost;
+                        node.Neighbours[i].HCost = Vector2.Distance(new Vector2(node.Neighbours[i].Position.x, node.Neighbours[i].Position.z), new Vector2(_nodes[endID].Position.x, _nodes[endID].Position.z));
+                        node.Neighbours[i].CameFromID = node.ID;
+                        node.Neighbours[i].Status = Status.OPENSET;
+                        _openSet.Insert(node.Neighbours[i]);
+                    } else if (currentGCost < node.Neighbours[i].GCost)
                     {
-                        node.neighbours[i].gCost = currentGCost;
-                        node.neighbours[i].cameFromID = node.id;
-                        _openSet.MoveDown(node.neighbours[i].indexInHeap);
+                        node.Neighbours[i].GCost = currentGCost;
+                        node.Neighbours[i].CameFromID = node.ID;
+                        _openSet.MoveDown(node.Neighbours[i].IndexInHeap);
                     }
                 }
             }
@@ -84,28 +84,28 @@ public class Pathfinding
     private List<Vector3> ReconstructPath(int startID, int endID)
     {
         List<Vector3> result = new List<Vector3>();
-        PathfindingNode currentNode = _nodes[endID];
+        T currentNode = _nodes[endID];
 
         return AddStop(result, currentNode, startID);
     }
 
-    private List<Vector3> AddStop(List<Vector3> list, PathfindingNode currentNode, int startID)
+    private List<Vector3> AddStop(List<Vector3> list, T currentNode, int startID)
     {
-        if (currentNode.id == startID)
+        if (currentNode.ID == startID)
         {
-            list.Add(new Vector3(currentNode.position.x, 0, currentNode.position.z));
+            list.Add(new Vector3(currentNode.Position.x, 0, currentNode.Position.z));
             return list;
         }
 
-        AddStop(list, _nodes[currentNode.cameFromID], startID);
-        list.Add(new Vector3(currentNode.position.x, 0, currentNode.position.z));
+        AddStop(list, _nodes[currentNode.CameFromID], startID);
+        list.Add(new Vector3(currentNode.Position.x, 0, currentNode.Position.z));
 
         return list;
     }
 
     private int GetCurrentNodeID(Vector3 position)
     {
-        float minDist = GetApproximateDistance(position, _nodes[0].position);
+        float minDist = GetApproximateDistance(position, _nodes[0].Position);
         float temp;
         int minDistID = 0;
 
@@ -114,7 +114,7 @@ public class Pathfinding
             if (_nodes[i] != null)
             {
 
-                temp = GetApproximateDistance(position, _nodes[i].position);
+                temp = GetApproximateDistance(position, _nodes[i].Position);
                 if (temp < minDist)
                 {
                     minDist = temp;

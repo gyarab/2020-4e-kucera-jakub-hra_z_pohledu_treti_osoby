@@ -70,7 +70,6 @@ public class CellGenerator : MonoBehaviour, ICellGenerator
         return new CellData(_cells, firstCell, cellCounter, maxNodeCount, _xDistance, _zDistance);
     }
 
-    // TODO move somwhere else, cuz used from other region
     // Pushes neighbouring Cells into Stack
     private void PushNeighbouringCells(Vector2Int position)
     {

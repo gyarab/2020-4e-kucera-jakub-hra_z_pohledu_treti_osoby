@@ -4,38 +4,44 @@ using UnityEngine;
 using System;
 
 // TODO maybe change back to monobehaviuor
-public class PathfindingNode : IComparable<PathfindingNode>
+public class PathfindingNode : IPathfindingNode<PathfindingNode>
 {
-    public PathfindingNode[] neighbours;
-    public Vector3 position;
-    public int id, cameFromID, indexInHeap;
+    public PathfindingNode[] Neighbours { get; set; }
+    public Vector3 Position { get; set; }
+    public int ID { get; set; }
+    public int CameFromID { get; set; }
+    public int IndexInHeap { get; set; }
     public Status Status { get; set; }
-    // G - distance from start; H - estimate
-    public float gCost, hCost;
+    // G - distance from start; H - estimated distance from end
+    public float GCost { get; set; }
+    public float HCost { get; set; }
+    public float FCost => GCost + HCost;
 
     public int TileType { get; private set; }
 
+    public PathfindingNode(int id, float x, float y, float z)
+    {
+        ID = id;
+        Position = new Vector3(x, y, z);
+        Neighbours = new PathfindingNode[8];
+    }
+
     public PathfindingNode(int id, float x, float y, float z, int tileType)
     {
-        this.id = id;
-        position = new Vector3(x, y, z);
-        neighbours = new PathfindingNode[8];
+        ID = id;
+        Position = new Vector3(x, y, z);
+        Neighbours = new PathfindingNode[8];
         TileType = tileType;
     }
 
     public int CompareTo(PathfindingNode other)
     {
-        if(GetFCost() == other.GetFCost())
+        if(FCost == other.FCost)
         {
-            return gCost.CompareTo(other.gCost);
+            return GCost.CompareTo(other.GCost);
         }
 
-        return GetFCost().CompareTo(other.GetFCost());
-    }
-
-    public float GetFCost()
-    {
-        return gCost + hCost;
+        return FCost.CompareTo(other.FCost);
     }
 
     // TODO rename?
@@ -46,18 +52,18 @@ public class PathfindingNode : IComparable<PathfindingNode>
         {
             if (foundWall)
             {
-                if (neighbours[i] != null)
+                if (Neighbours[i] != null)
                 {
                     return i / 2;
                 }
             }
-            else if (neighbours[i] == null)
+            else if (Neighbours[i] == null)
             {
                 foundWall = true;
             }
         }
 
-        if (foundWall && neighbours[0] != null)
+        if (foundWall && Neighbours[0] != null)
         {
             return 0;
         }
@@ -71,7 +77,7 @@ public class PathfindingNode : IComparable<PathfindingNode>
         int count = 0;
         for (int i = 0; i < 8; i += 2)
         {
-            if(neighbours[i] != null)
+            if(Neighbours[i] != null)
             {
                 count++;
             }
@@ -87,12 +93,12 @@ public class PathfindingNode : IComparable<PathfindingNode>
 
         for (int i = 0; i < 8; i++)
         {
-            if(neighbours[i] == null)
+            if(Neighbours[i] == null)
             {
                 result += "-, ";
             } else
             {
-                result += neighbours[i].id + ", ";
+                result += Neighbours[i].ID + ", ";
             }
         }
 

@@ -4,10 +4,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 
-public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TODO combine visual navigation w pathfinding / rework nav; attack as class with interface
+public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TODO combine visual navigation w pathfinding / rework nav; attack as class with interface / get attack component
 {
     public static Action<Vector3> OnEnemyDeath;
-    public static Pathfinding Pathfinder { get; set; }
+    public static Pathfinding<PathfindingNode> Pathfinder { get; set; } // TODO do differently
 
     #region Variables
 

@@ -12,6 +12,9 @@ public class MazeSettingsSO : ScriptableObject
     public int length, width; // width - X; length - Z
     public int minDistanceMultiplyer, maxDistanceMultiplyer;
     public bool randomDistanceBetweenCells;
+    public int pathfindingNodesInSubcell;
+    [Range(0.1f, 1f)]
+    public float nodeSpreadPercentage;
 
     [Header("General Probability")]
     public int triesToGenerateMaze = 10;

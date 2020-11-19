@@ -125,6 +125,9 @@ GameObject:
   - component: {fileID: 1994751313}
   - component: {fileID: 1994751312}
   - component: {fileID: 1994751315}
+  - component: {fileID: 1994751317}
+  - component: {fileID: 1994751316}
+  - component: {fileID: 1994751318}
   m_Layer: 0
   m_Name: _Maze
   m_TagString: Untagged
@@ -206,5 +209,43 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f9f805d5d8471554198f4792870985a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1994751316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1994751310}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d11334b7474f28e46b77d284e94b60f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _tileSets:
+  - {fileID: 11400000, guid: e03de5b84b461b2479e2f20c43184d9d, type: 2}
+--- !u!114 &1994751317
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1994751310}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7321ff6ce25dfc64a8959d53774070e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1994751318
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1994751310}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da5aa97a4ca2a10479d814f970bb06ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

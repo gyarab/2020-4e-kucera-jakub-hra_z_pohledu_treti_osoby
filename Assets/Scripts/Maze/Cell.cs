@@ -2,18 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// TODO move?
-public enum Side
-{
-    Top,
-    Bottom,
-    Left,
-    Right,
-    TopRight,
-    BottomRight,
-    BottomLeft,
-    TopLeft
-}
 
 public class Cell
 {
@@ -21,7 +9,7 @@ public class Cell
     private bool[] doors;
     public bool generated;
     public int tileCount; // TODO prob useless
-    public int lowestPathfindingNodeID;
+    public int lowestSubcellIndex;
 
     public Cell()
     {

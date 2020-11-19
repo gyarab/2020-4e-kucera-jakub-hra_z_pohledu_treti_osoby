@@ -25,3 +25,26 @@ public interface ICellGenerator
 {
     CellData GenerateCells(MazeSettingsSO mazeSettings, Vector3 position);
 }
+
+public interface ISubcellGenerator
+{
+    SubcellData GenerateSubcells(MazeSettingsSO mazeSettings, CellData cellData, Vector3 position, int additionalArraySize);
+}
+
+public interface ITileGenerator
+{
+    void GenerateTiles(SubcellData subcellData);
+}
+
+public interface IPathfindingNode<T> : IComparable<T>
+{
+    Status Status { get; set; }
+    float GCost { get; set; }
+    float HCost { get; set; }
+    float FCost { get; }
+    int ID { get; set; }
+    int CameFromID { get; set; }
+    int IndexInHeap { get; set; }
+    T[] Neighbours { get; set; }
+    Vector3 Position { get; set; }
+}

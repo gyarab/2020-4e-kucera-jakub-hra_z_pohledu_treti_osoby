@@ -7,7 +7,7 @@ public class CellData
     public Cell[,] Cells { get; private set; } // Z, X
     public Vector2Int FirstCell { get; private set; }
     public int CellCount { get; private set; }
-    public int MaximumNodeCount { get; private set; }
+    public int MaximumSubcellCount { get; private set; }
     public int[] XDistance { get; private set; }
     public int[] ZDistance { get; private set; }
 
@@ -16,7 +16,7 @@ public class CellData
         Cells = cells;
         FirstCell = firstCell;
         CellCount = cellCount;
-        MaximumNodeCount = maximumNodeCount;
+        MaximumSubcellCount = maximumNodeCount;
         XDistance = xDistance;
         ZDistance = zDistance;
     }
@@ -41,6 +41,53 @@ public class CellData
         if (cell.IsDoor(Side.Left))
         {
             result.Add(new Vector2Int(position.x, position.y - 1));
+        }
+
+        return result;
+    }
+
+    public Vector2Int GetDimensions(Vector2Int position)
+    {
+        return new Vector2Int(ZDistance[position.x + 1] - ZDistance[position.x], XDistance[position.y + 1] - XDistance[position.y]);
+    }
+
+    public Vector2Int GetDimensions(int positionZ, int positionX)
+    {
+        return new Vector2Int(ZDistance[positionZ + 1] - ZDistance[positionZ], XDistance[positionX + 1] - XDistance[positionX]);
+    }
+
+    public Vector2Int GetPath(Vector2Int position, Vector2Int dimension)
+    {
+        Vector2Int result = new Vector2Int();
+
+        switch (dimension.x)
+        {
+            case 1:
+                result.x = 0;
+                break;
+            case 2:
+                result.x = position.x % 2;
+                break;
+            case 3:
+                result.x = 1;
+                break;
+            default:
+                throw new System.NotImplementedException("Rooms of size " + dimension.x + "are not supported");
+        }
+
+        switch (dimension.y)
+        {
+            case 1:
+                result.y = 0;
+                break;
+            case 2:
+                result.y = position.y % 2;
+                break;
+            case 3:
+                result.y = 1;
+                break;
+            default:
+                throw new System.NotImplementedException("Rooms of size " + dimension.y + "are not supported");
         }
 
         return result;

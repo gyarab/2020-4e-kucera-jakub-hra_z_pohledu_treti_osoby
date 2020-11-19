@@ -26,7 +26,7 @@ public class MazeManager : MonoBehaviour // TODO remove singleton ?
 
         MazeGenerator mazeGenerator = GetComponent<MazeGenerator>();
         PathfindingNode[] nodes = mazeGenerator.GenerateMaze(mazeSettings, winCondition, out int nodeCount);
-        Pathfinding pathfinding = new Pathfinding(nodes, nodeCount);
+        Pathfinding<PathfindingNode> pathfinding = new Pathfinding<PathfindingNode>(nodes, nodeCount);
         EnemyController.Pathfinder = pathfinding;
     }
 
