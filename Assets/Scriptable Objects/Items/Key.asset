@@ -9,10 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb7e6a7effff78b4abb1ada9898ffe87, type: 3}
-  m_Name: MeeleEnemyStats
+  m_Script: {fileID: 11500000, guid: 3ee16af138346e34f8fe253d14d51610, type: 3}
+  m_Name: Key
   m_EditorClassIdentifier: 
-  health: 50
-  armour: 5
-  damage: 10
-  armourPenetration: 5
+  itemID: 6
+  uiSprite: {fileID: 0}
+  type: 0
+  itemName: Silver key
+  description: Keys usually open a door.
+  price: 0

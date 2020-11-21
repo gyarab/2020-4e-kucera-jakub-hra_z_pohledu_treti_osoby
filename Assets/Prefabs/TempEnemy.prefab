@@ -108,30 +108,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c4455bf8a9647243a4f8825873007ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _gravity: 10
   _movementSpeed: 0.1
   _rotationSpeed: 0.1
+  _angularSpeed: 5
   _healthBarGO: {fileID: 8798370691427807756}
   _detectionRange: 10
   _detectionAngle: 30
   _firstRaycastOffset: {x: 0, y: 0.7, z: 0}
   _secondRaycastOffset: {x: 0, y: -0.7, z: 0}
-  _excludeCharacters:
+  _groundLayer:
     serializedVersion: 2
     m_Bits: 512
   _enemyHeight: 1
   _sphereRadius: 0.5
   _groundOffset: 1
   _rayOverhead: 0.2
+  _collisionLayer:
+    serializedVersion: 2
+    m_Bits: 2816
+  _raycastLength: 0.5
   _attackRange: 2
-  _damage: 10
   _delayBeforeAttack: 1.5
   _delayAfterAttack: 1.5
   _attackAngleInDegrees: 30
   _moveDistanceTolerance: 0.1
-  _itemDropChance: 0
-  _itemDropID: 0
-  _coinDropChance: 0
+  _randomMovementCycles: {x: 1, y: 4}
+  _randomMovementLength: {x: 1, y: 3}
+  _waitTime: {x: 5, y: 30}
 --- !u!1 &2309207925008902713
 GameObject:
   m_ObjectHideFlags: 0

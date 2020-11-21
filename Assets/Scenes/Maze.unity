@@ -169,7 +169,7 @@ MonoBehaviour:
     type: 3}
   _bossRoom: {fileID: 298124686469155418, guid: 8a99c3ad5367ffd4cb90a39344529fef,
     type: 3}
-  _bossRoomDoors: {fileID: 7105246559672747822, guid: 9181a48b9cdfdc44fbc7e43e69266f14,
+  _bossRoomDoors: {fileID: 2164178091182502589, guid: 9181a48b9cdfdc44fbc7e43e69266f14,
     type: 3}
   _boss: {fileID: 1903210996428242009, guid: e3b826cd9d78a284c93fd3abfa8784a5, type: 3}
   _zOuterRoomOffset: 25

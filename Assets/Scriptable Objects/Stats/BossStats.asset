@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb7e6a7effff78b4abb1ada9898ffe87, type: 3}
   m_Name: BossStats
   m_EditorClassIdentifier: 
-  health: 100
-  armour: 10
+  health: 300
+  armour: 20
   damage: 20
   armourPenetration: 10

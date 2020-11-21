@@ -9,7 +9,6 @@ using TMPro;
 
 public class InventoryMonoBehaviour : MonoBehaviour
 {
-    public int Coins { get; set; } // TODO loading and saving
     public HealthBar BossHealthBar => _bossHealthBar;
 
     #region Variables
@@ -53,6 +52,8 @@ public class InventoryMonoBehaviour : MonoBehaviour
     private TextMeshProUGUI _currentStatsTMPT;
     [SerializeField]
     private TextMeshProUGUI _statsDeltaTMPT;
+    [SerializeField]
+    private TextMeshProUGUI _coinBalanceTMPT;
 
     [Header("BossHealthBar")]
     [SerializeField]
@@ -79,6 +80,16 @@ public class InventoryMonoBehaviour : MonoBehaviour
         HideInventoryUI();
         PassStatsToPlayer();
         _bossHealthBar.SetVisibility(false);
+    }
+
+    private void OnEnable()
+    {
+        GroundItem.OnItemPickedUp += AddItem;
+    }
+
+    private void OnDisable()
+    {
+        GroundItem.OnItemPickedUp -= AddItem;
     }
 
     public void ShowInventory(bool shop)
@@ -117,48 +128,57 @@ public class InventoryMonoBehaviour : MonoBehaviour
         _descriptionTMPT.text = itemObject.description;
         _equipBuyButton.onClick.RemoveAllListeners();
 
-        if (_isShop)
+        int id = itemObject.itemID;
+        if (itemObject is ConsumableObject)
         {
-            _equipBuyButtonTMPT.SetText("Buy");
-            int id = itemObject.itemID;
-            _equipBuyButton.onClick.AddListener(delegate { BuyItem(id); });
-        } else
-        {
-            // TODO if equiped -> unequip
-
-            int id = itemObject.itemID;
-            if (itemObject is ConsumableObject)
+            if (_isShop)
+            {
+                _equipBuyButtonTMPT.SetText("Buy");
+                _equipBuyButton.onClick.AddListener(delegate { BuyItem(id); });
+            }
+            else
             {
                 _equipBuyButtonTMPT.SetText("Consume");
                 _equipBuyButton.onClick.AddListener(delegate { ConsumeItem(id); });
-            } else
+            }
+        } else
+        {
+            if (_isShop)
             {
+                _equipBuyButtonTMPT.SetText("Buy");
+                _equipBuyButton.onClick.AddListener(delegate { BuyItem(id); });
+            }
+            else
+            {
+                // TODO if equiped -> unequip
                 _equipBuyButtonTMPT.SetText("Equip");
                 _equipBuyButton.onClick.AddListener(delegate { EquipItem(id); });
-
-                // TODO change chanseStatsUI
-                _currentStatsTMPT.text = _player.GetStats().StatsToStringColumn(false, false);
-                // TODO change statsDelta
-                CharacterStats selectedObjectStats = EquipmentToStats(itemObject);
-                CharacterStats equippedObjectStats = new CharacterStats(); ;
-                switch (itemObject.type)
-                {
-                    case ItemType.Weapon:
-                        if(_equippedWeaponSlot != null)
-                        {
-                            equippedObjectStats = EquipmentToStats(_equippedWeaponSlot.ItemObject);
-                        }
-                        break;
-                }
-
-                selectedObjectStats.SubtractStats(equippedObjectStats);
-                _statsDeltaTMPT.text = selectedObjectStats.StatsToStringColumn(true, true);
             }
+
+            // TODO change chanseStatsUI
+            _currentStatsTMPT.text = _player.GetStats().StatsToStringColumn(false, false);
+            // TODO change statsDelta
+            CharacterStats selectedObjectStats = EquipmentToStats(itemObject);
+            CharacterStats equippedObjectStats = new CharacterStats(); ;
+            switch (itemObject.type)
+            {
+                case ItemType.Weapon:
+                    if(_equippedWeaponSlot != null)
+                    {
+                        equippedObjectStats = EquipmentToStats(_equippedWeaponSlot.ItemObject);
+                    }
+                    break;
+            }
+
+            selectedObjectStats.SubtractStats(equippedObjectStats);
+            _statsDeltaTMPT.text = selectedObjectStats.StatsToStringColumn(true, true);
         }
     }
 
     public void DisplayInventory(InventorySlotContainer inventory)
     {
+        _coinBalanceTMPT.text = _playerInventoryContainer.Coins.ToString();
+
         int counter = 0;
 
         foreach (Transform child in _slotHolder)
@@ -250,7 +270,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
     public void EquipItemInSlot(InventorySlot inventorySlot, bool visualEffect)
     {
-        if (inventorySlot.ItemObject.GetType() == typeof(WeaponObject)) // ADD more equippable categories
+        if (inventorySlot.ItemObject.type == ItemType.Weapon) // ADD more equippable categories
         {
             WeaponObject weapon = (WeaponObject)inventorySlot.ItemObject;
 
@@ -280,7 +300,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
     {
         bool consumed = false;
 
-        if (inventorySlot.ItemObject.GetType() == typeof(ConsumableObject)) // ADD more equippable categories
+        if (inventorySlot.ItemObject.type == ItemType.Consumable) // ADD more equippable categories
         {
             ConsumableObject consumable = (ConsumableObject)inventorySlot.ItemObject;
 
@@ -305,7 +325,16 @@ public class InventoryMonoBehaviour : MonoBehaviour
     {
         InventorySlot inventorySlot = _secondaryShopInventoryContainer.GetSlotByItemID(itemID);
 
-        if (_secondaryShopInventoryContainer.RemoveItem(inventorySlot.ItemObject.itemID)) {
+        if (_playerInventoryContainer.Coins < inventorySlot.ItemObject.price)
+        {
+            return;
+        }
+
+        if(inventorySlot.ItemObject.type == ItemType.Consumable)
+        {
+            // infinite stock do nothing
+        }
+        else if (_secondaryShopInventoryContainer.RemoveItem(inventorySlot.ItemObject.itemID)) {
             _slotHolder.transform.GetChild(inventorySlot.SlotHolderChildPosition).gameObject.SetActive(false);
 
             if (_secondaryShopInventoryContainer.Slots.Count > 0)
@@ -316,7 +345,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
         _playerInventoryContainer.AddItem(inventorySlot.ItemObject, 1);
 
-        Coins -= inventorySlot.ItemObject.price;
+        RemoveCoinsFromPlayer(inventorySlot.ItemObject.price);
     }
 
     public void PassStatsToPlayer()
@@ -358,6 +387,18 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
     #region Item List Manipulation // TODO move some?
 
+    public void AddCoinsToPlayer(int amount)
+    {
+        _playerInventoryContainer.Coins += amount;
+        _coinBalanceTMPT.text = _playerInventoryContainer.Coins.ToString();
+    }
+
+    public void RemoveCoinsFromPlayer(int amount)
+    {
+        _playerInventoryContainer.Coins -= amount;
+        _coinBalanceTMPT.text = _playerInventoryContainer.Coins.ToString();
+    }
+
     public void AddItem(ItemObject itemObject, int amount)
     {
         _playerInventoryContainer.AddItem(itemObject, amount);
@@ -392,7 +433,6 @@ public class InventoryMonoBehaviour : MonoBehaviour
     {
         _playerInventoryContainer = new InventorySlotContainer(path);
 
-        // TODO else add starting item? can it be even here?
         foreach (InventorySlot slot in _playerInventoryContainer.EquippedItemSlots)
         {
             EquipItemInSlot(slot, false);

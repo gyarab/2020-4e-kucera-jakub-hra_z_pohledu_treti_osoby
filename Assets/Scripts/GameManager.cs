@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
     private string _currentSavePath; // TODO remove useless?
 
     private ItemDatabase _itemDatabase;
+    private LoadingScreen _loadingScreen;
 
     public static GameManager Instance
     {
@@ -47,6 +48,7 @@ public class GameManager : MonoBehaviour
     {
         DontDestroyOnLoad(gameObject);
         _itemDatabase = Instantiate(Resources.Load<GameObject>("_ItemDatabase"), transform).GetComponent<ItemDatabase>();
+        _loadingScreen = Instantiate(Resources.Load<GameObject>("LoadingScreen"), transform).GetComponent<LoadingScreen>();
     }
 
     public ItemObject GetItemObjectByID(int id)
@@ -68,9 +70,6 @@ public class GameManager : MonoBehaviour
         LoadManager.CreateFolder(Path.Combine(Application.persistentDataPath, SAVES_FOLDER), path);
         LoadManager.SaveFile(Path.Combine(fullPath, GAME_FILE), new SaveableGameState(1, true));
         LoadManager.SaveFile(Path.Combine(fullPath, PLAYER_INVENTORY), new SaveableInventory());
-
-        // TODO player stats
-        // TODO shop inventory
         LoadManager.SaveFile(Path.Combine(fullPath, SHOP_INVENTORY), new SaveableInventory(Resources.Load<NewGameInventorySO>(Path.Combine("NewGame", "ShopkeeperInventory")).itemIDs));
     }
 
@@ -82,7 +81,6 @@ public class GameManager : MonoBehaviour
     public void LoadGame(string path)
     {
         _currentSavePath = path;
-        // TODO do something w path; load inventory
         StartCoroutine(LoadGameAsync("Hub", "Player"));
     }
 
@@ -100,10 +98,12 @@ public class GameManager : MonoBehaviour
 
         if (success)
         {
-            // TODO transfer player coins to inv && unlock next level if possible
+            // TODO unlock new level
         }
 
-        // TODO laoding screen
+        Player.GetComponent<PlayerController>().GetPlayerInventory().AddCoinsToPlayer(coinsUnlocked);
+        Player.GetComponent<PlayerController>().ResetStats();
+
         StartCoroutine(LoadHubAsync("Hub"));
     }
 
@@ -119,6 +119,8 @@ public class GameManager : MonoBehaviour
 
     IEnumerator LoadGameAsync(string locationSceneName, string playerSceneName)
     {
+        _loadingScreen.ShowLoadingScreen();
+
         AsyncOperation locationSceneLoadingTask = SceneManager.LoadSceneAsync(locationSceneName, LoadSceneMode.Additive);
         locationSceneLoadingTask.allowSceneActivation = false;
 
@@ -141,11 +143,14 @@ public class GameManager : MonoBehaviour
 
         CurrentHubManager.EnablePlayerDependantObjects(Player.transform, Player.GetComponent<PlayerController>().GetPlayerCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, "shop.inv"));
         UnloadScene("Menu");
+        _loadingScreen.HideLoadingScreen();
     }
 
     IEnumerator LoadHubAsync(string locationSceneName)
     {
+        _loadingScreen.ShowLoadingScreen();
         Player.SetActive(false);
+        CurrentHubManager = null;
         AsyncOperation locationSceneLoadingTask = SceneManager.LoadSceneAsync(locationSceneName, LoadSceneMode.Additive);
 
         while (!locationSceneLoadingTask.isDone) { yield return null; }
@@ -154,15 +159,17 @@ public class GameManager : MonoBehaviour
 
         while (CurrentHubManager == null) { yield return null; }
 
-        CurrentHubManager = null;
         UnloadScene("Maze");
 
         Player.SetActive(true);
-        // TODO hide player loading screen; add loading screen to GameManager?
+        Player.transform.position = Vector3.zero;
+        CurrentHubManager.EnablePlayerDependantObjects(Player.transform, Player.GetComponent<PlayerController>().GetPlayerCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, "shop.inv"));
+        _loadingScreen.HideLoadingScreen();
     }
 
     IEnumerator LoadMazeAsync(string locationSceneName, MazeSettingsSO mazeSettings)
     {
+        _loadingScreen.ShowLoadingScreen();
         Player.SetActive(false);
         AsyncOperation locationSceneLoadingTask = SceneManager.LoadSceneAsync(locationSceneName, LoadSceneMode.Additive);
 
@@ -179,7 +186,7 @@ public class GameManager : MonoBehaviour
         UnloadScene("Hub");
 
         Player.SetActive(true);
-        // TODO hide player loading screen; add loading screen to GameManager?
+        _loadingScreen.HideLoadingScreen();
     }
 
     IEnumerator UnloadSceneAsync(string sceneName)

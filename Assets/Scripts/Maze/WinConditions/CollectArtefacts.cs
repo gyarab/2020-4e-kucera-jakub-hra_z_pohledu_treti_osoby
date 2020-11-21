@@ -6,13 +6,36 @@ using UnityEngine;
 public class CollectArtefacts : MonoBehaviour, IWinCondition
 {
     public Action OnCompleted { get; set; }
+    private int _artefactsToCollect;
 
-    private const int ARTEFACT_ITEM_ID = 5; // TODO rework?; set id
+    private const int ARTEFACT_ITEM_ID = 7;
+
+    private void OnEnable()
+    {
+        GroundItem.OnItemPickedUp += UpdateWinCondition;
+    }
+
+    private void OnDisable()
+    {
+        GroundItem.OnItemPickedUp -= UpdateWinCondition;
+    }
+
+    public void UpdateWinCondition(ItemObject item, int amount)
+    {
+        _artefactsToCollect -= amount;
+
+        if (_artefactsToCollect <= 0)
+        {
+            OnCompleted?.Invoke();
+        }
+    }
 
     public List<Vector3> ConfirmSpawnLocations(List<Vector3> array)
     {
+        _artefactsToCollect = 4;
+
         Spawner spawner = GetComponent<Spawner>();
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < _artefactsToCollect; i++)
         {
             int index = UnityEngine.Random.Range(0, array.Count);
             spawner.SpawnItem(array[index], ARTEFACT_ITEM_ID);

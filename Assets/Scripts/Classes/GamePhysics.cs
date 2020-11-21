@@ -6,6 +6,8 @@ public static class GamePhysics
 {
     private const float GRAVITY = 10f;
 
+    #region Rotation
+
     public static Quaternion RotateTowardsMovementDirection(Quaternion rotation, Vector3 velocity, float rotationSpeed)
     {
         Vector3 velocityRotation = new Vector3(velocity.x, 0, velocity.z);
@@ -22,6 +24,10 @@ public static class GamePhysics
         Vector3 direction = new Vector3 (targetPosition.x - position.x, 0, targetPosition.z - position.z).normalized;
         return Quaternion.Slerp(rotation, Quaternion.LookRotation(direction), rotationSpeed);
     }
+
+    #endregion
+
+    #region Movement
 
     public static Vector3 MoveTowardsPositionNonYUnclamped(Vector3 position, Vector3 targetLocation, float speed)
     {
@@ -56,10 +62,14 @@ public static class GamePhysics
         return Vector3.Slerp(position, new Vector3(targetLocation.x, position.y, targetLocation.z), progress); // TODO fix; remove Y
     }
 
+    #endregion
+
     public static float GetGravitationalForce(float timeSinceGrounded)
     {
         return (- GRAVITY) * Mathf.Pow(timeSinceGrounded, 2);
     }
+
+    #region Grounded
 
     public static bool IsGroundedSphereCast(Vector3 position, float sphereRadius, float groundOffset, float rayOverhead, LayerMask layer, out float yCorrection)
     {
@@ -118,7 +128,6 @@ public static class GamePhysics
 
             if (currentDistanceFromGround >= maxYDelta)
             {
-                Debug.Log(hits[i].transform.name);
                 maxYDelta = currentDistanceFromGround;
             }
         }
@@ -150,7 +159,11 @@ public static class GamePhysics
         return true;
     }
 
-    public static Vector3 ResolveCollisions(Vector3 position, Quaternion rotation, Vector3 sphereColliderPosition, SphereCollider sphereCollider, LayerMask excludeCaster)
+    #endregion
+
+    #region Collisions
+
+    public static Vector3 ResolveCollisionsNonY(Vector3 position, Quaternion rotation, Vector3 sphereColliderPosition, SphereCollider sphereCollider, LayerMask excludeCaster)
     {
         Vector3 collisionCorectionVector = Vector3.zero;
 
@@ -166,20 +179,43 @@ public static class GamePhysics
             if (Physics.ComputePenetration(sphereCollider, position, rotation, overlaps[i], transform.position, transform.rotation, out direction, out magnitude))
             {
                 Vector3 penetrationVector = direction * magnitude;
-                penetrationVector = GetXZPlaneVector(penetrationVector, sphereCollider.radius);
-                collisionCorectionVector += penetrationVector;
+                string a = ("a: " + penetrationVector.x + ", " + penetrationVector.y + ", " + penetrationVector.z);
+                penetrationVector = GetXZPlaneVector(penetrationVector, sphereCollider.radius); // TODO remove if not working
+                string b = ("b: " + penetrationVector.x + ", " + penetrationVector.y + ", " + penetrationVector.z);
+
+                if (float.IsNaN(penetrationVector.x))
+                {
+                    Debug.Log(a);
+                    Debug.Log(b);
+                } else
+                {
+                    collisionCorectionVector += penetrationVector;
+                }
             }
         }
 
         return collisionCorectionVector;
     }
 
-    public static Vector3 GetXZPlaneVector(Vector3 vector, float radius)
+    // TODO fix, error if 0,8, 0,9, 0,1
+    public static Vector3 GetXZPlaneVector(Vector3 input, float radius)
     {
-        if(vector.x * vector.z == 0)
+        if(radius <= 0)
         {
-            return vector;
+            throw new System.Exception("Radius is lesser or equal to zero");
         }
+
+        if(input.x * input.z == 0)
+        {
+            return input;
+        }
+
+        if(Vector3.Magnitude(input) > radius)
+        {
+            return Vector3.zero;
+        }
+
+        Vector3 vector = new Vector3(Mathf.Abs(input.x), Mathf.Abs(input.y), Mathf.Abs(input.z));
 
         float horizontalCathetus = Mathf.Sqrt((vector.x * vector.x) + (vector.z * vector.z));
         float shorterHypotenuse = Vector3.Magnitude(vector);
@@ -191,8 +227,29 @@ public static class GamePhysics
         float missingPiece = rho - distanceFromYAxis - horizontalCathetus;
         float multiplier = 1 + (missingPiece / horizontalCathetus);
 
-        Vector3 result = new Vector3(vector.x, 0, vector.z);
+        Vector3 result = new Vector3(input.x, 0, input.z);
 
         return result * multiplier;
     }
+
+    public static Vector3 RaycastCollisionDetection(Vector3 position, Vector3[] normalizedDirections, float rayDistance, LayerMask layer)
+    {
+        Ray ray;
+        RaycastHit hitInfo;
+        Vector3 correction = Vector3.zero;
+
+        for (int i = 0; i < normalizedDirections.Length; i++)
+        {
+            ray = new Ray(position, normalizedDirections[i]);
+
+            if(Physics.Raycast(ray, out hitInfo, rayDistance, layer))
+            {
+                correction -= normalizedDirections[i] * (rayDistance - hitInfo.distance) / rayDistance;
+            }
+        }
+
+        return correction;
+    }
+
+    #endregion
 }

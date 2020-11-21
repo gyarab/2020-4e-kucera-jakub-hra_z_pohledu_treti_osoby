@@ -28,9 +28,9 @@ public class Spawner : MonoBehaviour
         groundItem.SetVariables(item);
     }
 
-    public void SpawnReturnPortal(Vector3 position)
+    public void SpawnReturnPortal(Vector3 position, float yOffset)
     {
-        Instantiate(_returnPortal, position, Quaternion.identity);
+        Instantiate(_returnPortal, new Vector3(position.x, position.y + yOffset, position.z), Quaternion.identity);
     }
 
     public void SpawnBossRoom(Vector3 position, int side, float distanceBetweenCells)

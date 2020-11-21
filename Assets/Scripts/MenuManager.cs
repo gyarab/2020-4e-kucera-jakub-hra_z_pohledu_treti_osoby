@@ -11,7 +11,6 @@ public class MenuManager : MonoBehaviour
     [Header("UI")] // TODO change to serialized
     public Canvas menuCanvas;
     public Canvas saveSelectionCanvas;
-    public Canvas loadingCanvas;
     public TMP_InputField inputField;
     public GameObject levelUIPrefab;
     public GameObject deleteLevelUIPrefab;
@@ -30,7 +29,6 @@ public class MenuManager : MonoBehaviour
     {
         menuCanvas.enabled = true;
         saveSelectionCanvas.enabled = false;
-        loadingCanvas.enabled = false;
 
         _savedGames = CheckForSavedGames();
     }
@@ -80,7 +78,6 @@ public class MenuManager : MonoBehaviour
     // TODO
     private void LoadSave(string _path) // TODO loading bar?
     {
-        loadingCanvas.enabled = true;
         saveSelectionCanvas.enabled = false;
         GameManager.Instance.LoadGame(_path);
     }

@@ -7,15 +7,13 @@ using System;
 public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 {
     //public static Action OnBossDeath; TODO do smth?
-    private Vector3 drawCenter; // TODO remove
-    private float drawRadius; // TODO remove
 
     #region Variables
 
     [Header("Physics"), SerializeField]
-    private float _gravity; // TODO physics script
+    private float _rotationSpeed;
     [SerializeField]
-    private float _rotationSpeed, _movementSpeed;
+    private float _movementSpeed;
     [SerializeField, Range(0f, 180f)]
     private float _maxAngleDifference;
     [SerializeField]
@@ -26,23 +24,26 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
     [SerializeField]
     private float _groundOffset, _rayOverhead, _yRayPositionOffset;
 
+    [Header("Collision"), SerializeField]
+    private LayerMask _collisionLayer;
+    [SerializeField]
+    private float _rayLength;
+
     [Header("Stats"), SerializeField]
     private CharacterStatsSO _bossStats;
     [SerializeField]
-    private GameObject _healthBarGO; // TODO health bar fixed on screen?
+    private GameObject _healthBarGO;
 
-    [Header("Miscellaneous")] // TODO rename
+    [Header("Miscellaneous")]
     [SerializeField]
     private float _delayAfterEntering;
-    [SerializeField]
-    private bool _grounded;
 
     [Header("Attacks"), SerializeField]
     private ComboSO[] _combos;
     [SerializeField]
     private Transform _rightHand, _leftHand;
     [SerializeField]
-    private float _groundSmashRadius, _jumpSmashRadius, _swipeRadius, _landDistanceOffset, _minLandDistanceProgress;
+    private float _groundSmashRadius, _jumpSmashRadius, _swipeRadius, _landDistanceOffset, _minLandDistanceProgress, _delayBetweenHits;
 
     [Header("Animations"), SerializeField]
     private Animator _animator;
@@ -53,6 +54,8 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
     private float _currentHealth, _timeSinceGrounded;
     private Vector3 _rayPosition;
+    private bool _grounded, _canDealDamage;
+    private Vector3[] _raycastDirections;
 
     // Combos
     private int[] _comboBias;
@@ -68,6 +71,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
     {
         _currentHealth = _bossStats.health;
         _comboBias = new int[_combos.Length];
+        _canDealDamage = true;
 
         _timeSinceGrounded = 0;
         _rayPosition = new Vector3(0, _yRayPositionOffset, 0);
@@ -82,6 +86,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
     {
         IsGrounded();
         ApplyGravity();
+        CheckForCollisions();
     }
 
     private void OnEnable()
@@ -119,6 +124,12 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         transform.position = new Vector3(transform.position.x, transform.position.y + gravitationalForce, transform.position.z);
     }
 
+    private void CheckForCollisions()
+    {
+        _raycastDirections = new Vector3[] { transform.right, -transform.right, transform.forward };
+        transform.position += GamePhysics.RaycastCollisionDetection(transform.position, _raycastDirections, _rayLength, _collisionLayer);
+    }
+
     #endregion
 
     private void PlayIntro() // TODO rename?
@@ -132,6 +143,8 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
     private ComboSO ChooseNextCombo()
     {
+        Debug.Log("New Combo");
+
         float targetBossAngle = Vector2.Angle(transform.forward, _target.position - transform.position);
         float targetBossDistance = Vector3.Distance(transform.position, _target.position);
         int currentHighestBias = -1;
@@ -171,6 +184,8 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
     private void StartNextAction()
     {
+        Debug.Log("Next Action");
+        _canDealDamage = true;
         _currentActionIndex++;
 
         if(_currentCombo == null || (_currentActionIndex >= _currentCombo.actions.Length))
@@ -189,11 +204,19 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
                 _currentWaitTimeIndex++;
                 break;
             case BossActionType.Swipe:
-                ChangeState(StartCoroutine(Swipe(nextAction)));
+                ChangeState(Swipe());
                 break;
-            default:
-                string enumeratorName = Enum.GetName(typeof(BossActionType), nextAction);
-                ChangeState(StartCoroutine(enumeratorName));
+            case BossActionType.GroundSmash:
+                ChangeState(GroundSmash());
+                break;
+            case BossActionType.JumpSmash:
+                ChangeState(JumpSmash());
+                break;
+            case BossActionType.RotateTowardsTarget:
+                ChangeState(RotateTowardsTarget());
+                break;
+            case BossActionType.MoveTowardsTarget:
+                ChangeState(MoveTowardsTarget());
                 break;
         }
     }
@@ -232,7 +255,6 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
         while (true)
         {
-            yield return new WaitForFixedUpdate();
             positionDelta = GamePhysics.MoveTowardsPositionNonYClamped(transform.position, _target.position, _movementSpeed, out distance);
             transform.rotation = GamePhysics.RotateTowardsTarget(transform.rotation, transform.position, _target.position, _rotationSpeed);
 
@@ -312,22 +334,27 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
         while (timePlaying <= TIME_TO_HIT)
         {
+            Debug.Log("2");
             timePlaying += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
 
+        Debug.Log("2.1");
         SphericalHitDetection(_groundSmashRadius, GetHandsCenterPosition());
-
+        Debug.Log("2.2");
         while (timePlaying <= TIME_TO_END)
         {
+            Debug.Log("1");
             timePlaying += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
+
+        Debug.Log("12");
 
         StartNextAction();
     }
 
-    private IEnumerator Swipe(BossActionType action)
+    private IEnumerator Swipe()
     {
         const float TIME_TO_HIT = 0.67f;
         const float TIME_TO_END = 1.5f;
@@ -351,23 +378,30 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
         while (timePlaying <= TIME_TO_HIT)
         {
+            Debug.Log("3");
             timePlaying += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
+        Debug.Log("3.1");
 
         while (timePlaying <= TIME_TO_HIT + TIME_WINDOW)
         {
+            Debug.Log("4");
             timePlaying += Time.fixedDeltaTime;
             SphericalHitDetection(_swipeRadius, handTransform.position);
 
             yield return new WaitForFixedUpdate();
         }
 
+        Debug.Log("4.1");
         while (timePlaying <= TIME_TO_END)
         {
+            Debug.Log("5");
             timePlaying += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
+
+        Debug.Log("345");
 
         StartNextAction();
     }
@@ -378,14 +412,14 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
     
     private void SphericalHitDetection(float radius, Vector3 position)
     {
-        if (Vector3.Distance(position, _target.transform.position) <= radius)
+        if (_canDealDamage)
         {
-            _target.GetComponent<IDamageable>().TakeDamage(_bossStats.damage, _bossStats.armourPenetration);
+            if (Vector3.Distance(position, _target.transform.position) <= radius)
+            {
+                _target.GetComponent<IDamageable>()?.TakeDamage(_bossStats.damage, _bossStats.armourPenetration);
+                _canDealDamage = false;
+            }
         }
-
-        // TODO remove code below
-        drawCenter = position;
-        drawRadius = radius;
     }
 
     private Vector3 GetHandsCenterPosition()
@@ -417,14 +451,5 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         {
             GetDestroyed();
         }
-    }
-
-    void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawSphere(drawCenter, drawRadius);
-
-        Gizmos.color = Color.green;
-        Gizmos.DrawLine(transform.TransformPoint(_rayPosition), new Vector3(transform.position.x, transform.position.y - _groundOffset, transform.position.z));
     }
 }

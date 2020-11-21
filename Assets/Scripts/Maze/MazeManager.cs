@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public class MazeManager : MonoBehaviour // TODO remove singleton ?
+public class MazeManager : MonoBehaviour
 {
     private bool _completedWinCondition;
     private int _coinsCollected;

@@ -6,6 +6,7 @@ public class InventorySlotContainer
 {
     public List<InventorySlot> Slots { get; set; }
     public List<InventorySlot> EquippedItemSlots { get; set; }
+    public int Coins { get; set; }
     public string SavePath { get; set; }
 
     public InventorySlotContainer(string path)
@@ -49,7 +50,7 @@ public class InventorySlotContainer
 
     public void Save()
     {
-        LoadManager.SaveFile(SavePath, new SaveableInventory(Slots, EquippedItemSlots));
+        LoadManager.SaveFile(SavePath, new SaveableInventory(Slots, EquippedItemSlots, Coins));
     }
 
     public void Load(string path)
@@ -57,14 +58,16 @@ public class InventorySlotContainer
         Slots = new List<InventorySlot>();
         EquippedItemSlots = new List<InventorySlot>();
 
-        SaveableInventory inv = LoadManager.ReadFile<SaveableInventory>(SavePath);
+        SaveableInventory inventory = LoadManager.ReadFile<SaveableInventory>(SavePath);
 
-        foreach (SaveableInventorySlot slot in inv.savedItems)
+        Coins = inventory.coins;
+
+        foreach (SaveableInventorySlot slot in inventory.savedItems)
         {
             Slots.Add(new InventorySlot(GameManager.Instance.GetItemObjectByID(slot.id), slot.amount));
         }
 
-        foreach(int id in inv.equippedItemIds)
+        foreach(int id in inventory.equippedItemIds)
         {
             EquippedItemSlots.Add(GetSlotByItemID(id));
         }

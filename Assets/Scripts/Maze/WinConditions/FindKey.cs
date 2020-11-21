@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public class FindKey : MonoBehaviour, IWinCondition
+public class FindKey : MonoBehaviour, IWinCondition // TODO remove the key part?
 {
     private int _enemiesAlive, _totalEnemies;
+    private bool _spawnedKey;
     public Action OnCompleted { get; set; }
 
-    private const int KEY_ITEM_ID = 5; // TODO rework?
+    private const int KEY_ITEM_ID = 6;
 
     private void OnEnable()
     {
@@ -23,14 +24,18 @@ public class FindKey : MonoBehaviour, IWinCondition
     public void UpdateWinCondition(Vector3 position)
     {
         _enemiesAlive--;
-        Debug.Log(_enemiesAlive + " alive out of " + _totalEnemies);
+
+        if (_spawnedKey)
+        {
+            return;
+        }
 
         if(_enemiesAlive == 0)
         {
             SpawnKey(position);
         } else if(((float)_enemiesAlive / (float)_totalEnemies) < 0.5f)
         {
-            if(UnityEngine.Random.Range(0,3) == 0) // TODO move?
+            if(UnityEngine.Random.Range(0,3) == 0)
             {
                 SpawnKey(position);
             }
@@ -40,6 +45,7 @@ public class FindKey : MonoBehaviour, IWinCondition
     private void SpawnKey(Vector3 position)
     {
         GetComponent<Spawner>().SpawnItem(position, KEY_ITEM_ID);
+        _spawnedKey = true;
         Debug.Log("Key Spawned");
     }
 
@@ -51,7 +57,7 @@ public class FindKey : MonoBehaviour, IWinCondition
 
     public List<GenerationRule> SpecialGenerationRules()
     {
-        // TODO spawn boss doors + room
+        // Spawn outer room with boss
         return new List<GenerationRule> { GenerationRule.OuterRoom };
     }
 }

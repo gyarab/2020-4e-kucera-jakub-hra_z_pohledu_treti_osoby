@@ -17,7 +17,7 @@ public class HubManager : MonoBehaviour
 
     public void EnablePlayerDependantObjects(Transform target, Transform cameraTransform, string shopInventoryPath)
     {
-        FloatingButton.SetTransforms(target, cameraTransform); // TODO change?
+        FloatingButton.SetTransforms(target, cameraTransform);
 
         for (int i = 0; i < _portals.Length; i++)
         {
@@ -29,10 +29,5 @@ public class HubManager : MonoBehaviour
             _shopkeepers[i].enabled = true;
             _shopkeepers[i].LoadShopInventory(shopInventoryPath);
         }
-    }
-
-    public void ChangeLevel()
-    {
-        // TODO what?
     }
 }

@@ -130,4 +130,31 @@ public class Pathfinding<T> where T : IPathfindingNode<T>
     {
         return Mathf.Pow(nodePosition.x - objectPosition.x, 2) + Mathf.Pow(nodePosition.z - objectPosition.z, 2);
     }
+
+    public List<Vector3> GetRandomPath(Vector3 position, int cycles, int cycleLength)
+    {
+        int direction = UnityEngine.Random.Range(0, 8);
+        T currentNode = _nodes[GetCurrentNodeID(position)];
+        List<Vector3> path = new List<Vector3>(); 
+
+        for (int i = 0; i < cycles; i++)
+        {
+            for (int j = 0; j < cycleLength; j++)
+            {
+                if(currentNode.Neighbours[direction] != null)
+                {
+                    currentNode = currentNode.Neighbours[direction];
+                } else
+                {
+                    break;
+                }
+            }
+
+            path.Add(currentNode.Position);
+            direction += (UnityEngine.Random.Range(0, 5) - 2 + 8);
+            direction = direction % 8;
+        }
+
+        return path;
+    }
 }

@@ -6,15 +6,17 @@ using UnityEngine;
 public class SaveableInventory
 {
     public List<SaveableInventorySlot> savedItems;
-    public List<int> equippedItemIds; // TODO
+    public List<int> equippedItemIds;
+    public int coins;
 
     public SaveableInventory()
     {
         savedItems = new List<SaveableInventorySlot>();
         equippedItemIds = new List<int>();
+        coins = 0;
     }
 
-    public SaveableInventory(List<InventorySlot> items, List<InventorySlot> equippedItems)
+    public SaveableInventory(List<InventorySlot> items, List<InventorySlot> equippedItems, int coins)
     {
         savedItems = new List<SaveableInventorySlot>();
 
@@ -25,10 +27,12 @@ public class SaveableInventory
 
         equippedItemIds = new List<int>();
 
-        foreach(InventorySlot slot in equippedItems)
+        foreach (InventorySlot slot in equippedItems)
         {
             equippedItemIds.Add(slot.ItemObject.itemID);
         }
+
+        this.coins = coins;
     }
 
     public SaveableInventory(int[] array)

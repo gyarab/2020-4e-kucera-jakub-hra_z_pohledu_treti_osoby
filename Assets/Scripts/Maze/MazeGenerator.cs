@@ -50,20 +50,19 @@ public class MazeGenerator : MonoBehaviour
         }
 
         ITileGenerator tileGenerator = GetComponent<TileGenerator>();
-        tileGenerator.GenerateTiles(_subcellData);
+        tileGenerator.GenerateTiles(_subcellData, _generationsRules.Contains(GenerationRule.OuterRoom) ? (_subcellData.EmptySpotInArray - 1) : _subcellData.EmptySpotInArray);
 
         PathfindingNodeGenerator pathfindingNodeGenerator = GetComponent<PathfindingNodeGenerator>();
         _pathfindingNodes = pathfindingNodeGenerator.GenerateNodes(_mazeSettings, _subcellData);
 
         Debug.Log("Generation Done");
         // TODO remove or move?
-        GetComponent<Spawner>().SpawnReturnPortal(_subcellData.SpawnPoint);
-        GameManager.Instance.Player.transform.position = new Vector3(_subcellData.SpawnPoint.x, _subcellData.SpawnPoint.y + 2, _subcellData.SpawnPoint.z);
+        GetComponent<Spawner>().SpawnReturnPortal(_subcellData.SpawnPoint, - 0.5f); // TODO hardcoded
+        GameManager.Instance.Player.transform.position = new Vector3(_subcellData.SpawnPoint.x, _subcellData.SpawnPoint.y + 2, _subcellData.SpawnPoint.z); // TODO hardcoded
 
         // TODO make better & move?
         SpawnEnemies();
 
-        // Destroy(this); // TODO uncomment?
         nodeCount = _pathfindingNodes.Length;
         return _pathfindingNodes;
     }
@@ -75,13 +74,14 @@ public class MazeGenerator : MonoBehaviour
     {
         //DrawCells();
 
-        DrawNodes();
+        //DrawNodes();
     }
     
     private void DrawNodes()
     {
         if (_pathfindingNodes != null)
         {
+            Debug.Log("gizmos");
             for (int i = 0; i < _pathfindingNodes.Length; i++)
             {
                 if (_pathfindingNodes[i] == null)
@@ -192,10 +192,10 @@ public class MazeGenerator : MonoBehaviour
         Vector2Int path = _cellData.GetPath(cellPosition, dimensions);
         int currenSubcellIndex = _cellData.Cells[cellPosition.x, cellPosition.y].lowestSubcellIndex + (dimensions.y * path.x) + path.y;
 
-        Vector3 outerRoomPosition = CreateOuterRoom(currenSubcellIndex, side);
+        Subcell outerRoomSubcell = CreateOuterRoomSubcell(currenSubcellIndex, side);
 
-        // TODO instantiate boss room and doors to the room
-        GetComponent<Spawner>().SpawnBossRoom(outerRoomPosition, side, _mazeSettings.distanceBetweenCells);
+        GetComponent<TileGenerator>().SpawnSingleTile(outerRoomSubcell.Position, outerRoomSubcell.GetFirstDoor() * 90, 2, outerRoomSubcell.TileType);
+        GetComponent<Spawner>().SpawnBossRoom(outerRoomSubcell.Position, side, _mazeSettings.distanceBetweenCells);
     }
 
     private Vector2Int GetOuterCell(int side)
@@ -274,7 +274,7 @@ public class MazeGenerator : MonoBehaviour
         throw new System.Exception("Could not find cell");
     }
 
-    private Vector3 CreateOuterRoom(int subcellPositionInArray, int side)
+    private Subcell CreateOuterRoomSubcell(int subcellPositionInArray, int side)
     {
         Subcell currentSubcell = _subcellData.Subcells[subcellPositionInArray];
         Subcell newSubcell;
@@ -325,10 +325,10 @@ public class MazeGenerator : MonoBehaviour
         _subcellData.Subcells[_subcellData.EmptySpotInArray] = newSubcell;
         _subcellData.EmptySpotInArray++;
 
-        return newSubcell.Position;
+        return newSubcell;
     }
 
-    // TODO remove
+    // TODO rework cuz duplicate
     private void ConnectTwoSubcells(Subcell first, Subcell second, Side direction)
     {
         switch (direction)

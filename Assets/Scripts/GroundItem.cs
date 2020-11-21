@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 public class GroundItem : FloatingButton // TODO spawner script
 {
+    public static Action<ItemObject, int> OnItemPickedUp;
+
     // TODO remove or uncomment if it doesnt work
     /*[SerializeField]
     private float pickUpRange;
@@ -86,7 +89,8 @@ public class GroundItem : FloatingButton // TODO spawner script
         
     public void PickUpGUI()
     {
-        GameManager.Instance.Player.GetComponent<PlayerController>().GetPlayerInventory().AddItem(_item, 1);
+        OnItemPickedUp?.Invoke(_item, 1);
+        //GameManager.Instance.Player.GetComponent<PlayerController>().GetPlayerInventory().AddItem(_item, 1);
         Destroy(gameObject);
     }
 }

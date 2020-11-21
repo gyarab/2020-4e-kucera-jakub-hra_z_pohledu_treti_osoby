@@ -20,9 +20,9 @@ MonoBehaviour:
   maxDistanceMultiplyer: 4
   randomDistanceBetweenCells: 1
   pathfindingNodesInSubcell: 5
-  nodeSpreadPercentage: 0.9
+  nodeSpreadPercentage: 0.95
   triesToGenerateMaze: 10
-  minCellPercentage: 0.6
+  minCellPercentage: 0.95
   roomChance:
   - 1
   - 0.5
@@ -40,4 +40,4 @@ MonoBehaviour:
   - 1
   roomTileTypes: 00000000
   corridorTileTypes: 00000000
-  spawnChance: 0.1
+  spawnChance: 0.02

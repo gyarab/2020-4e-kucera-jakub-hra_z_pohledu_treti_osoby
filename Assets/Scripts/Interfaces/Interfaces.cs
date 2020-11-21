@@ -33,7 +33,7 @@ public interface ISubcellGenerator
 
 public interface ITileGenerator
 {
-    void GenerateTiles(SubcellData subcellData);
+    void GenerateTiles(SubcellData subcellData, int count);
 }
 
 public interface IPathfindingNode<T> : IComparable<T>

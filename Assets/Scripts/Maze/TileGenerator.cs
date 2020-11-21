@@ -9,37 +9,19 @@ public class TileGenerator : MonoBehaviour, ITileGenerator
 
     private SubcellData _subcellData;
 
-    public void GenerateTiles(SubcellData subcellData)
+    public void GenerateTiles(SubcellData subcellData, int count)
     {
         _subcellData = subcellData;
 
-        SpawnTiles();
+        SpawnTiles(count);
     }
 
-    private void SpawnTiles() // TODO choose one method
+    private void SpawnTiles(int count) // TODO choose one method
     {
-        for (int i = 0; i < _subcellData.Subcells.Length; i++)
+        for (int i = 0; i < count; i++)
         {
             SpawnTilePrefab(_subcellData.Subcells[i]);
         }
-
-        /*Vector2 dimensions;
-
-        for (int i = 0; i < _mazeSettings.length; i++)
-        {
-            for (int j = 0; j < _mazeSettings.width; j++)
-            {
-                if (_cellData.Cells[i, j] != null)
-                {
-
-                    dimensions = GetDimensions(i, j);
-                    for (int k = 0; k < dimensions.x * dimensions.y; k++)
-                    {
-                        SpawnTilePrefab(_pathfindingNodes[_cellData.Cells[i, j].lowestPathfindingNodeID + k]);
-                    }
-                }
-            }
-        }*/
     }
 
     private void SpawnTilePrefab(Subcell subcell)
@@ -73,6 +55,11 @@ public class TileGenerator : MonoBehaviour, ITileGenerator
                     throw new System.Exception("Cell can't have more than four doors");
             }
         }
+    }
+
+    public void SpawnSingleTile(Vector3 position, float yRotation, int tilePrefabNumber,int tileType)
+    {
+        Instantiate(_tileSets[tileType].tiles[tilePrefabNumber], position, Quaternion.Euler(new Vector3(0, yRotation, 0)), transform);
     }
 }
 

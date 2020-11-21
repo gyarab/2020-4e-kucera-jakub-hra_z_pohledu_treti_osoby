@@ -45,7 +45,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dec6b91df571d8a498da87d458f4740d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _gravity: 10
   _rotationSpeed: 0.2
   _movementSpeed: 0.1
   _maxAngleDifference: 10
@@ -56,10 +55,13 @@ MonoBehaviour:
   _groundOffset: 3
   _rayOverhead: 0.5
   _yRayPositionOffset: 3
+  _collisionLayer:
+    serializedVersion: 2
+    m_Bits: 512
+  _rayLength: 7
   _bossStats: {fileID: 11400000, guid: f04895b4dfad7284e8fa1f6241e0ed73, type: 2}
   _healthBarGO: {fileID: 0}
   _delayAfterEntering: 2
-  _grounded: 0
   _combos:
   - {fileID: 11400000, guid: 8bce520cee9414d4387c17905b362858, type: 2}
   - {fileID: 11400000, guid: e3da00e56d8bced4b8fd464cdfd08c8e, type: 2}
@@ -71,6 +73,7 @@ MonoBehaviour:
   _swipeRadius: 3
   _landDistanceOffset: 2
   _minLandDistanceProgress: 0.5
+  _delayBetweenHits: 0.5
   _animator: {fileID: 1903210996550078900}
 --- !u!65 &205144934065903731
 BoxCollider:

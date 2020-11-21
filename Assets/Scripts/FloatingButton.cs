@@ -21,7 +21,7 @@ public class FloatingButton : MonoBehaviour
     protected void FloatingButtonStart()
     {
         _canvas = GetComponentInChildren<Canvas>();
-        _canvas.enabled = false;
+        HideButton();
 
         if (playerCameraTransform == null)
         {

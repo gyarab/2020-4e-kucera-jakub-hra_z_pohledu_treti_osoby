@@ -32,10 +32,12 @@ public class PlayerController : MonoBehaviour, IDamageable
     private float gravity;
     [SerializeField]
     private float _jumpForce, _maxStep;
+    [SerializeField]
+    private LayerMask _collisionLayer;
 
     [Header("Rays")]
     [SerializeField]
-    private LayerMask _excludePlayer;
+    private LayerMask _groundLayer;
     [SerializeField]
     private float _groundRayOffset, _groundRayOverhead, _groundRayJumpDecrease, _sphereOffset, _sphereRadius, _groundOffset; // TODO remove _sphereRadius?
 
@@ -179,7 +181,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         GetInput();
     }
 
-    // Camera stuff
+    // Camera stuff, TODO move to new script?
     void LateUpdate()
     {
         Vector3 newCamPos;
@@ -214,7 +216,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
         // Camera Collision Check
         Ray ray = new Ray(transform.position + _cameraOffset, newCamPos - (transform.position + _cameraOffset));
-        if (Physics.Raycast(ray, out hit, _distanceFromTarget, _excludePlayer))
+        if (Physics.Raycast(ray, out hit, _distanceFromTarget, _groundLayer)) // TODO change to collisionLayer?
         {
             _cameraTransform.position = hit.point + _cameraTransform.forward * _cameraClippingOffset;
         }
@@ -398,7 +400,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     private void CheckForCollisions()
     {
-        transform.position += GamePhysics.ResolveCollisions(transform.position, transform.rotation, transform.TransformPoint(_sphereCollider.center), _sphereCollider, _excludePlayer);
+        transform.position += GamePhysics.ResolveCollisionsNonY(transform.position, transform.rotation, transform.TransformPoint(_sphereCollider.center), _sphereCollider, _collisionLayer);
     }
 
     private bool IsGrounded()
@@ -409,7 +411,7 @@ public class PlayerController : MonoBehaviour, IDamageable
             return false;
         }
 
-        bool grounded = GamePhysics.IsGroundedWithMaxStepDistanceAndCollisions(transform.TransformPoint(_groundRayPosition), _groundRayOffset, _groundRayOverhead, _maxStep, _sphereFeetCollider, transform.TransformPoint(_sphereFeetCollider.center), _excludePlayer, out Vector3 correction);
+        bool grounded = GamePhysics.IsGroundedWithMaxStepDistanceAndCollisions(transform.TransformPoint(_groundRayPosition), _groundRayOffset, _groundRayOverhead, _maxStep, _sphereFeetCollider, transform.TransformPoint(_sphereFeetCollider.center), _groundLayer, out Vector3 correction);
         transform.position += correction;
         return grounded;
     }
@@ -453,6 +455,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     #endregion
 
+    // Camera stuff, TODO move to new script?
     #region Camera
 
     private void GetInput()
@@ -595,7 +598,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
             if (_angleInDegrees > Vector3.Angle(transform.TransformVector(this._attackDirection), attackDirection))
             {
-                _attackOverlaps[i].GetComponent<IDamageable>().TakeDamage(_currentStats.Damage, _currentStats.ArmourPenetration);
+                _attackOverlaps[i].transform.root.GetComponent<IDamageable>().TakeDamage(_currentStats.Damage, _currentStats.ArmourPenetration);
                 Debug.DrawRay(transform.position, attackDirection, Color.green);
             }
             else
@@ -669,12 +672,19 @@ public class PlayerController : MonoBehaviour, IDamageable
                 _currentHealth = _currentStats.Health;
             }
 
+            _healthBar.SetValue(_currentHealth / _currentStats.Health);
             return true;
         }
         else
         {
             return true;
         }
+    }
+
+    public void ResetStats()
+    {
+        _currentHealth = _currentStats.Health;
+        _healthBar.SetValue(_currentHealth / _currentStats.Health);
     }
 
     #endregion
@@ -709,6 +719,8 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     public void TakeDamage(float damageTaken, float armourPenentration)
     {
+        Debug.Log("hit");
+
         if (_rolling)
         {
             if(_rollInvincibilityTiming.x <= _rollTimer && _rollTimer <= _rollInvincibilityTiming.y)
@@ -722,9 +734,9 @@ public class PlayerController : MonoBehaviour, IDamageable
         _currentHealth -= damageTaken + armourLeft;
         _healthBar.SetValue(_currentHealth / _currentStats.Health);
 
-        if(_currentHealth <= 0)
+        if(_currentHealth < 0)
         {
-            Debug.Log("dead"); // TODO respawn
+            GameManager.Instance.LoadHub(false, 0);
         }
     }
 }

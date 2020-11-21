@@ -7,19 +7,15 @@ using System;
 public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TODO combine visual navigation w pathfinding / rework nav; attack as class with interface / get attack component
 {
     public static Action<Vector3> OnEnemyDeath;
-    public static Pathfinding<PathfindingNode> Pathfinder { get; set; } // TODO do differently
+    public static Pathfinding<PathfindingNode> Pathfinder { get; set; } // TODO do differently?
 
     #region Variables
-
-    [Header("Physics")]
-    [SerializeField]
-    private float _gravity;
 
     [Header("Enemy")]
     [SerializeField]
     private CharacterStats _stats;
     [SerializeField]
-    private float _movementSpeed, _rotationSpeed;
+    private float _movementSpeed, _rotationSpeed, _angularSpeed;
     [SerializeField]
     private GameObject _healthBarGO;
 
@@ -33,27 +29,29 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
     [Header("RayCast")]
     [SerializeField]
-    private LayerMask _excludeCharacters;
+    private LayerMask _groundLayer;
     [SerializeField]
     private float _enemyHeight, _sphereRadius, _groundOffset, _rayOverhead;
+
+    [Header("Collisions"), SerializeField]
+    private LayerMask _collisionLayer;
+    [SerializeField]
+    private float _raycastLength;
 
     [Header("Combat")]
     [SerializeField]
     private float _attackRange;
     [SerializeField]
-    private float _damage, _delayBeforeAttack, _delayAfterAttack, _attackAngleInDegrees;
+    private float _delayBeforeAttack, _delayAfterAttack, _attackAngleInDegrees;
 
     [Header("Pathfinding")]
     [SerializeField]
     private float _moveDistanceTolerance;
-
-    [Header("Loot")]
-    [SerializeField, Range(0f, 1f)]
-    private float _itemDropChance;
     [SerializeField]
-    private int _itemDropID;
-    [SerializeField, Range(0f, 1f)]
-    private float _coinDropChance;
+    Vector2Int _randomMovementCycles, _randomMovementLength;
+
+    [Header("Rest"), SerializeField]
+    Vector2 _waitTime;
 
     // Objects
     private Image _healthBar;
@@ -61,9 +59,10 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
     private Camera _mainCamera;
     private Transform _target;
     private List<Vector3> _path;
+    private bool _seenTarget;
+    private Vector3[] _raycastDirections;
 
     private float _currentHealth;
-    private Vector3 _velocity, _destination;
     private bool _grounded;
     private float _timeSinceGrounded, _currentGravity;
 
@@ -80,8 +79,9 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
         _grounded = true;
 
+        _seenTarget = false;
         _target = GameManager.Instance.Player.transform;
-        ChangeState(LookForTarget());
+        ChangeState(WaitForNextAction());
     }
 
     void Update()
@@ -96,107 +96,173 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
     {
         _grounded = IsGrounded();
         CalculateYSpeed();
-        transform.position += _velocity;
+        ResolveCollisions();
     }
 
     public void ReceivePath(List<Vector3> path)
     {
-        if(path == null)
-        {
-            ChangeState(FollowTarget());
-        }
-
         _path = path;
-        ChangeState(FollowPath());
+        ChangeState(FollowPathToTarget());
     }
 
     #region State Methods
 
     private IEnumerator WaitForPath()
     {
-        // TODO change
         Pathfinder.GetPath(transform.position, _target.position, ReceivePath);
         yield return null;
     }
 
-    private IEnumerator FollowPath()
+    private IEnumerator FollowPathToTarget()
     {
-        //Debug.Log("Following path");
-        int index = 0;
-
-        if(_path == null)
+        if (_path == null)
+        {
+            ChangeState(FollowTarget());
+        } else if(_path.Count < 1)
         {
             ChangeState(FollowTarget());
         }
 
-        SetDestination(_path[index]);
-        index++;
+        int index = 0;
+        float distance;
+        Vector3 positionDelta;
 
         while (true)
         {
-            // TODO change?
-            
-            if (Vector2.Distance(new Vector2(transform.position.x, transform.position.z), new Vector2(_destination.x, _destination.z)) <= _moveDistanceTolerance)
+            // TODO check if close to player
+
+            positionDelta = GamePhysics.MoveTowardsPositionNonYClamped(transform.position, _path[index], _movementSpeed, out distance);
+            transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, positionDelta, _rotationSpeed);
+
+            if (distance <= _moveDistanceTolerance)
             {
-                if(index >= _path.Count)
+                index++;
+
+                if (index >= _path.Count || _path[index] == null) // TODO how can it be null
                 {
                     break;
                 }
-
-                SetDestination(_path[index]);
-                index++;
             }
 
-            transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, _velocity, _rotationSpeed);
+            transform.position += positionDelta;
             yield return new WaitForFixedUpdate();
         }
-
-        _velocity = Vector3.zero;
 
         ChangeState(FollowTarget());
     }
 
-    private IEnumerator LookForTarget()
+    private IEnumerator WaitForNextAction()
     {
-        //Debug.Log("Looking for target");
-        while (!CheckForTarget())
+        float timer = 0;
+        float timeToWait = UnityEngine.Random.Range(_waitTime.x, _waitTime.y);
+
+        while(timer < timeToWait)
         {
+            CheckForTarget();
+
+            timer += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
 
-        ChangeState(WaitForPath());
+        int randomNumber = UnityEngine.Random.Range(0, 2);
+        if(randomNumber == 0)
+        {
+            ChangeState(WalkToRandomPlace());
+        } else
+        {
+            ChangeState(FaceRandomDirection());
+        }
     }
 
     private IEnumerator AttackTarget()
     {
-        //Debug.Log("Attacking target");
         yield return new WaitForSeconds(_delayBeforeAttack);
         Attack();
         yield return new WaitForSeconds(_delayAfterAttack);
 
-        //Debug.Log("Attack");
         ChangeState(WaitForPath());
     }
 
-    public IEnumerator FollowTarget()
+    private IEnumerator FollowTarget()
     {
-        //Debug.Log("Following target");
+        float distance;
+        Vector3 positionDelta;
+
         while (true) // while target is visible TODO
         {
-            SetDestination(_target.position);
+            positionDelta = GamePhysics.MoveTowardsPositionNonYClamped(transform.position, _target.position, _movementSpeed, out distance);
+            transform.rotation = GamePhysics.RotateTowardsTarget(transform.rotation, transform.position, _target.position, _rotationSpeed);
 
-            if (Vector2.Distance(new Vector2(transform.position.x, transform.position.z), new Vector2(_destination.x, _destination.z)) <= _attackRange / 2)
+            if (distance <= _attackRange * 0.75f) // TODO hardcoded
             {
                 break;
             }
 
-            transform.rotation = GamePhysics.RotateTowardsTarget(transform.rotation, transform.position, _target.position, _rotationSpeed);
+            transform.position += positionDelta;
             yield return new WaitForFixedUpdate();
         }
 
-        _velocity = Vector3.zero;
-
         ChangeState(AttackTarget());
+    }
+
+    private IEnumerator WalkToRandomPlace()
+    {
+        _path = Pathfinder.GetRandomPath(transform.position, UnityEngine.Random.Range(_randomMovementCycles.x, _randomMovementCycles.y), UnityEngine.Random.Range(_randomMovementLength.x, _randomMovementLength.y));
+
+        int index = 0;
+        float distance;
+        Vector3 positionDelta;
+
+        while (true)
+        {
+            CheckForTarget();
+
+            positionDelta = GamePhysics.MoveTowardsPositionNonYClamped(transform.position, _path[index], _movementSpeed, out distance);
+            transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, positionDelta, _rotationSpeed);
+
+            if (distance <= _moveDistanceTolerance)
+            {
+                index++;
+
+                if (index >= _path.Count)
+                {
+                    break;
+                }
+            }
+
+            transform.position += positionDelta;
+            yield return new WaitForFixedUpdate();
+        }
+
+        ChangeState(WaitForNextAction());
+    }
+
+    private IEnumerator FaceRandomDirection()
+    {
+        float degreesToRotate = UnityEngine.Random.Range(90f, 180f);
+        float alreadyRotatedDegrees = 0;
+        int sign = 1;
+        if (UnityEngine.Random.Range(0, 2) == 0)
+        {
+            sign = -1;
+        }
+
+        do
+        {
+            CheckForTarget();
+
+            if (alreadyRotatedDegrees + _angularSpeed >= degreesToRotate)
+            {
+                transform.Rotate(0, (degreesToRotate - alreadyRotatedDegrees) * sign, 0);
+                break;
+            }
+
+            transform.Rotate(0, _angularSpeed * sign, 0);
+            alreadyRotatedDegrees += _angularSpeed;
+            yield return new WaitForFixedUpdate();
+        } while (true);
+
+        ChangeState(WaitForNextAction());
     }
 
     #endregion
@@ -211,9 +277,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
             if (_attackAngleInDegrees > Vector3.Angle(transform.forward, attackDirection))
             {
-                // TODO rework damage method
-                _target.GetComponent<IDamageable>().TakeDamage(_damage, 0f); // TODO add character stats
-                Debug.Log("hit");
+                _target.GetComponent<IDamageable>().TakeDamage(_stats.Damage, _stats.ArmourPenetration);
             }
         }
     }
@@ -235,7 +299,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
     #region Physics Methods
 
-    public void CalculateYSpeed()
+    private void CalculateYSpeed()
     {
         if (_grounded)
         {
@@ -246,23 +310,20 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
             _timeSinceGrounded += Time.fixedDeltaTime;
         }
 
-        _velocity.y = GamePhysics.GetGravitationalForce(_timeSinceGrounded);
-
-        //currentGravity = jumpForce * timeSinceGrounded - 0.5f * gravity * Mathf.Pow(timeSinceGrounded, 2);
+        transform.position = new Vector3(transform.position.x, transform.position.y + GamePhysics.GetGravitationalForce(_timeSinceGrounded), transform.position.z);
     }
 
-    public bool IsGrounded()
+    private bool IsGrounded()
     {
-        bool grounded = GamePhysics.IsGroundedRayCast(transform.position, _groundOffset, _rayOverhead, _excludeCharacters, out float yCorrection);
+        bool grounded = GamePhysics.IsGroundedRayCast(transform.position, _groundOffset, _rayOverhead, _groundLayer, out float yCorrection);
         transform.position = new Vector3(transform.position.x, transform.position.y + yCorrection, transform.position.z);
         return grounded;
     }
 
-    public void SetDestination(Vector3 location)
+    private void ResolveCollisions()
     {
-        _destination = location;
-        Vector2 temp = new Vector2(_destination.x - transform.position.x, _destination.z - transform.position.z).normalized * _movementSpeed;
-        _velocity = new Vector3(temp.x, 0, temp.y);
+        _raycastDirections = new Vector3[] { transform.right, -transform.right, transform.forward };
+        transform.position += GamePhysics.RaycastCollisionDetection(transform.position, _raycastDirections, _raycastLength, _collisionLayer);
     }
 
     #endregion
@@ -275,39 +336,42 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         _healthBarGO.transform.Rotate(0, 180, 0);
     }
 
-    public bool CheckForTarget()
+    private void CheckForTarget()
     {
-        if (Vector3.Distance(transform.position, _target.transform.position) < _detectionRange)
+        if (!_seenTarget)
         {
-            if (Vector3.Angle(transform.forward, _target.transform.position - transform.position) < _detectionAngle)
+            if (Vector3.Distance(transform.position, _target.transform.position) < _detectionRange)
             {
-                return true;
+                if (Vector3.Angle(transform.forward, _target.transform.position - transform.position) < _detectionAngle)
+                {
+                    ChangeState(WaitForPath());
+                }
             }
         }
-
-        return false;
     }
 
     #endregion
  
     private void GetDestroyed()
     {
-        // TODO drop drop coin / items
         OnEnemyDeath?.Invoke(transform.position);
-
         Destroy(gameObject);
     }
 
     public void TakeDamage(float damage, float armourPenetration)
     {
-        _currentHealth -= damage; // TODO add character stats
+        _currentHealth -= damage;
         _healthBar.fillAmount = _currentHealth / _stats.Health;
+
+        if (!_seenTarget)
+        {
+            ChangeState(WaitForPath());
+        }
 
         if (_currentHealth <= 0)
         {
             _healthBarCanvas.enabled = false;
             GetDestroyed();
-            Debug.Log(name + " destroyed");
         }
         else
         {
