@@ -31,7 +31,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
     [SerializeField]
     private LayerMask _groundLayer;
     [SerializeField]
-    private float _enemyHeight, _sphereRadius, _groundOffset, _rayOverhead;
+    private float _sphereRadius, _groundOffset, _rayOverhead;
 
     [Header("Collisions"), SerializeField]
     private LayerMask _collisionLayer;

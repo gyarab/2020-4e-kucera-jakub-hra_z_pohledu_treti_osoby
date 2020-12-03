@@ -57,21 +57,20 @@ public static class LoadManager
         file.Close();
     }
 
-    public static T ReadFile<T>(string path) where T : new()
+    public static T ReadFile<T>(string path)
     {
-        T result = new T();
-
         if (File.Exists(path))
         {
             BinaryFormatter bf = new BinaryFormatter();
             FileStream file = File.OpenRead(path);
-            result = (T)bf.Deserialize(file);
+            T result = (T)bf.Deserialize(file);
             file.Close();
 
             return result;
+        } else
+        {
+            throw new System.Exception("File not found");
         }
-
-        return result;
     }
 
     public static void DeleteDirectory(string path)

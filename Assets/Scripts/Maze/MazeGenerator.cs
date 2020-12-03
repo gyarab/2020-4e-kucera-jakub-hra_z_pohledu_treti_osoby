@@ -74,14 +74,13 @@ public class MazeGenerator : MonoBehaviour
     {
         //DrawCells();
 
-        //DrawNodes();
+        DrawNodes();
     }
     
     private void DrawNodes()
     {
         if (_pathfindingNodes != null)
         {
-            Debug.Log("gizmos");
             for (int i = 0; i < _pathfindingNodes.Length; i++)
             {
                 if (_pathfindingNodes[i] == null)
@@ -195,7 +194,8 @@ public class MazeGenerator : MonoBehaviour
         Subcell outerRoomSubcell = CreateOuterRoomSubcell(currenSubcellIndex, side);
 
         GetComponent<TileGenerator>().SpawnSingleTile(outerRoomSubcell.Position, outerRoomSubcell.GetFirstDoor() * 90, 2, outerRoomSubcell.TileType);
-        GetComponent<Spawner>().SpawnBossRoom(outerRoomSubcell.Position, side, _mazeSettings.distanceBetweenCells);
+        GameObject boss = GetComponent<Spawner>().SpawnBossRoom(outerRoomSubcell.Position, side, _mazeSettings.distanceBetweenCells);
+        boss.GetComponent<Boss>().OnBossDeath = _winCondition.OnCompleted;
     }
 
     private Vector2Int GetOuterCell(int side)

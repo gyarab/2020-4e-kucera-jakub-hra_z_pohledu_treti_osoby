@@ -6,7 +6,7 @@ using System;
 
 public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 {
-    //public static Action OnBossDeath; TODO do smth?
+    public Action OnBossDeath { get; set; }
 
     #region Variables
 
@@ -438,8 +438,8 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
     private void GetDestroyed()
     {
         _healthBar.SetVisibility(false);
+        OnBossDeath?.Invoke();
         Destroy(gameObject);
-        Debug.Log(name + " destroyed");
     }
 
     public void TakeDamage(float damage, float armourPenetration)

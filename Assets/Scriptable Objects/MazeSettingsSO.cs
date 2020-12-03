@@ -5,6 +5,9 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Maze Settings", menuName = "Maze Settings")]
 public class MazeSettingsSO : ScriptableObject
 {
+    [Header("Type"), SerializeField]
+    public WinConditionType mazeWinCondition;
+
     [Header("Dimensions and Position")]
     public Vector3 centerPoint = Vector3.zero;
     [Range(0, 30)]

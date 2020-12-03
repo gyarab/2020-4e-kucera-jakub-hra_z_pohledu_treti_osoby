@@ -4,43 +4,99 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    public bool lockCursor; // REMOVE
+    public bool StopRotatingCamera { get; set; }
 
-    public float sensitivity;
-    public Transform target;
-    public float distanceFromTarget;
-    public Vector2 pitchMinMax;
-    public float rotationSmoothTime;
+    [Header("General")]
+    [SerializeField]
+    private Transform _playerTransform;
+    [SerializeField]
+    private LayerMask _collisionLayer;
 
-    Vector3 rotationSmoothVelocity;
-    Vector3 currentRotation;
-    float yaw;
-    float pitch;
+    [Header("Offset"), SerializeField]
+    private Vector3 _cameraOffset;
+    [SerializeField]
+    private Vector2 _pitchMinMax;
+    [SerializeField]
+    private float _cameraSensitivityX, _cameraSensitivityY, _distanceFromTarget, _rotationSmoothTime, _cameraClippingOffset, _automaticCameraRotationSpeed;
 
-    // Start is called before the first frame update
-    void Start()
+    
+    private Transform _cameraLockedTarget;
+    private bool _lockedOnTarget, _shouldRotate, _forceLockOn;
+    private Vector3 _rotationSmoothVelocity, _currentRotation, _velocityRotation;
+    private float _yaw, _pitch;
+    private Vector2 _lookInput;
+
+    public void SetInput(Vector3 input, Vector3 velocityRotation)
     {
-        if(lockCursor)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
+        _lookInput = input;
+        _velocityRotation = velocityRotation;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void SetTarget(Transform target)
     {
-        yaw += Input.GetAxis("Mouse X") * sensitivity;
-        pitch -= Input.GetAxis("Mouse Y") * sensitivity;
-        pitch = Mathf.Clamp(pitch, pitchMinMax.x, pitchMinMax.y);
+        _cameraLockedTarget = target;
+        _lockedOnTarget = true;
+    }
 
-        currentRotation = Vector3.SmoothDamp(currentRotation, new Vector3(pitch, yaw), ref rotationSmoothVelocity, rotationSmoothTime);
-        transform.eulerAngles = currentRotation;
+    public void RotateCamera()
+    {
+        _shouldRotate = true;
+    }
 
-        Vector3 e = transform.eulerAngles;
+    void LateUpdate()
+    {
+        Vector3 newCamPos;
+        RaycastHit hit;
+
+        if (_shouldRotate && _lookInput != Vector2.zero && !_forceLockOn) // TODO remove vector2.zero condition?
+        {
+            // Look around if the right finger is being tracked
+            LookAround();
+            _lockedOnTarget = false;
+        }
+        else if (_lockedOnTarget)
+        {
+            _currentRotation = new Vector3(_currentRotation.x, Mathf.LerpAngle(_currentRotation.y, Quaternion.LookRotation(_cameraLockedTarget.position - transform.position).eulerAngles.y, _automaticCameraRotationSpeed * Time.deltaTime));
+            transform.eulerAngles = _currentRotation;
+        }
+        else if (_velocityRotation != Vector3.zero) // TODO CHANGE x and z != 0; should I?
+        {
+            // Rotates camera so it faces player movement direction  
+            _currentRotation = new Vector3(_currentRotation.x, Mathf.LerpAngle(_currentRotation.y, Quaternion.LookRotation(_velocityRotation).eulerAngles.y, _automaticCameraRotationSpeed * Time.deltaTime));
+            transform.eulerAngles = _currentRotation;
+        }
+
+        newCamPos = transform.position - transform.forward * _distanceFromTarget + _cameraOffset;
+
+        // Camera Collision Check
+        Ray ray = new Ray(transform.position + _cameraOffset, newCamPos - (transform.position + _cameraOffset));
+        if (Physics.Raycast(ray, out hit, _distanceFromTarget, _collisionLayer))
+        {
+            transform.position = hit.point + transform.forward * _cameraClippingOffset;
+        }
+        else
+        {
+            transform.position = newCamPos;
+        }
+
+        _shouldRotate = false;
+    }
+
+    private void LookAround()
+    {
+        // Moving camera
+        _yaw += _lookInput.x * _cameraSensitivityX;
+        _pitch -= _lookInput.y * _cameraSensitivityY;
+        _pitch = Mathf.Clamp(_pitch, _pitchMinMax.x, _pitchMinMax.y);
+
+        // Rotating camera
+        _currentRotation = Vector3.SmoothDamp(_currentRotation, new Vector3(_pitch, _yaw), ref _rotationSmoothVelocity, _rotationSmoothTime);
+        transform.eulerAngles = _currentRotation;
+
+        // change rotation based on movement; prob useless; TODO remove
+        /*Vector3 e = cameraTransform.eulerAngles;
         e.x = 0;
 
-        target.eulerAngles = e;
-        transform.position = target.position - transform.forward * distanceFromTarget;
+        transform.eulerAngles = e;*/
     }
 }

@@ -114,6 +114,12 @@ public class PathfindingNodeGenerator : MonoBehaviour
     {
         for (int i = 0; i < 8; i++)
         {
+            // Dont create diagonal conections - remove if desired
+            if (i % 2 == 1)
+            {
+                continue;
+            }
+
             if (subcell.Neighbours[i] != null)
             {
                 if (subcell.Neighbours[i].NodesCreated)

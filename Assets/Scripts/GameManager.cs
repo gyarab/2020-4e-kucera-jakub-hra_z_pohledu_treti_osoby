@@ -18,8 +18,9 @@ public class GameManager : MonoBehaviour
     public Vector3 Spawnpoint { get; set; }
     // TODO in a different way?
     public MazeManager CurrentMazeManager { get; set; }
+    public QuestUI QuestUI { get; set; }
 
-    private string _currentSavePath; // TODO remove useless?
+    private string _currentSavePath;
 
     private ItemDatabase _itemDatabase;
     private LoadingScreen _loadingScreen;
@@ -49,6 +50,7 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
         _itemDatabase = Instantiate(Resources.Load<GameObject>("_ItemDatabase"), transform).GetComponent<ItemDatabase>();
         _loadingScreen = Instantiate(Resources.Load<GameObject>("LoadingScreen"), transform).GetComponent<LoadingScreen>();
+        QuestUI = Instantiate(Resources.Load<GameObject>("QuestCanvas"), transform).GetComponent<QuestUI>();
     }
 
     public ItemObject GetItemObjectByID(int id)
@@ -102,9 +104,9 @@ public class GameManager : MonoBehaviour
         }
 
         Player.GetComponent<PlayerController>().GetPlayerInventory().AddCoinsToPlayer(coinsUnlocked);
-        Player.GetComponent<PlayerController>().ResetStats();
+        Player.GetComponent<PlayerController>().Reset();
 
-        StartCoroutine(LoadHubAsync("Hub"));
+        StartCoroutine(LoadHubAsync("Hub", success));
     }
 
     public void UnloadScene(string name)
@@ -141,12 +143,13 @@ public class GameManager : MonoBehaviour
 
         Player.GetComponent<PlayerController>().GetPlayerInventory().Load(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, PLAYER_INVENTORY));
 
+        CurrentHubManager.LoadState(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, GAME_FILE));
         CurrentHubManager.EnablePlayerDependantObjects(Player.transform, Player.GetComponent<PlayerController>().GetPlayerCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, "shop.inv"));
         UnloadScene("Menu");
         _loadingScreen.HideLoadingScreen();
     }
 
-    IEnumerator LoadHubAsync(string locationSceneName)
+    IEnumerator LoadHubAsync(string locationSceneName, bool unlockNextLevel)
     {
         _loadingScreen.ShowLoadingScreen();
         Player.SetActive(false);
@@ -163,7 +166,15 @@ public class GameManager : MonoBehaviour
 
         Player.SetActive(true);
         Player.transform.position = Vector3.zero;
-        CurrentHubManager.EnablePlayerDependantObjects(Player.transform, Player.GetComponent<PlayerController>().GetPlayerCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, "shop.inv"));
+
+        CurrentHubManager.LoadState(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, GAME_FILE));
+        CurrentHubManager.EnablePlayerDependantObjects(Player.transform, Player.GetComponent<PlayerController>().GetPlayerCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, SHOP_INVENTORY));
+
+        if (unlockNextLevel)
+        {
+            CurrentHubManager.UnlockNextLevel();
+        }
+
         _loadingScreen.HideLoadingScreen();
     }
 
@@ -179,8 +190,8 @@ public class GameManager : MonoBehaviour
 
         while (CurrentMazeManager == null) { yield return null; }
 
-        // TODO Change (mazeGen); impossible?
-        CurrentMazeManager.CreateMaze(mazeSettings);
+        string message = CurrentMazeManager.CreateMaze(mazeSettings);
+        QuestUI.QueueMessage(message);
 
         CurrentHubManager = null;
         UnloadScene("Hub");

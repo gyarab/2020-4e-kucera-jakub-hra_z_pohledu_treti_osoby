@@ -6,6 +6,9 @@ public class DoorKeyCheck : MonoBehaviour, IDoor
 {
     [SerializeField]
     private BossRoomDoor _doorToOpen;
+    [SerializeField]
+    private int _keyID;
+
     private bool _activated;
 
     private void Awake()
@@ -18,9 +21,11 @@ public class DoorKeyCheck : MonoBehaviour, IDoor
         // TODO check for key
         if(!_activated)
         {
-            // TODO remove key;
-            _doorToOpen.Open();
-            _activated = true;
+            if (GameManager.Instance.Player.GetComponent<PlayerController>().GetPlayerInventory().RemoveItemIfInInventory(_keyID))
+            {
+                _doorToOpen.Open();
+                _activated = true;
+            }
         }
     }
 }

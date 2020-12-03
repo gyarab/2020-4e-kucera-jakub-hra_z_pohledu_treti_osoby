@@ -7,6 +7,7 @@ public class MazeManager : MonoBehaviour
 {
     private bool _completedWinCondition;
     private int _coinsCollected;
+    private string[] _winConditionMessages;
 
     public void Awake()
     {
@@ -16,25 +17,43 @@ public class MazeManager : MonoBehaviour
 
     public void Start()
     {
-        GameManager.Instance.CurrentMazeManager = this; // why?
+        GameManager.Instance.CurrentMazeManager = this;
     }
 
-    public void CreateMaze(MazeSettingsSO mazeSettings) // TODO IWIN
+    public string CreateMaze(MazeSettingsSO mazeSettings) // TODO IWIN
     {
-        IWinCondition winCondition = gameObject.AddComponent<FindKey>(); // TODO add properly
+        IWinCondition winCondition;
+
+        switch (mazeSettings.mazeWinCondition)
+        {
+            case WinConditionType.Boss:
+                winCondition = gameObject.AddComponent<FindKey>();
+                break;
+            case WinConditionType.ClearLocation:
+                winCondition = gameObject.AddComponent<FindKey>();
+                break;
+            case WinConditionType.CollectItems:
+                winCondition = gameObject.AddComponent<FindKey>();
+                break;
+            default:
+                throw new System.Exception("Can't generate maze without win condition"); // or maybe yes? - to farm gold
+        }
+
         winCondition.OnCompleted += WinConditionCompleted;
 
         MazeGenerator mazeGenerator = GetComponent<MazeGenerator>();
         PathfindingNode[] nodes = mazeGenerator.GenerateMaze(mazeSettings, winCondition, out int nodeCount);
         Pathfinding<PathfindingNode> pathfinding = new Pathfinding<PathfindingNode>(nodes, nodeCount);
         EnemyController.Pathfinder = pathfinding;
+
+        _winConditionMessages = winCondition.GetMessages();
+        return _winConditionMessages[0];
     }
 
     private void WinConditionCompleted()
     {
-        Debug.Log("mission accomplished");
-        // TODO something
         _completedWinCondition = true;
+        GameManager.Instance.QuestUI.QueueMessage(_winConditionMessages[1]);
     }
 
     private void ReturnToHub()

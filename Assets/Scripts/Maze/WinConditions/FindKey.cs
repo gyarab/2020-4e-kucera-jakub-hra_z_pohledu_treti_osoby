@@ -5,9 +5,12 @@ using System;
 
 public class FindKey : MonoBehaviour, IWinCondition // TODO remove the key part?
 {
+    public Action OnCompleted { get; set; }
+
     private int _enemiesAlive, _totalEnemies;
     private bool _spawnedKey;
-    public Action OnCompleted { get; set; }
+    private const string MESSAGE_COMPLETED = "Mission acomplished. This was the last mission. Thanks for playing the game.";
+    private const string MESSAGE_BEGAN = "Find a key and use it to go through doors inside maze.";
 
     private const int KEY_ITEM_ID = 6;
 
@@ -59,5 +62,10 @@ public class FindKey : MonoBehaviour, IWinCondition // TODO remove the key part?
     {
         // Spawn outer room with boss
         return new List<GenerationRule> { GenerationRule.OuterRoom };
+    }
+
+    public string[] GetMessages()
+    {
+        return new string[] { MESSAGE_BEGAN, MESSAGE_COMPLETED };
     }
 }

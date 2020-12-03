@@ -41,12 +41,11 @@ public class PlayerController : MonoBehaviour, IDamageable
     [SerializeField]
     private float _groundRayOffset, _groundRayOverhead, _groundRayJumpDecrease, _sphereOffset, _sphereRadius, _groundOffset; // TODO remove _sphereRadius?
 
-
     [Header("Components"), SerializeField]
     private SphereCollider _sphereCollider;
     [SerializeField]
     private SphereCollider _sphereFeetCollider;
-    [SerializeField]
+    /*[SerializeField]
     private Transform _cameraTransform;
     [SerializeField]
     private Joystick joystick;
@@ -66,7 +65,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     private int _recordedTouchesLimit;
     [SerializeField]
     private LayerMask _excludeUILayer;
-
+    */
     [Header("Inventory and UI")]
     [SerializeField]
     private InventoryMonoBehaviour _inventory;
@@ -88,8 +87,8 @@ public class PlayerController : MonoBehaviour, IDamageable
     private InventorySlotContainer _inventoryContainer;
     private CharacterStats _currentStats;
 
-    private Vector3 _rotationSmoothVelocity, _currentRotation;
-    private float _yaw, _pitch;
+    //private Vector3 _rotationSmoothVelocity, _currentRotation;
+    //private float _yaw, _pitch;
 
     private float _currentGravity;
     private RaycastHit _groundHit;
@@ -106,14 +105,14 @@ public class PlayerController : MonoBehaviour, IDamageable
     private Vector3 _joystickInput;
     private bool _grounded, _jumpNow, _jumping, _rollPressed, _rolling;
     private float _timeSinceGrounded, _rollTimer;
-    private Vector3 _rollVector, _velocityRotation;
+    private Vector3 _rollVector;
 
     // Camera
-    private int _rightFingerId;
+    /*private int _rightFingerId;
     private Vector2 _lookInput;
     private Dictionary<int, float> _fingerTouchTimeDictionary;
     private Transform _cameraLockedTarget;
-    private bool _lockedOnTarget;
+    private bool _lockedOnTarget;*/
 
     #endregion
 
@@ -157,8 +156,8 @@ public class PlayerController : MonoBehaviour, IDamageable
         _spherePos = new Vector3(0, -_sphereOffset, 0);
         _groundPos = new Vector3(0, -_groundOffset, 0);
 
-        _rightFingerId = -1;
-        _fingerTouchTimeDictionary = new Dictionary<int, float>(_recordedTouchesLimit);
+        //_rightFingerId = -1;
+        //_fingerTouchTimeDictionary = new Dictionary<int, float>(_recordedTouchesLimit);
         _canDoAction = true;
         _acceptingInput = true;
 
@@ -176,20 +175,20 @@ public class PlayerController : MonoBehaviour, IDamageable
     }
 
     // Directional Input
-    void Update()
+    /*void Update()
     {
         GetInput();
-    }
+    }*/
 
     // Camera stuff, TODO move to new script?
-    void LateUpdate()
+    /*void LateUpdate()
     {
         Vector3 newCamPos;
         RaycastHit hit;
 
         if (_rightFingerId != -1 && _lookInput != Vector2.zero)
         {
-            // Ony look around if the right finger is being tracked
+            // Look around if the right finger is being tracked
             //Debug.Log("Rotating");
             LookAround();
             _lockedOnTarget = false; // TODO
@@ -204,9 +203,9 @@ public class PlayerController : MonoBehaviour, IDamageable
             else if (_velocityRotation != Vector3.zero) // CHANGE x and z != 0
             {
                 // TODO hopefully works; Rotates camera so it faces player movement direction  
-                /*Debug.Log("Current rot: " + currentRotation.y);
-                Debug.Log("Quaternion look rot: " + Quaternion.LookRotation(velocityRotation).eulerAngles.y);
-                Debug.Log("Result: " + Quaternion.LookRotation(velocityRotation).eulerAngles.y);*/
+                //Debug.Log("Current rot: " + currentRotation.y);
+                //Debug.Log("Quaternion look rot: " + Quaternion.LookRotation(velocityRotation).eulerAngles.y);
+                //Debug.Log("Result: " + Quaternion.LookRotation(velocityRotation).eulerAngles.y);
                 _currentRotation = new Vector3(_currentRotation.x, Mathf.LerpAngle(_currentRotation.y, Quaternion.LookRotation(_velocityRotation).eulerAngles.y, _automaticCameraRotationSpeed * Time.deltaTime));
                 _cameraTransform.eulerAngles = _currentRotation;
             }
@@ -224,7 +223,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         {
             _cameraTransform.position = newCamPos;
         }
-    }
+    }*/
 
     //Everything else
     void FixedUpdate()
@@ -333,7 +332,6 @@ public class PlayerController : MonoBehaviour, IDamageable
     private void Rotate()
     {
         transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, _velocity, _playerRotationSpeed);
-        _velocityRotation = new Vector3(_velocity.x, 0, _velocity.z); // TODO try to get rid of it
     }
 
     private void CalculatePosition()
@@ -418,7 +416,8 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     #endregion
 
-    #region Button Activated Methods
+    // TODO rework
+    #region Button Activated Methods 
 
     public void AttackInput()
     {
@@ -458,7 +457,12 @@ public class PlayerController : MonoBehaviour, IDamageable
     // Camera stuff, TODO move to new script?
     #region Camera
 
-    private void GetInput()
+    public Vector3 GetRotationVelocity()
+    {
+        return new Vector3(_velocity.x, 0, _velocity.z);
+    }
+
+    /*private void GetInput()
     {
         // Tracking the finger that controlls the camera
         for (int i = 0; i < Input.touchCount; i++)
@@ -469,7 +473,7 @@ public class PlayerController : MonoBehaviour, IDamageable
             {
                 case TouchPhase.Began:
 
-                    // Didn¨t touch UI
+                    // Didn't touch UI
                     if (!EventSystem.current.IsPointerOverGameObject(t.fingerId))
                     {
                         if (_rightFingerId == -1)
@@ -554,9 +558,9 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
 
         _joystickInput = new Vector3(joystick.Horizontal, 0, joystick.Vertical);
-    }
+    }*/
 
-    private void LookAround()
+    /*private void LookAround()
     {
         // Moving camera
         _yaw += _lookInput.x * _cameraSensitivityX;
@@ -567,11 +571,10 @@ public class PlayerController : MonoBehaviour, IDamageable
         _cameraTransform.eulerAngles = _currentRotation;
 
         // change rotation based on movement; prob useless
-        /*Vector3 e = cameraTransform.eulerAngles;
-        e.x = 0;
-
-        transform.eulerAngles = e;*/
-    }
+        //Vector3 e = cameraTransform.eulerAngles;
+        //e.x = 0;
+        //transform.eulerAngles = e;
+    }*/
 
     #endregion
 
@@ -635,7 +638,6 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     private void SetAnimationsController(AnimatorOverrideController overrideController)
     {
-        Debug.Log("Switched controller");
         animator.runtimeAnimatorController = overrideController;
     }
 
@@ -681,10 +683,12 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
     }
 
-    public void ResetStats()
+    public void Reset()
     {
         _currentHealth = _currentStats.Health;
         _healthBar.SetValue(_currentHealth / _currentStats.Health);
+
+        _inventory.RemoveTemporaryItems();
     }
 
     #endregion
@@ -694,10 +698,10 @@ public class PlayerController : MonoBehaviour, IDamageable
         return _inventory;
     }
 
-    public Transform GetPlayerCameraTransform()
+    /*public Transform GetPlayerCameraTransform()
     {
         return _cameraTransform;
-    }
+    }*/
 
     public void SetWeapons(GameObject prefab, bool twoHanded)
     {

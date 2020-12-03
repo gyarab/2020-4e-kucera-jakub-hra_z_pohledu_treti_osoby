@@ -5,8 +5,11 @@ using UnityEngine;
 
 public class ClearLocation : MonoBehaviour, IWinCondition
 {
-    private int _enemiesAlive;
     public Action OnCompleted { get; set; }
+
+    private int _enemiesAlive;
+    private const string MESSAGE_COMPLETED = "Mission acomplished. Portal to next location is open.";
+    private const string MESSAGE_BEGAN = "Clear maze from all enemy monsters.";
 
     private void OnEnable()
     {
@@ -38,5 +41,10 @@ public class ClearLocation : MonoBehaviour, IWinCondition
     {
         // Nothing to change
         return new List<GenerationRule>();
+    }
+
+    public string[] GetMessages()
+    {
+        return new string[] { MESSAGE_BEGAN, MESSAGE_COMPLETED };
     }
 }

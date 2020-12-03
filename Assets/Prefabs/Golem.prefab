@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 205144934065903731}
   m_Layer: 11
   m_Name: Golem
-  m_TagString: Untagged
+  m_TagString: Damageable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -57,7 +57,7 @@ MonoBehaviour:
   _yRayPositionOffset: 3
   _collisionLayer:
     serializedVersion: 2
-    m_Bits: 512
+    m_Bits: 4608
   _rayLength: 7
   _bossStats: {fileID: 11400000, guid: f04895b4dfad7284e8fa1f6241e0ed73, type: 2}
   _healthBarGO: {fileID: 0}

@@ -8,8 +8,12 @@ public class BossRoomDoor : MonoBehaviour, IDoor
     public static Action OnDoorsOpened { get; set; }
     private bool _opened;
 
+    [Header("Opening and closing"), SerializeField]
+    private float degreesToOpen;
     [SerializeField]
-    private GameObject _door;
+    private float timeToOpen, timeToClose;
+    [SerializeField]
+    private Transform _rightDoor, _leftDoor;
 
     private void Awake()
     {
@@ -28,11 +32,60 @@ public class BossRoomDoor : MonoBehaviour, IDoor
 
     public void Open()
     {
-        _door.SetActive(false);
+        StartCoroutine(OpenDoor());
     }
 
     public void Close()
     {
-        _door.SetActive(true);
+        StartCoroutine(CloseDoor());
+    }
+
+    private IEnumerator OpenDoor()
+    {
+        float degreesRotated = 0;
+        float degreesToRotate;
+        while (true)
+        {
+            degreesToRotate = degreesToOpen * Time.deltaTime / timeToOpen;
+            Debug.Log("degrees: " + degreesToRotate);
+
+            if (degreesToOpen <= degreesToRotate + degreesRotated)
+            {
+                degreesToRotate = degreesToOpen - degreesRotated;
+                _rightDoor.Rotate(0, -degreesToRotate, 0);
+                _leftDoor.Rotate(0, degreesToRotate, 0);
+                break;
+            }
+
+            _rightDoor.Rotate(0, -degreesToRotate, 0);
+            _leftDoor.Rotate(0, degreesToRotate, 0);
+            degreesRotated += degreesToRotate;
+
+            yield return new WaitForEndOfFrame();
+        }
+    }
+
+    private IEnumerator CloseDoor()
+    {
+        float degreesRotated = 0;
+        float degreesToRotate;
+        while (true)
+        {
+            degreesToRotate = degreesToOpen * Time.deltaTime / timeToOpen;
+
+            if(degreesToOpen <= degreesToRotate + degreesRotated)
+            {
+                degreesToRotate = degreesToOpen - degreesRotated;
+                _rightDoor.Rotate(0, degreesToRotate, 0);
+                _leftDoor.Rotate(0, -degreesToRotate, 0);
+                break;
+            }
+
+            _rightDoor.Rotate(0, degreesToRotate, 0);
+            _leftDoor.Rotate(0, -degreesToRotate, 0);
+            degreesRotated += degreesToRotate;
+
+            yield return new WaitForEndOfFrame();
+        }
     }
 }

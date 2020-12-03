@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55ca55f109fac69418731ec21f0099e1, type: 3}
   m_Name: TestMazeSettings
   m_EditorClassIdentifier: 
+  mazeWinCondition: 0
   centerPoint: {x: 0, y: 0, z: 0}
   distanceBetweenCells: 10
   length: 3
@@ -20,9 +21,9 @@ MonoBehaviour:
   maxDistanceMultiplyer: 4
   randomDistanceBetweenCells: 1
   pathfindingNodesInSubcell: 5
-  nodeSpreadPercentage: 0.95
+  nodeSpreadPercentage: 0.9
   triesToGenerateMaze: 10
-  minCellPercentage: 0.95
+  minCellPercentage: 0.8
   roomChance:
   - 1
   - 0.5

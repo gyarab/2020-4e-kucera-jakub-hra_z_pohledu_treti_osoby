@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0f97a40e7934d948afcfc425221806e, type: 3}
+  m_Name: TempTileset
+  m_EditorClassIdentifier: 
+  tiles:
+  - {fileID: 2847085615587481075, guid: e720564416c537342a8c6ab738bcb490, type: 3}
+  - {fileID: 2032959083940206372, guid: 4d7b636f387dd434f9accc7db8a80ff3, type: 3}
+  - {fileID: 1484530355459234395, guid: 85ada327ae003334ebdd8bf5dfdac08a, type: 3}
+  - {fileID: 3224388539852264046, guid: 3b4898dacc5b7064699633a6c84bfb0f, type: 3}
+  - {fileID: 7500210056732912944, guid: 13078e99243ebe14ca12fc64fdfa340a, type: 3}

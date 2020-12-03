@@ -172,9 +172,9 @@ MonoBehaviour:
   _bossRoomDoors: {fileID: 2164178091182502589, guid: 9181a48b9cdfdc44fbc7e43e69266f14,
     type: 3}
   _boss: {fileID: 1903210996428242009, guid: e3b826cd9d78a284c93fd3abfa8784a5, type: 3}
-  _zOuterRoomOffset: 25
-  _zBossOffset: 40
-  _yDoorOffset: 2
+  _zOuterRoomOffset: 40
+  _zBossOffset: 50
+  _yDoorOffset: 0
 --- !u!114 &1994751313
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -224,7 +224,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _tileSets:
-  - {fileID: 11400000, guid: e03de5b84b461b2479e2f20c43184d9d, type: 2}
+  - {fileID: 11400000, guid: 46af8c34580bbbb478434d52c951e64a, type: 2}
 --- !u!114 &1994751317
 MonoBehaviour:
   m_ObjectHideFlags: 0

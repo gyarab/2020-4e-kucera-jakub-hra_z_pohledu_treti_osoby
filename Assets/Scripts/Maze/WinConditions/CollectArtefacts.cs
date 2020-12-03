@@ -6,9 +6,11 @@ using UnityEngine;
 public class CollectArtefacts : MonoBehaviour, IWinCondition
 {
     public Action OnCompleted { get; set; }
-    private int _artefactsToCollect;
 
+    private int _artefactsToCollect;
     private const int ARTEFACT_ITEM_ID = 7;
+    private const string MESSAGE_COMPLETED = "Mission acomplished. Portal to next location is open.";
+    private const string MESSAGE_BEGAN = "Collect all 4 artefacts and get our of the maze alive.";
 
     private void OnEnable()
     {
@@ -49,5 +51,10 @@ public class CollectArtefacts : MonoBehaviour, IWinCondition
     {
         // Nothing to change
         return new List<GenerationRule>();
+    }
+
+    public string[] GetMessages()
+    {
+        return new string[] { MESSAGE_BEGAN, MESSAGE_COMPLETED };
     }
 }

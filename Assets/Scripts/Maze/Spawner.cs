@@ -14,7 +14,7 @@ public class Spawner : MonoBehaviour
     [SerializeField]
     private GameObject _bossRoom, _bossRoomDoors, _boss;
     [SerializeField]
-    float _zOuterRoomOffset, _zBossOffset, _yDoorOffset;
+    float _zOuterRoomOffset, _zBossOffset, _yDoorOffset; // TODO remove last?
 
     public void SpawnEnemy(Vector3 position)
     {
@@ -33,7 +33,7 @@ public class Spawner : MonoBehaviour
         Instantiate(_returnPortal, new Vector3(position.x, position.y + yOffset, position.z), Quaternion.identity);
     }
 
-    public void SpawnBossRoom(Vector3 position, int side, float distanceBetweenCells)
+    public GameObject SpawnBossRoom(Vector3 position, int side, float distanceBetweenCells)
     {
         float yRotation = side * 90f;
 
@@ -44,7 +44,8 @@ public class Spawner : MonoBehaviour
         Instantiate(_bossRoom, position, Quaternion.Euler(0, yRotation, 0));
 
         position = AddDistanceInMainDirection(position, side, _zBossOffset - _zOuterRoomOffset);
-        Instantiate(_boss, position, Quaternion.Euler(0, yRotation - 180, 0));
+        GameObject boss = Instantiate(_boss, position, Quaternion.Euler(0, yRotation - 180, 0));
+        return boss;
     }
 
     private Vector3 AddDistanceInMainDirection(Vector3 position, int side, float distanceToAdd)
