@@ -45,27 +45,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     private SphereCollider _sphereCollider;
     [SerializeField]
     private SphereCollider _sphereFeetCollider;
-    /*[SerializeField]
-    private Transform _cameraTransform;
-    [SerializeField]
-    private Joystick joystick;
 
-    [Header("Camera"), SerializeField]
-    private Vector3 _cameraOffset;
-    [SerializeField]
-    private Vector2 _pitchMinMax;
-    [SerializeField]
-    private float _cameraSensitivityX, _cameraSensitivityY, _distanceFromTarget, _rotationSmoothTime, _cameraClippingOffset, _automaticCameraRotationSpeed;
-
-    [Header("Target Lock"), Range(0f, 1f), SerializeField]
-    private float _targetLockTimeWindow;
-    [SerializeField]
-    public float _targetLockMaxFingerDistance, _targetLockRayDistance;
-    [Range(1, 10), SerializeField]
-    private int _recordedTouchesLimit;
-    [SerializeField]
-    private LayerMask _excludeUILayer;
-    */
     [Header("Inventory and UI")]
     [SerializeField]
     private InventoryMonoBehaviour _inventory;
@@ -87,9 +67,6 @@ public class PlayerController : MonoBehaviour, IDamageable
     private InventorySlotContainer _inventoryContainer;
     private CharacterStats _currentStats;
 
-    //private Vector3 _rotationSmoothVelocity, _currentRotation;
-    //private float _yaw, _pitch;
-
     private float _currentGravity;
     private RaycastHit _groundHit;
 
@@ -106,13 +83,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     private bool _grounded, _jumpNow, _jumping, _rollPressed, _rolling;
     private float _timeSinceGrounded, _rollTimer;
     private Vector3 _rollVector;
-
-    // Camera
-    /*private int _rightFingerId;
-    private Vector2 _lookInput;
-    private Dictionary<int, float> _fingerTouchTimeDictionary;
-    private Transform _cameraLockedTarget;
-    private bool _lockedOnTarget;*/
+    private float _yCameraRotation;
 
     #endregion
 
@@ -156,8 +127,6 @@ public class PlayerController : MonoBehaviour, IDamageable
         _spherePos = new Vector3(0, -_sphereOffset, 0);
         _groundPos = new Vector3(0, -_groundOffset, 0);
 
-        //_rightFingerId = -1;
-        //_fingerTouchTimeDictionary = new Dictionary<int, float>(_recordedTouchesLimit);
         _canDoAction = true;
         _acceptingInput = true;
 
@@ -173,57 +142,6 @@ public class PlayerController : MonoBehaviour, IDamageable
         GameManager.Instance.Player = gameObject;
         _currentHealth = _baseStats.health;
     }
-
-    // Directional Input
-    /*void Update()
-    {
-        GetInput();
-    }*/
-
-    // Camera stuff, TODO move to new script?
-    /*void LateUpdate()
-    {
-        Vector3 newCamPos;
-        RaycastHit hit;
-
-        if (_rightFingerId != -1 && _lookInput != Vector2.zero)
-        {
-            // Look around if the right finger is being tracked
-            //Debug.Log("Rotating");
-            LookAround();
-            _lockedOnTarget = false; // TODO
-        }
-        else
-        {
-            if (_lockedOnTarget)
-            {
-                _currentRotation = new Vector3(_currentRotation.x, Mathf.LerpAngle(_currentRotation.y, Quaternion.LookRotation(_cameraLockedTarget.position - transform.position).eulerAngles.y, _automaticCameraRotationSpeed * Time.deltaTime));
-                _cameraTransform.eulerAngles = _currentRotation;
-            }
-            else if (_velocityRotation != Vector3.zero) // CHANGE x and z != 0
-            {
-                // TODO hopefully works; Rotates camera so it faces player movement direction  
-                //Debug.Log("Current rot: " + currentRotation.y);
-                //Debug.Log("Quaternion look rot: " + Quaternion.LookRotation(velocityRotation).eulerAngles.y);
-                //Debug.Log("Result: " + Quaternion.LookRotation(velocityRotation).eulerAngles.y);
-                _currentRotation = new Vector3(_currentRotation.x, Mathf.LerpAngle(_currentRotation.y, Quaternion.LookRotation(_velocityRotation).eulerAngles.y, _automaticCameraRotationSpeed * Time.deltaTime));
-                _cameraTransform.eulerAngles = _currentRotation;
-            }
-        }
-
-        newCamPos = transform.position - _cameraTransform.forward * _distanceFromTarget + _cameraOffset;
-
-        // Camera Collision Check
-        Ray ray = new Ray(transform.position + _cameraOffset, newCamPos - (transform.position + _cameraOffset));
-        if (Physics.Raycast(ray, out hit, _distanceFromTarget, _groundLayer)) // TODO change to collisionLayer?
-        {
-            _cameraTransform.position = hit.point + _cameraTransform.forward * _cameraClippingOffset;
-        }
-        else
-        {
-            _cameraTransform.position = newCamPos;
-        }
-    }*/
 
     //Everything else
     void FixedUpdate()
@@ -260,7 +178,7 @@ public class PlayerController : MonoBehaviour, IDamageable
                     else
                     {
                         _rollVector = new Vector3(_joystickInput.x, _currentGravity, _joystickInput.z) * _moveSpeed * _rollSpeedMultiplier;
-                        _rollVector = _cameraTransform.TransformDirection(_rollVector);
+                        _rollVector = Quaternion.Euler(0, _yCameraRotation, 0) * _rollVector;
                     }
 
                     _rollTimer = 0;
@@ -380,7 +298,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         } else
         {
             _velocity = new Vector3(_joystickInput.x, _currentGravity, _joystickInput.z) * _moveSpeed;
-            _velocity = _cameraTransform.TransformDirection(_velocity);
+            _velocity = Quaternion.Euler(0, _yCameraRotation, 0) * _velocity;
 
             if (!_jumping)
             {
@@ -416,165 +334,35 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     #endregion
 
-    // TODO rework
-    #region Button Activated Methods 
+    #region Input
 
-    public void AttackInput()
+    public void SendInput(PlayerActionType action)
     {
         if (_acceptingInput)
         {
-            _nextAction = PlayerActionType.Attack;
-        } else if (_attacking && _attacked)
+            _nextAction = action;
+        }
+        else if (_attacking && _attacked && action == PlayerActionType.Attack)
         {
             _nextAction = PlayerActionType.Attack;
             animator.SetBool("Attack", true);
         }
     }
 
-    public void JumpInput()
+    public void SetJoystickInput(float horizontalInput, float verticalInput, float cameraYRotation)
     {
-        if (_acceptingInput)
-        {
-            _nextAction = PlayerActionType.Jump;
-        }
-    }
-
-    public void RollInput()
-    {
-        if (_acceptingInput)
-        {
-            _nextAction = PlayerActionType.Roll;
-        }
-    }
-
-    public void PauseGame()
-    {
-        _inventory.ShowInventory(false);
+        _joystickInput = new Vector3(horizontalInput, 0, verticalInput);
+        _yCameraRotation = cameraYRotation;
     }
 
     #endregion
 
-    // Camera stuff, TODO move to new script?
     #region Camera
 
     public Vector3 GetRotationVelocity()
     {
         return new Vector3(_velocity.x, 0, _velocity.z);
     }
-
-    /*private void GetInput()
-    {
-        // Tracking the finger that controlls the camera
-        for (int i = 0; i < Input.touchCount; i++)
-        {
-            Touch t = Input.GetTouch(i);
-
-            switch (t.phase)
-            {
-                case TouchPhase.Began:
-
-                    // Didn't touch UI
-                    if (!EventSystem.current.IsPointerOverGameObject(t.fingerId))
-                    {
-                        if (_rightFingerId == -1)
-                        {
-                            // Start tracking the rightfinger if it was not previously being tracked
-                            _rightFingerId = t.fingerId;
-                            //Debug.Log("Started tracking right finger");
-                        }
-
-                        if (_fingerTouchTimeDictionary.Count < _recordedTouchesLimit)
-                        {
-                            // and if it hits enemy; maybe not
-                            _fingerTouchTimeDictionary.Add(t.fingerId, 0);
-                        }
-                    }
-
-                    break;
-                case TouchPhase.Ended:
-                case TouchPhase.Canceled:
-
-                    if (t.fingerId == _rightFingerId)
-                    {
-                        // Stop tracking the right finger
-                        _rightFingerId = -1;
-                        //Debug.Log("Stopped tracking right finger");
-                    }
-
-                    if (_fingerTouchTimeDictionary.ContainsKey(t.fingerId))
-                    {
-                        _fingerTouchTimeDictionary.Remove(t.fingerId);
-
-                        Ray ray = _cameraTransform.GetComponent<Camera>().ScreenPointToRay(t.position);
-                        RaycastHit hit;
-                        if (Physics.Raycast(ray, out hit, _targetLockRayDistance, _excludeUILayer))
-                        {
-                            if(hit.transform.tag == "Damageable")
-                            {
-                                Debug.Log("Enemy Lock; dst: " + hit.distance);
-                                // TODO camera movement
-                                _lockedOnTarget = true;
-                                _cameraLockedTarget = hit.transform;
-                            }
-                        }
-                    }
-
-                    break;
-                case TouchPhase.Moved:
-
-                    // Get input for looking around
-                    if (t.fingerId == _rightFingerId)
-                    {
-                        _lookInput = t.deltaPosition * Time.deltaTime;
-                    }
-
-                    if (_fingerTouchTimeDictionary.ContainsKey(t.fingerId))
-                    {
-                        _fingerTouchTimeDictionary[t.fingerId] += t.deltaTime;
-                        if (Vector2.SqrMagnitude(t.deltaPosition) > _targetLockMaxFingerDistance || _fingerTouchTimeDictionary[t.fingerId] > _targetLockTimeWindow)
-                        {
-                            _fingerTouchTimeDictionary.Remove(t.fingerId);
-                        }
-                    }
-
-                    break;
-                case TouchPhase.Stationary:
-                    // Set the look input to zero if the finger is still
-                    if (t.fingerId == _rightFingerId)
-                    {
-                        _lookInput = Vector2.zero;
-                    }
-
-                    if (_fingerTouchTimeDictionary.ContainsKey(t.fingerId))
-                    {
-                        _fingerTouchTimeDictionary[t.fingerId] += t.deltaTime;
-                        if (_fingerTouchTimeDictionary[t.fingerId] > _targetLockTimeWindow)
-                        {
-                            _fingerTouchTimeDictionary.Remove(t.fingerId);
-                        }
-                    }
-                    break;
-            }
-        }
-
-        _joystickInput = new Vector3(joystick.Horizontal, 0, joystick.Vertical);
-    }*/
-
-    /*private void LookAround()
-    {
-        // Moving camera
-        _yaw += _lookInput.x * _cameraSensitivityX;
-        _pitch -= _lookInput.y * _cameraSensitivityY;
-        _pitch = Mathf.Clamp(_pitch, _pitchMinMax.x, _pitchMinMax.y);
-
-        _currentRotation = Vector3.SmoothDamp(_currentRotation, new Vector3(_pitch, _yaw), ref _rotationSmoothVelocity, _rotationSmoothTime);
-        _cameraTransform.eulerAngles = _currentRotation;
-
-        // change rotation based on movement; prob useless
-        //Vector3 e = cameraTransform.eulerAngles;
-        //e.x = 0;
-        //transform.eulerAngles = e;
-    }*/
 
     #endregion
 
@@ -697,11 +485,6 @@ public class PlayerController : MonoBehaviour, IDamageable
     {
         return _inventory;
     }
-
-    /*public Transform GetPlayerCameraTransform()
-    {
-        return _cameraTransform;
-    }*/
 
     public void SetWeapons(GameObject prefab, bool twoHanded)
     {

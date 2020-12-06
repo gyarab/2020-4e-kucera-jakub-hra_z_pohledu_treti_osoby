@@ -18,9 +18,6 @@ public class QuestUI : MonoBehaviour
         _questCanvas.enabled = false;
         _messageQueue = new Queue<string>();
         _isDisplaying = false;
-
-        Debug.Log(_questCanvas);
-        Debug.Log(_questTMPT);
     }
 
     public void QueueMessage(string message)

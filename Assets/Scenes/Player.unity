@@ -464,8 +464,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1309589046}
-        m_MethodName: PauseGame
+      - m_Target: {fileID: 1075918493}
+        m_MethodName: PauseGameUI
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1480,6 +1480,7 @@ GameObject:
   - component: {fileID: 534669905}
   - component: {fileID: 534669904}
   - component: {fileID: 534669903}
+  - component: {fileID: 534669906}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1551,6 +1552,30 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &534669906
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 534669902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70983bed0d6686043ab751b74652ebff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _playerTransform: {fileID: 1309589044}
+  _collisionLayer:
+    serializedVersion: 2
+    m_Bits: 4608
+  _cameraOffset: {x: 0, y: 1.4, z: 0}
+  _pitchMinMax: {x: -40, y: 85}
+  _cameraSensitivityX: 30
+  _cameraSensitivityY: 30
+  _distanceFromTarget: 5.5
+  _rotationSmoothTime: 0.1
+  _cameraClippingOffset: 0
+  _automaticCameraRotationSpeed: 1
 --- !u!1 &589730418
 GameObject:
   m_ObjectHideFlags: 0
@@ -2471,8 +2496,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1309589046}
-        m_MethodName: AttackInput
+      - m_Target: {fileID: 1075918493}
+        m_MethodName: AttackUI
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2982,6 +3007,60 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1515d2741d3475c42b831039d6ea419a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1075918492
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1075918494}
+  - component: {fileID: 1075918493}
+  m_Layer: 0
+  m_Name: _Input
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1075918493
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1075918492}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 159939ab7aca65344b97ced74ef9d7b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _joystick: {fileID: 1990775088}
+  _playerController: {fileID: 1309589046}
+  _cameraController: {fileID: 534669906}
+  _inventory: {fileID: 664949143}
+  _targetLockTimeWindow: 0.3
+  _targetLockMaxFingerDistance: 10
+  _targetLockRayDistance: 15
+  _recordedTouchesLimit: 5
+  _excludeUILayer:
+    serializedVersion: 2
+    m_Bits: 34
+--- !u!4 &1075918494
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1075918492}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -122.882545, y: -103.86017, z: 60.314816}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1124662598
 GameObject:
   m_ObjectHideFlags: 0
@@ -3371,23 +3450,6 @@ MonoBehaviour:
   _groundOffset: 1.8
   _sphereCollider: {fileID: 1309589045}
   _sphereFeetCollider: {fileID: 1309589047}
-  _cameraTransform: {fileID: 534669905}
-  joystick: {fileID: 1990775088}
-  _cameraOffset: {x: 0, y: 1.4, z: 0}
-  _pitchMinMax: {x: -40, y: 85}
-  _cameraSensitivityX: 30
-  _cameraSensitivityY: 30
-  _distanceFromTarget: 5.5
-  _rotationSmoothTime: 0.1
-  _cameraClippingOffset: 0
-  _automaticCameraRotationSpeed: 1
-  _targetLockTimeWindow: 0.3
-  _targetLockMaxFingerDistance: 10
-  _targetLockRayDistance: 15
-  _recordedTouchesLimit: 5
-  _excludeUILayer:
-    serializedVersion: 2
-    m_Bits: 34
   _inventory: {fileID: 664949143}
   _healthBar: {fileID: 1049739907}
   _baseStats: {fileID: 11400000, guid: 9d54f92b57923f3478283fa6e3da87a7, type: 2}
@@ -4505,7 +4567,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000061035156, y: -0.000021680842}
+  m_AnchoredPosition: {x: -0.000061035156, y: 0.000006026787}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1642604803
@@ -5061,8 +5123,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1309589046}
-        m_MethodName: JumpInput
+      - m_Target: {fileID: 1075918493}
+        m_MethodName: JumpUI
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -5190,8 +5252,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1309589046}
-        m_MethodName: RollInput
+      - m_Target: {fileID: 1075918493}
+        m_MethodName: RollUI
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

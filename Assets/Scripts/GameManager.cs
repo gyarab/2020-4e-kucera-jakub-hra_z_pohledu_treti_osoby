@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
 
     private static GameManager _instance;
     public GameObject Player { get; set; }
+    public InputManager InputManager { get; set; }
     public HubManager CurrentHubManager { get; set; }
     public Vector3 Spawnpoint { get; set; }
     // TODO in a different way?
@@ -139,12 +140,13 @@ public class GameManager : MonoBehaviour
 
         SceneManager.SetActiveScene(SceneManager.GetSceneByName(locationSceneName));
 
-        while (Player == null || CurrentHubManager == null) { yield return null; }
+        while (Player == null || CurrentHubManager == null || InputManager == null) { yield return null; }
 
         Player.GetComponent<PlayerController>().GetPlayerInventory().Load(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, PLAYER_INVENTORY));
 
         CurrentHubManager.LoadState(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, GAME_FILE));
-        CurrentHubManager.EnablePlayerDependantObjects(Player.transform, Player.GetComponent<PlayerController>().GetPlayerCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, "shop.inv"));
+        // TODO input manager
+        CurrentHubManager.EnablePlayerDependantObjects(Player.transform, InputManager.GetCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, "shop.inv"));
         UnloadScene("Menu");
         _loadingScreen.HideLoadingScreen();
     }
@@ -168,7 +170,7 @@ public class GameManager : MonoBehaviour
         Player.transform.position = Vector3.zero;
 
         CurrentHubManager.LoadState(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, GAME_FILE));
-        CurrentHubManager.EnablePlayerDependantObjects(Player.transform, Player.GetComponent<PlayerController>().GetPlayerCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, SHOP_INVENTORY));
+        CurrentHubManager.EnablePlayerDependantObjects(Player.transform, InputManager.GetCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, SHOP_INVENTORY));
 
         if (unlockNextLevel)
         {

@@ -56,7 +56,7 @@ public class CameraController : MonoBehaviour
         }
         else if (_lockedOnTarget)
         {
-            _currentRotation = new Vector3(_currentRotation.x, Mathf.LerpAngle(_currentRotation.y, Quaternion.LookRotation(_cameraLockedTarget.position - transform.position).eulerAngles.y, _automaticCameraRotationSpeed * Time.deltaTime));
+            _currentRotation = new Vector3(_currentRotation.x, Mathf.LerpAngle(_currentRotation.y, Quaternion.LookRotation(_cameraLockedTarget.position - _playerTransform.position).eulerAngles.y, _automaticCameraRotationSpeed * Time.deltaTime));
             transform.eulerAngles = _currentRotation;
         }
         else if (_velocityRotation != Vector3.zero) // TODO CHANGE x and z != 0; should I?
@@ -66,10 +66,10 @@ public class CameraController : MonoBehaviour
             transform.eulerAngles = _currentRotation;
         }
 
-        newCamPos = transform.position - transform.forward * _distanceFromTarget + _cameraOffset;
+        newCamPos = _playerTransform.position - transform.forward * _distanceFromTarget + _cameraOffset;
 
         // Camera Collision Check
-        Ray ray = new Ray(transform.position + _cameraOffset, newCamPos - (transform.position + _cameraOffset));
+        Ray ray = new Ray(_playerTransform.position + _cameraOffset, newCamPos - (_playerTransform.position + _cameraOffset));
         if (Physics.Raycast(ray, out hit, _distanceFromTarget, _collisionLayer))
         {
             transform.position = hit.point + transform.forward * _cameraClippingOffset;

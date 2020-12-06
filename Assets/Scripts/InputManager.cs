@@ -12,6 +12,8 @@ public class InputManager : MonoBehaviour
     private PlayerController _playerController;
     [SerializeField]
     private CameraController _cameraController;
+    [SerializeField]
+    private InventoryMonoBehaviour _inventory;
 
     [Header("Target Lock"), Range(0f, 1f), SerializeField]
     private float _targetLockTimeWindow;
@@ -29,6 +31,16 @@ public class InputManager : MonoBehaviour
     {
         _rightFingerId = -1;
         _fingerTouchTimeDictionary = new Dictionary<int, float>(_recordedTouchesLimit);
+    }
+
+    private void Start()
+    {
+        GameManager.Instance.InputManager = this;
+    }
+
+    private void Update()
+    {
+        GetInput();
     }
 
     private void GetInput()
@@ -60,7 +72,6 @@ public class InputManager : MonoBehaviour
                     break;
                 case TouchPhase.Ended:
                 case TouchPhase.Canceled:
-
                     if (t.fingerId == _rightFingerId)
                     {
                         // Stop tracking the right finger
@@ -84,10 +95,8 @@ public class InputManager : MonoBehaviour
                             }
                         }
                     }
-
                     break;
                 case TouchPhase.Moved:
-
                     // Get input for looking around
                     if (t.fingerId == _rightFingerId)
                     {
@@ -123,43 +132,36 @@ public class InputManager : MonoBehaviour
                     break;
             }
         }
+
+        _playerController.SetJoystickInput(_joystick.Horizontal, _joystick.Vertical, _cameraController.transform.rotation.eulerAngles.y);
     }
 
     #region Button Activated Methods
 
-    public void AttackInput()
+    public void AttackUI()
     {
-        if (_acceptingInput)
-        {
-            _nextAction = PlayerActionType.Attack;
-        }
-        else if (_attacking && _attacked)
-        {
-            _nextAction = PlayerActionType.Attack;
-            animator.SetBool("Attack", true);
-        }
+        _playerController.SendInput(PlayerActionType.Attack);
     }
 
-    public void JumpInput()
+    public void RollUI()
     {
-        if (_acceptingInput)
-        {
-            _nextAction = PlayerActionType.Jump;
-        }
+        _playerController.SendInput(PlayerActionType.Roll);
     }
 
-    public void RollInput()
+    public void JumpUI()
     {
-        if (_acceptingInput)
-        {
-            _nextAction = PlayerActionType.Roll;
-        }
+        _playerController.SendInput(PlayerActionType.Jump);
     }
 
-    public void PauseGame()
+    public void PauseGameUI()
     {
         _inventory.ShowInventory(false);
     }
 
     #endregion
+
+    public Transform GetCameraTransform()
+    {
+        return _cameraController.transform;
+    }
 }
