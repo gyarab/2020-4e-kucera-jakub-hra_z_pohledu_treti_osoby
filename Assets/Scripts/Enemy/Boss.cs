@@ -444,7 +444,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
     public void TakeDamage(float damage, float armourPenetration)
     {
-        _currentHealth -= damage; 
+        _currentHealth -= DamageCalculator.CalculateDamage(damage, armourPenetration, _bossStats.armour);
         _healthBar.SetValue(_currentHealth / _bossStats.health);
 
         if (_currentHealth <= 0)

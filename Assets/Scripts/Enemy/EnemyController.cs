@@ -13,7 +13,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
     [Header("Enemy")]
     [SerializeField]
-    private CharacterStats _stats;
+    private CharacterStatsSO _stats;
     [SerializeField]
     private float _movementSpeed, _rotationSpeed, _angularSpeed;
     [SerializeField]
@@ -74,7 +74,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         _healthBarCanvas = _healthBarGO.GetComponent<Canvas>();
         _healthBar = _healthBarCanvas.transform.GetChild(0).transform.GetChild(0).GetComponent<Image>();
 
-        _currentHealth = _stats.Health;
+        _currentHealth = _stats.health;
         _healthBarCanvas.enabled = false;
 
         _grounded = true;
@@ -99,22 +99,12 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         ResolveCollisions();
     }
 
-    public void ReceivePath(List<Vector3> path)
-    {
-        _path = path;
-        ChangeState(FollowPathToTarget());
-    }
-
     #region State Methods
-
-    private IEnumerator WaitForPath()
-    {
-        Pathfinder.GetPath(transform.position, _target.position, ReceivePath);
-        yield return null;
-    }
 
     private IEnumerator FollowPathToTarget()
     {
+        _path = Pathfinder.GetPath(transform.position, _target.position);
+
         if (_path == null)
         {
             ChangeState(FollowTarget());
@@ -130,6 +120,10 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         while (true)
         {
             // TODO check if close to player
+            if (CanAttack())
+            {
+                break;
+            }
 
             positionDelta = GamePhysics.MoveTowardsPositionNonYClamped(transform.position, _path[index], _movementSpeed, out distance);
             transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, positionDelta, _rotationSpeed);
@@ -180,7 +174,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         Attack();
         yield return new WaitForSeconds(_delayAfterAttack);
 
-        ChangeState(WaitForPath());
+        ChangeState(FollowPathToTarget());
     }
 
     private IEnumerator FollowTarget()
@@ -277,14 +271,19 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
             if (_attackAngleInDegrees > Vector3.Angle(transform.forward, attackDirection))
             {
-                _target.GetComponent<IDamageable>().TakeDamage(_stats.Damage, _stats.ArmourPenetration);
+                _target.GetComponent<IDamageable>().TakeDamage(_stats.damage, _stats.armourPenetration);
             }
         }
     }
 
+    private bool InRangeToAttack()
+    {
+        return Vector3.Distance(transform.position, _target.transform.position) < _attackRange;
+    }
+
     public bool CanAttack()
     {
-        if (Vector3.Distance(transform.position, _target.transform.position) < _attackRange) // Is enemy in range to attack?
+        if (InRangeToAttack()) // Is enemy in range to attack?
         {
             if (Physics.Raycast(transform.position, _target.transform.position - transform.position, _attackRange, ~transform.gameObject.layer))
             {
@@ -344,7 +343,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
             {
                 if (Vector3.Angle(transform.forward, _target.transform.position - transform.position) < _detectionAngle)
                 {
-                    ChangeState(WaitForPath());
+                    ChangeState(FollowPathToTarget());
                 }
             }
         }
@@ -360,12 +359,12 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
     public void TakeDamage(float damage, float armourPenetration)
     {
-        _currentHealth -= damage;
-        _healthBar.fillAmount = _currentHealth / _stats.Health;
+        _currentHealth -= DamageCalculator.CalculateDamage(damage, armourPenetration, _stats.armour);
+        _healthBar.fillAmount = _currentHealth / _stats.health;
 
         if (!_seenTarget)
         {
-            ChangeState(WaitForPath());
+            ChangeState(FollowPathToTarget());
         }
 
         if (_currentHealth <= 0)

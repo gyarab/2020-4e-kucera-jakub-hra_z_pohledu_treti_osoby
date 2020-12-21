@@ -20,7 +20,7 @@ public class MazeManager : MonoBehaviour
         GameManager.Instance.CurrentMazeManager = this;
     }
 
-    public string CreateMaze(MazeSettingsSO mazeSettings) // TODO IWIN
+    public string CreateMaze(MazeSettingsSO mazeSettings)
     {
         IWinCondition winCondition;
 
@@ -30,10 +30,10 @@ public class MazeManager : MonoBehaviour
                 winCondition = gameObject.AddComponent<FindKey>();
                 break;
             case WinConditionType.ClearLocation:
-                winCondition = gameObject.AddComponent<FindKey>();
+                winCondition = gameObject.AddComponent<ClearLocation>();
                 break;
             case WinConditionType.CollectItems:
-                winCondition = gameObject.AddComponent<FindKey>();
+                winCondition = gameObject.AddComponent<CollectArtefacts>();
                 break;
             default:
                 throw new System.Exception("Can't generate maze without win condition"); // or maybe yes? - to farm gold

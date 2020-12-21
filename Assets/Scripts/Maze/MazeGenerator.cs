@@ -20,7 +20,7 @@ public class MazeGenerator : MonoBehaviour
     }
 
     // Start is called before the first frame update
-    public PathfindingNode[] GenerateMaze(MazeSettingsSO mazeSettings, IWinCondition winCondition, out int nodeCount) // TODO IWIN, IWIN as getcomponent?;
+    public PathfindingNode[] GenerateMaze(MazeSettingsSO mazeSettings, IWinCondition winCondition, out int nodeCount)
     {
         _mazeSettings = mazeSettings;
         _winCondition = winCondition;

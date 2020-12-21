@@ -16,9 +16,9 @@ public class Pathfinding<T> where T : IPathfindingNode<T>
         _openSet = new PathfindingHeap<T>(_nodeCount); // TODO prob optimize 
     }
 
-    public void GetPath(Vector3 position, Vector3 targetPosition, Action<List<Vector3>> action)
+    public List<Vector3> GetPath(Vector3 position, Vector3 targetPosition)
     {
-        action(FindPath(GetCurrentNodeID(position), GetCurrentNodeID(targetPosition)));
+        return FindPath(GetCurrentNodeID(position), GetCurrentNodeID(targetPosition));
     }
 
     private List<Vector3> FindPath(int startID, int endID)

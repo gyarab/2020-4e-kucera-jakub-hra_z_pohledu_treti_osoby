@@ -504,7 +504,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
     }
 
-    public void TakeDamage(float damageTaken, float armourPenentration)
+    public void TakeDamage(float damageTaken, float armourPenetration)
     {
         Debug.Log("hit");
 
@@ -516,12 +516,10 @@ public class PlayerController : MonoBehaviour, IDamageable
             }
         }
 
-        float armourLeft = Mathf.Max(_currentStats.Armour - armourPenentration, 0);
-
-        _currentHealth -= damageTaken + armourLeft;
+        _currentHealth -= DamageCalculator.CalculateDamage(damageTaken, armourPenetration, _currentStats.Armour);
         _healthBar.SetValue(_currentHealth / _currentStats.Health);
 
-        if(_currentHealth < 0)
+        if(_currentHealth <= 0)
         {
             GameManager.Instance.LoadHub(false, 0);
         }

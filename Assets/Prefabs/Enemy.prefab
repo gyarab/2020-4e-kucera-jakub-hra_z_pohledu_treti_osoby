@@ -60,6 +60,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c4455bf8a9647243a4f8825873007ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _stats: {fileID: 11400000, guid: 540839304ead8f64ca0f86201f907178, type: 2}
   _movementSpeed: 0.1
   _rotationSpeed: 0.1
   _angularSpeed: 5
