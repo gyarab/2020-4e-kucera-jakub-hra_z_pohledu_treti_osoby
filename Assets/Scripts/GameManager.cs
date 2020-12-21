@@ -145,7 +145,7 @@ public class GameManager : MonoBehaviour
         Player.GetComponent<PlayerController>().GetPlayerInventory().Load(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, PLAYER_INVENTORY));
 
         CurrentHubManager.LoadState(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, GAME_FILE));
-        // TODO input manager
+        // TODO input manager; what?
         CurrentHubManager.EnablePlayerDependantObjects(Player.transform, InputManager.GetCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, "shop.inv"));
         UnloadScene("Menu");
         _loadingScreen.HideLoadingScreen();

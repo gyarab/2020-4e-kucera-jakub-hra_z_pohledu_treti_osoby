@@ -26,10 +26,11 @@ public class CameraController : MonoBehaviour
     private float _yaw, _pitch;
     private Vector2 _lookInput;
 
-    public void SetInput(Vector3 input, Vector3 velocityRotation)
+    public void SetInput(Vector3 input, Vector3 velocityRotation, bool rotateManually)
     {
         _lookInput = input;
         _velocityRotation = velocityRotation;
+        _shouldRotate = rotateManually;
     }
 
     public void SetTarget(Transform target)
@@ -38,17 +39,12 @@ public class CameraController : MonoBehaviour
         _lockedOnTarget = true;
     }
 
-    public void RotateCamera()
-    {
-        _shouldRotate = true;
-    }
-
     void LateUpdate()
     {
         Vector3 newCamPos;
         RaycastHit hit;
 
-        if (_shouldRotate && _lookInput != Vector2.zero && !_forceLockOn) // TODO remove vector2.zero condition?
+        if (_shouldRotate && !_forceLockOn)
         {
             // Look around if the right finger is being tracked
             LookAround();

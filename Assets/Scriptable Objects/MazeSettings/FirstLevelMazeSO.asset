@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 55ca55f109fac69418731ec21f0099e1, type: 3}
-  m_Name: TestMazeSettings
+  m_Name: FirstLevelMazeSO
   m_EditorClassIdentifier: 
-  mazeWinCondition: 0
+  mazeWinCondition: 1
   centerPoint: {x: 0, y: 0, z: 0}
   distanceBetweenCells: 10
   length: 3

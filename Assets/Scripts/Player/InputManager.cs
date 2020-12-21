@@ -68,8 +68,8 @@ public class InputManager : MonoBehaviour
                             _fingerTouchTimeDictionary.Add(t.fingerId, 0);
                         }
                     }
-
                     break;
+
                 case TouchPhase.Ended:
                 case TouchPhase.Canceled:
                     if (t.fingerId == _rightFingerId)
@@ -96,12 +96,12 @@ public class InputManager : MonoBehaviour
                         }
                     }
                     break;
+
                 case TouchPhase.Moved:
                     // Get input for looking around
                     if (t.fingerId == _rightFingerId)
                     {
-                        _cameraController.SetInput(t.deltaPosition * Time.deltaTime, _playerController.GetRotationVelocity());
-                        _cameraController.RotateCamera();
+                        _cameraController.SetInput(t.deltaPosition * Time.deltaTime, _playerController.GetRotationVelocity(), true);
                     }
 
                     if (_fingerTouchTimeDictionary.ContainsKey(t.fingerId))
@@ -112,13 +112,13 @@ public class InputManager : MonoBehaviour
                             _fingerTouchTimeDictionary.Remove(t.fingerId);
                         }
                     }
-
                     break;
+
                 case TouchPhase.Stationary:
                     // Set the look input to zero if the finger is still
                     if (t.fingerId == _rightFingerId)
                     {
-                        _cameraController.SetInput(Vector2.zero, _playerController.GetRotationVelocity());
+                        _cameraController.SetInput(Vector2.zero, _playerController.GetRotationVelocity(), true);
                     }
 
                     if (_fingerTouchTimeDictionary.ContainsKey(t.fingerId))
@@ -133,6 +133,10 @@ public class InputManager : MonoBehaviour
             }
         }
 
+        if(_rightFingerId == -1)
+        {
+            _cameraController.SetInput(Vector2.zero, _playerController.GetRotationVelocity(), false);
+        }
         _playerController.SetJoystickInput(_joystick.Horizontal, _joystick.Vertical, _cameraController.transform.rotation.eulerAngles.y);
     }
 
