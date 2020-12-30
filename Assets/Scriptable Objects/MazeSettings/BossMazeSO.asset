@@ -21,7 +21,7 @@ MonoBehaviour:
   maxDistanceMultiplyer: 4
   randomDistanceBetweenCells: 1
   pathfindingNodesInSubcell: 5
-  nodeSpreadPercentage: 0.9
+  nodeSpreadPercentage: 0.85
   triesToGenerateMaze: 10
   minCellPercentage: 0.8
   roomChance:

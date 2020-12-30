@@ -47,7 +47,6 @@ public class BossRoomDoor : MonoBehaviour, IDoor
         while (true)
         {
             degreesToRotate = degreesToOpen * Time.deltaTime / timeToOpen;
-            Debug.Log("degrees: " + degreesToRotate);
 
             if (degreesToOpen <= degreesToRotate + degreesRotated)
             {
@@ -87,5 +86,10 @@ public class BossRoomDoor : MonoBehaviour, IDoor
 
             yield return new WaitForEndOfFrame();
         }
+    }
+
+    public void Enabled()
+    {
+
     }
 }

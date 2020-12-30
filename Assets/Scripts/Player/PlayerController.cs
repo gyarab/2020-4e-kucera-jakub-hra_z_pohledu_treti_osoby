@@ -58,7 +58,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     [SerializeField]
     private float _currentHealth;
 
-    [Header("Animatons")]
+    [Header("Animaton")]
     [SerializeField]
     private Animator animator;
     [SerializeField]
@@ -486,7 +486,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         return _inventory;
     }
 
-    public void SetWeapons(GameObject prefab, bool twoHanded)
+    public void SetWeapons(GameObject prefab, Vector3 offset, bool twoHanded)
     {
         if(_rightHandTransform.childCount > 0)
         {
@@ -497,10 +497,14 @@ public class PlayerController : MonoBehaviour, IDamageable
             Destroy(_leftHandTransform.GetChild(0).gameObject);
         }
 
-        Instantiate(prefab, _rightHandTransform);
+        GameObject weapon;
+        weapon = Instantiate(prefab, _rightHandTransform);
+        weapon.transform.localPosition = offset;
+
         if (twoHanded)
         {
-            Instantiate(prefab, _leftHandTransform);
+            weapon = Instantiate(prefab, _leftHandTransform);
+            weapon.transform.localPosition = offset;
         }
     }
 

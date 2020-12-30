@@ -11,6 +11,7 @@ public class WeaponObject : ItemObject // TODO extend equipment?
     public AnimationType animationType;
 
     public GameObject model; // or more models idk how to do
+    public Vector3 positionOffset;
 
     public void Awake()
     {

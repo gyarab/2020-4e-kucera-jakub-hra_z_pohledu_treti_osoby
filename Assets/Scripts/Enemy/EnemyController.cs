@@ -41,8 +41,10 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
     [Header("Combat")]
     [SerializeField]
     private float _attackRange;
+    [SerializeField, Range(0f, 1f)]
+    private float _secondaryAttackRangeMultiplier;
     [SerializeField]
-    private float _delayBeforeAttack, _delayAfterAttack, _attackAngleInDegrees;
+    private float _secondaryAttackAngleInDegrees, _delayBeforeAttack, _delayAfterAttack, _attackAngleInDegrees;
 
     [Header("Pathfinding")]
     [SerializeField]
@@ -50,7 +52,11 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
     [SerializeField]
     Vector2Int _randomMovementCycles, _randomMovementLength;
 
-    [Header("Rest"), SerializeField]
+    [Header("Animaton")]
+    [SerializeField]
+    private Animator animator;
+
+    [Header("Other"), SerializeField]
     Vector2 _waitTime;
 
     // Objects
@@ -103,6 +109,8 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
     private IEnumerator FollowPathToTarget()
     {
+        animator.SetBool("Walk", true);
+
         _path = Pathfinder.GetPath(transform.position, _target.position);
 
         if (_path == null)
@@ -142,6 +150,8 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
             yield return new WaitForFixedUpdate();
         }
 
+        animator.SetBool("Walk", false);
+
         ChangeState(FollowTarget());
     }
 
@@ -170,6 +180,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
     private IEnumerator AttackTarget()
     {
+        animator.SetTrigger("Attack");
         yield return new WaitForSeconds(_delayBeforeAttack);
         Attack();
         yield return new WaitForSeconds(_delayAfterAttack);
@@ -179,16 +190,20 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
     private IEnumerator FollowTarget()
     {
+        animator.SetBool("Walk", true);
+
         float distance;
         Vector3 positionDelta;
+        bool attack = false;
 
-        while (true) // while target is visible TODO
+        while (IsTargetVisible())
         {
             positionDelta = GamePhysics.MoveTowardsPositionNonYClamped(transform.position, _target.position, _movementSpeed, out distance);
             transform.rotation = GamePhysics.RotateTowardsTarget(transform.rotation, transform.position, _target.position, _rotationSpeed);
 
             if (distance <= _attackRange * 0.75f) // TODO hardcoded
             {
+                attack = true;
                 break;
             }
 
@@ -196,11 +211,21 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
             yield return new WaitForFixedUpdate();
         }
 
-        ChangeState(AttackTarget());
+        animator.SetBool("Walk", false);
+
+        if (attack)
+        {
+            ChangeState(AttackTarget());
+        } else
+        {
+            ChangeState(FollowPathToTarget());
+        }
     }
 
     private IEnumerator WalkToRandomPlace()
     {
+        animator.SetBool("Walk", true);
+
         _path = Pathfinder.GetRandomPath(transform.position, UnityEngine.Random.Range(_randomMovementCycles.x, _randomMovementCycles.y), UnityEngine.Random.Range(_randomMovementLength.x, _randomMovementLength.y));
 
         int index = 0;
@@ -227,6 +252,8 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
             transform.position += positionDelta;
             yield return new WaitForFixedUpdate();
         }
+
+        animator.SetBool("Walk", false);
 
         ChangeState(WaitForNextAction());
     }
@@ -265,13 +292,25 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
     private void Attack()
     {
-        if (Vector3.Distance(transform.position, _target.transform.position) <= _attackRange)
-        {
-            Vector3 attackDirection = _target.transform.position - transform.position;
+        float distance = Vector3.Distance(transform.position, _target.transform.position);
 
-            if (_attackAngleInDegrees > Vector3.Angle(transform.forward, attackDirection))
+        if (distance <= _attackRange)
+        {
+            Vector3 attackDirection3D = _target.transform.position - transform.position;
+
+            Vector2 attackDirection = new Vector2(attackDirection3D.x, attackDirection3D.z);
+            Vector2 forward = new Vector2(transform.forward.x, transform.forward.z);
+            float angle = Vector2.Angle(forward, attackDirection);
+
+            if (angle < _attackAngleInDegrees)
             {
                 _target.GetComponent<IDamageable>().TakeDamage(_stats.damage, _stats.armourPenetration);
+            } else if (distance <= _attackRange * _secondaryAttackRangeMultiplier)
+            {
+                if(angle < _secondaryAttackAngleInDegrees)
+                {
+                    _target.GetComponent<IDamageable>().TakeDamage(_stats.damage, _stats.armourPenetration);
+                }
             }
         }
     }
@@ -281,11 +320,16 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         return Vector3.Distance(transform.position, _target.transform.position) < _attackRange;
     }
 
+    private bool IsTargetVisible()
+    {
+        return Physics.Raycast(transform.position, _target.transform.position - transform.position, _attackRange, ~transform.gameObject.layer);
+    }
+
     public bool CanAttack()
     {
         if (InRangeToAttack()) // Is enemy in range to attack?
         {
-            if (Physics.Raycast(transform.position, _target.transform.position - transform.position, _attackRange, ~transform.gameObject.layer))
+            if (IsTargetVisible())
             {
                 return true;
             }

@@ -7,8 +7,18 @@ public class HubDoor : MonoBehaviour, IDoor // TODO rework to button press?
     [SerializeField]
     private MazeSettingsSO _mazeSettings;
 
+    private void Start()
+    {
+        GetComponentInChildren<ParticleSystem>().Stop();
+    }
+
     public void Entered()
     {
         GameManager.Instance.LoadMaze(_mazeSettings);
+    }
+
+    public void Enabled()
+    {
+        GetComponentInChildren<ParticleSystem>().Play();
     }
 }

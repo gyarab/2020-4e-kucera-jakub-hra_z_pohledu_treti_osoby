@@ -15,11 +15,12 @@ public class Door : MonoBehaviour
     private void Awake()
     {
         _secondPoint = transform.position + transform.right;
+        _doorImplementation = GetComponent<IDoor>();
     }
 
     private void Start()
     {
-        _doorImplementation = GetComponent<IDoor>();
+        // TODO remove it works
     }
 
     void FixedUpdate()
@@ -29,7 +30,6 @@ public class Door : MonoBehaviour
             _side = GetSide(_target.position);
             if (Vector3.Distance(_target.position, transform.position) < _range)
             {
-                // TODO load specific level; boss or puzzle etc...
                 _doorImplementation.Entered();
             }
         }
@@ -39,6 +39,7 @@ public class Door : MonoBehaviour
     {
         _target = GameManager.Instance.Player.transform;
         _side = GetSide(_target.position);
+        _doorImplementation.Enabled();
     }
 
     public int GetSide(Vector3 position)

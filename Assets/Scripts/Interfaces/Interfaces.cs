@@ -20,6 +20,7 @@ public interface IWinCondition
 public interface IDoor
 {
     void Entered();
+    void Enabled();
 }
 
 public interface ICellGenerator

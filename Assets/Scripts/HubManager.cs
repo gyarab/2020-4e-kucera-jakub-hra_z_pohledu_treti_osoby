@@ -58,6 +58,6 @@ public class HubManager : MonoBehaviour
 
     private void Save()
     {
-        LoadManager.SaveFile<SaveableGameState>(_savePath, _gameState);
+        LoadManager.SaveFile(_savePath, _gameState);
     }
 }

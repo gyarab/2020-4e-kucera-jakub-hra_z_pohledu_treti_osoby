@@ -28,4 +28,9 @@ public class DoorKeyCheck : MonoBehaviour, IDoor
             }
         }
     }
+
+    public void Enabled()
+    {
+
+    }
 }

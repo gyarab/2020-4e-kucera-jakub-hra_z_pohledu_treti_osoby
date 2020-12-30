@@ -21,8 +21,6 @@ public class Shopkeeper : FloatingButton
 
     public void InteractGUI()
     {
-        Debug.Log("Shop opened");
-
         _inventoryMonoBehaviour.LoadAndOpenShop(_shopInventoryContainer);
     }
 }

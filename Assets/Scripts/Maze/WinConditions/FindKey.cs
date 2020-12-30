@@ -49,7 +49,6 @@ public class FindKey : MonoBehaviour, IWinCondition // TODO remove the key part?
     {
         GetComponent<Spawner>().SpawnItem(position, KEY_ITEM_ID);
         _spawnedKey = true;
-        Debug.Log("Key Spawned");
     }
 
     public List<Vector3> ConfirmSpawnLocations(List<Vector3> array)

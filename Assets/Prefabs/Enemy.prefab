@@ -79,13 +79,16 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 6912
   _raycastLength: 0.5
-  _attackRange: 2
+  _attackRange: 2.5
+  _secondaryAttackRangeMultiplier: 0.3
+  _secondaryAttackAngleInDegrees: 70
   _delayBeforeAttack: 1.5
   _delayAfterAttack: 1.5
   _attackAngleInDegrees: 30
   _moveDistanceTolerance: 0.1
   _randomMovementCycles: {x: 1, y: 4}
   _randomMovementLength: {x: 1, y: 3}
+  animator: {fileID: 1688214010355994620}
   _waitTime: {x: 5, y: 30}
 --- !u!1001 &1688214010363361948
 PrefabInstance:
@@ -102,6 +105,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 9500000, guid: dc4a9e384c9430049aa73c2a362aad36, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 497e9788b20f05646badbceb3de34e7a, type: 2}
     - target: {fileID: 400012, guid: dc4a9e384c9430049aa73c2a362aad36, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -155,6 +162,12 @@ PrefabInstance:
 --- !u!4 &1688214010363486224 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400012, guid: dc4a9e384c9430049aa73c2a362aad36,
+    type: 3}
+  m_PrefabInstance: {fileID: 1688214010363361948}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &1688214010355994620 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 9500000, guid: dc4a9e384c9430049aa73c2a362aad36,
     type: 3}
   m_PrefabInstance: {fileID: 1688214010363361948}
   m_PrefabAsset: {fileID: 0}

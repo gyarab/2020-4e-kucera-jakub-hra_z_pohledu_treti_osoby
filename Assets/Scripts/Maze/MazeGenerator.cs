@@ -57,7 +57,7 @@ public class MazeGenerator : MonoBehaviour
 
         Debug.Log("Generation Done");
         // TODO remove or move?
-        GetComponent<Spawner>().SpawnReturnPortal(_subcellData.SpawnPoint, - 0.5f); // TODO hardcoded
+        GetComponent<Spawner>().SpawnReturnPortal(_subcellData.SpawnPoint);
         GameManager.Instance.Player.transform.position = new Vector3(_subcellData.SpawnPoint.x, _subcellData.SpawnPoint.y + 2, _subcellData.SpawnPoint.z); // TODO hardcoded
 
         // TODO make better & move?

@@ -289,7 +289,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
             _equippedWeaponSlot = inventorySlot;
             _player.SwitchAnimationController(weapon.animationType);
-            _player.SetWeapons(weapon.model, weapon.animationType == AnimationType.Twohanded);
+            _player.SetWeapons(weapon.model, weapon.positionOffset, weapon.animationType == AnimationType.Twohanded);
         }
     }
 

@@ -143,8 +143,6 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
     private ComboSO ChooseNextCombo()
     {
-        Debug.Log("New Combo");
-
         float targetBossAngle = Vector2.Angle(transform.forward, _target.position - transform.position);
         float targetBossDistance = Vector3.Distance(transform.position, _target.position);
         int currentHighestBias = -1;
@@ -184,7 +182,6 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
     private void StartNextAction()
     {
-        Debug.Log("Next Action");
         _canDealDamage = true;
         _currentActionIndex++;
 
@@ -195,7 +192,6 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         }
 
         BossActionType nextAction = _currentCombo.actions[_currentActionIndex];
-        Debug.Log(nextAction);
 
         switch (nextAction)
         {
@@ -227,7 +223,6 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
     private IEnumerator Intro()
     {
-        Debug.Log("Entered boss fight");
         yield return new WaitForSeconds(_delayAfterEntering);
 
         StartNextAction();
@@ -334,22 +329,16 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
         while (timePlaying <= TIME_TO_HIT)
         {
-            Debug.Log("2");
             timePlaying += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
 
-        Debug.Log("2.1");
         SphericalHitDetection(_groundSmashRadius, GetHandsCenterPosition());
-        Debug.Log("2.2");
         while (timePlaying <= TIME_TO_END)
         {
-            Debug.Log("1");
             timePlaying += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
-
-        Debug.Log("12");
 
         StartNextAction();
     }
@@ -378,30 +367,23 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
         while (timePlaying <= TIME_TO_HIT)
         {
-            Debug.Log("3");
             timePlaying += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
-        Debug.Log("3.1");
 
         while (timePlaying <= TIME_TO_HIT + TIME_WINDOW)
         {
-            Debug.Log("4");
             timePlaying += Time.fixedDeltaTime;
             SphericalHitDetection(_swipeRadius, handTransform.position);
 
             yield return new WaitForFixedUpdate();
         }
 
-        Debug.Log("4.1");
         while (timePlaying <= TIME_TO_END)
         {
-            Debug.Log("5");
             timePlaying += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
-
-        Debug.Log("345");
 
         StartNextAction();
     }
