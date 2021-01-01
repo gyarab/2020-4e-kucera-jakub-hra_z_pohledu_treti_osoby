@@ -89,7 +89,7 @@ public class GameManager : MonoBehaviour
 
     public void LoadMaze(MazeSettingsSO mazeSettings)
     {
-        Debug.Log("loading maze");
+        Player.GetComponent<PlayerController>().Reset();
 
         // TODO loading screen
         StartCoroutine(LoadMazeAsync("Maze", mazeSettings));
@@ -162,7 +162,7 @@ public class GameManager : MonoBehaviour
         UnloadScene("Maze");
 
         Player.SetActive(true);
-        Player.transform.position = Vector3.zero;
+        Player.transform.position = new Vector3(0, 2, 0); // TODO hardcoded
 
         CurrentHubManager.LoadState(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, GAME_FILE));
         CurrentHubManager.EnablePlayerDependantObjects(Player.transform, InputManager.GetCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, SHOP_INVENTORY));

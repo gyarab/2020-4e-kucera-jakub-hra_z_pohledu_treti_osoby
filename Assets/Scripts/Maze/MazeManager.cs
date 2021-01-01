@@ -36,7 +36,7 @@ public class MazeManager : MonoBehaviour
                 winCondition = gameObject.AddComponent<CollectArtefacts>();
                 break;
             default:
-                throw new System.Exception("Can't generate maze without win condition"); // or maybe yes? - to farm gold
+                throw new System.Exception("Can't generate maze without win condition"); // TODO remove? or maybe yes? - to farm gold
         }
 
         winCondition.OnCompleted += WinConditionCompleted;

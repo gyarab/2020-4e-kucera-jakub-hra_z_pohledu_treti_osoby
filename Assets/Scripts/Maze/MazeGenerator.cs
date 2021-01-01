@@ -373,6 +373,10 @@ public class MazeGenerator : MonoBehaviour
     private void SpawnEnemies()
     {
         List<Vector3> positionsToSpawn = new List<Vector3>();
+        Debug.Log("max step count " + _pathfindingNodes.Length);
+
+        float minEnemyPercentage = (float)(_mazeSettings.minEnemyCount + 1f) / (float)_pathfindingNodes.Length;
+
         for (int i = 0; i < _pathfindingNodes.Length; i++)
         {
             if (_pathfindingNodes[i] != null)
@@ -380,12 +384,20 @@ public class MazeGenerator : MonoBehaviour
                 if (Random.Range(0f, 1f) <= _mazeSettings.spawnChance)
                 {
                     positionsToSpawn.Add(new Vector3(_pathfindingNodes[i].Position.x, _pathfindingNodes[i].Position.y + 0.5f, _pathfindingNodes[i].Position.z)); // TODO hardcoded
+                    if(positionsToSpawn.Count == _mazeSettings.maxEnemyCount)
+                    {
+                        Debug.Log("ended at " + i + " step out of" + _pathfindingNodes.Length);
+                        break;
+                    }
+                } else if (((float)positionsToSpawn.Count + 1f) / ((float)i + 1f) < minEnemyPercentage)
+                {
+                    Debug.Log("forced at " + i + " enemy no " + positionsToSpawn.Count);
+                    positionsToSpawn.Add(new Vector3(_pathfindingNodes[i].Position.x, _pathfindingNodes[i].Position.y + 0.5f, _pathfindingNodes[i].Position.z)); // TODO hardcoded
                 }
             }
         }
 
         positionsToSpawn = _winCondition.ConfirmSpawnLocations(positionsToSpawn);
-
 
         Spawner spawner = GetComponent<Spawner>();
 

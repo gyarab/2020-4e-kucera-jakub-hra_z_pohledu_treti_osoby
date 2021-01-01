@@ -39,4 +39,5 @@ public class MazeSettingsSO : ScriptableObject
     [Header("Enemy")]
     [Range(0f, 1f)]
     public float spawnChance;
+    public int minEnemyCount, maxEnemyCount;
 }
