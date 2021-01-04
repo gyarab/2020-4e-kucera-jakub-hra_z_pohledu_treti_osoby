@@ -11,21 +11,23 @@ public class GameManager : MonoBehaviour
     private const string PLAYER_STATS = "player.stats";
     private const string SHOP_INVENTORY = "shop.inv";
     private const string GAME_FILE = "game.info";
+    private const string SETTINGS_FILE = "settings.conf";
 
     private static GameManager _instance;
     public GameObject Player { get; set; }
     public InputManager InputManager { get; set; }
     public HubManager CurrentHubManager { get; set; }
     public Vector3 Spawnpoint { get; set; }
-    // TODO in a different way?
     public MazeManager CurrentMazeManager { get; set; }
     public QuestUI QuestUI { get; set; }
 
     private string _currentSavePath;
+    private bool _loading;
 
     private ItemDatabase _itemDatabase;
     private LoadingScreen _loadingScreen;
 
+    // Vrátí jedinou instanci třídy GameManager
     public static GameManager Instance
     {
         get
@@ -46,6 +48,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Načte ze složky se zdroji databázi předmětů, načítací obrazovku a grafické rozhraní pro zadávání úkolů hráči
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
@@ -54,6 +57,7 @@ public class GameManager : MonoBehaviour
         QuestUI = Instantiate(Resources.Load<GameObject>("QuestCanvas"), transform).GetComponent<QuestUI>();
     }
 
+    // Najde předmět v databáze předmětů podle id
     public ItemObject GetItemObjectByID(int id)
     {
         return _itemDatabase.GetItem[id];
@@ -61,11 +65,13 @@ public class GameManager : MonoBehaviour
 
     #region Save Managment
 
+    // Najde uložené hry
     public List<string> GetSaves()
     {
         return LoadManager.ReturnSubdirectories(Path.Combine(Application.persistentDataPath, SAVES_FOLDER));
     }
 
+    // Vytvoří složku pro uložení nové hry a vytvoří v ní nutné soubory
     public void CreateNewSave(string path)
     {
         string fullPath = Path.Combine(Application.persistentDataPath, SAVES_FOLDER, path);
@@ -76,28 +82,69 @@ public class GameManager : MonoBehaviour
         LoadManager.SaveFile(Path.Combine(fullPath, SHOP_INVENTORY), new SaveableInventory(Resources.Load<NewGameInventorySO>(Path.Combine("NewGame", "ShopkeeperInventory")).itemIDs));
     }
 
+    // Smaže složku s uloženým postupem
     public void DeleteSave(string path)
     {
         LoadManager.DeleteDirectory(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, path));
     }
 
-    public void LoadGame(string path)
+    // Uloží nastavení
+    public void SaveSettings(SaveableSettings settings)
     {
-        _currentSavePath = path;
-        StartCoroutine(LoadGameAsync("Hub", "Player"));
+        LoadManager.SaveFile<SaveableSettings>(Path.Combine(Application.persistentDataPath, SETTINGS_FILE), settings);
     }
 
-    public void LoadMaze(MazeSettingsSO mazeSettings)
+    // Načte nastavení, případně vytvoří nové
+    public SaveableSettings LoadSettings()
     {
+        string fullPath = Path.Combine(Application.persistentDataPath, SETTINGS_FILE);
+
+        if (LoadManager.FileExists(fullPath)) {
+            return LoadManager.ReadFile<SaveableSettings>(fullPath);
+        } else
+        {
+            SaveableSettings settings = new SaveableSettings();
+            LoadManager.SaveFile<SaveableSettings>(fullPath, settings);
+            return settings;
+        }
+    }
+
+    #endregion
+
+    #region Scene Managment
+
+    // Přesvědčí se, zda se už něco nenačítá a poté zavolá Coroutine, která načte scénu s postavou a druhou scénu s výběrem úrovní
+    public void LoadGame(string path, SaveableSettings playerSettings)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        _currentSavePath = path;
+        StartCoroutine(LoadGameAsync("Hub", "Player", playerSettings));
+    }
+
+    // Přesvědčí se, zda se už něco nenačítá a poté zavolá Coroutine, která načte scénu, která vygeneruje mapu
+    public void EnterMaze(MazeSettingsSO mazeSettings)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
         Player.GetComponent<PlayerController>().Reset();
 
-        // TODO loading screen
         StartCoroutine(LoadMazeAsync("Maze", mazeSettings));
     }
 
-    public void LoadHub(bool success, int coinsUnlocked)
+    // Zjistí se, zda se už něco nenačítá a poté zavolá Coroutine, která načte scénu s výběrem úrovní
+    public void ReturnToHub(bool success, int coinsUnlocked)
     {
-        Debug.Log("loading hub");
+        if (_loading)
+        {
+            return;
+        }
 
         Player.GetComponent<PlayerController>().GetPlayerInventory().AddCoinsToPlayer(coinsUnlocked);
         Player.GetComponent<PlayerController>().Reset();
@@ -105,6 +152,7 @@ public class GameManager : MonoBehaviour
         StartCoroutine(LoadHubAsync("Hub", success));
     }
 
+    // Odnačte scénu podle názvu
     public void UnloadScene(string name)
     {
         StartCoroutine(UnloadSceneAsync(name));
@@ -112,11 +160,12 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
-    // TODO add check if its already loadings something
     #region Enumerators
 
-    IEnumerator LoadGameAsync(string locationSceneName, string playerSceneName)
+    //  Načte scénu s postavou a výběrem levelů, poté předá portálům a prodavačovi odkaz na hráčovu pozici a také cestu, kam ukládat postup
+    IEnumerator LoadGameAsync(string locationSceneName, string playerSceneName, SaveableSettings playerSettings)
     {
+        _loading = true;
         _loadingScreen.ShowLoadingScreen();
 
         AsyncOperation locationSceneLoadingTask = SceneManager.LoadSceneAsync(locationSceneName, LoadSceneMode.Additive);
@@ -138,16 +187,20 @@ public class GameManager : MonoBehaviour
         while (Player == null || CurrentHubManager == null || InputManager == null) { yield return null; }
 
         Player.GetComponent<PlayerController>().GetPlayerInventory().Load(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, PLAYER_INVENTORY));
+        InputManager.GetCameraTransform().GetComponent<CameraController>().SetSensitivity(playerSettings.xSensitivity, playerSettings.ySensitivity);
 
         CurrentHubManager.LoadState(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, GAME_FILE));
         CurrentHubManager.EnablePlayerDependantObjects(Player.transform, InputManager.GetCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, "shop.inv"));
 
         UnloadScene("Menu");
+        _loading = false;
         _loadingScreen.HideLoadingScreen();
     }
 
+    // Načte scénu s výběrem levelů (scéna s postavou je načtena) a odnačte scénu s bludištěm
     IEnumerator LoadHubAsync(string locationSceneName, bool unlockNextLevel)
     {
+        _loading = true;
         _loadingScreen.ShowLoadingScreen();
         Player.SetActive(false);
         CurrentHubManager = null;
@@ -172,11 +225,14 @@ public class GameManager : MonoBehaviour
             CurrentHubManager.UnlockNextLevel();
         }
 
+        _loading = false;
         _loadingScreen.HideLoadingScreen();
     }
 
+    // Načte scénu s generátorem mapy (scéna s postavou je načtena) a odnačte scénu s výběrem úrovní
     IEnumerator LoadMazeAsync(string locationSceneName, MazeSettingsSO mazeSettings)
     {
+        _loading = true;
         _loadingScreen.ShowLoadingScreen();
         Player.SetActive(false);
         AsyncOperation locationSceneLoadingTask = SceneManager.LoadSceneAsync(locationSceneName, LoadSceneMode.Additive);
@@ -194,9 +250,11 @@ public class GameManager : MonoBehaviour
         UnloadScene("Hub");
 
         Player.SetActive(true);
+        _loading = false;
         _loadingScreen.HideLoadingScreen();
     }
 
+    // Odnačte scénu podle názvu
     IEnumerator UnloadSceneAsync(string sceneName)
     {
         if (!sceneName.Equals(SceneManager.GetActiveScene().name))

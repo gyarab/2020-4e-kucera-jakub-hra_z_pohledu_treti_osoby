@@ -15,11 +15,13 @@ public class MazeManager : MonoBehaviour
         _coinsCollected = 0;
     }
 
+    // Předá svůj odkaz Game Manageru, aby věděl, že už je skript načtený a mohl z něj zavolat metodu k vytvoření mapy
     public void Start()
     {
         GameManager.Instance.CurrentMazeManager = this;
     }
 
+    // Přidá jeden komponent implementující interface Win Condition podle nastavení v Maze Settings
     public string CreateMaze(MazeSettingsSO mazeSettings)
     {
         IWinCondition winCondition;
@@ -36,7 +38,7 @@ public class MazeManager : MonoBehaviour
                 winCondition = gameObject.AddComponent<CollectArtefacts>();
                 break;
             default:
-                throw new System.Exception("Can't generate maze without win condition"); // TODO remove? or maybe yes? - to farm gold
+                throw new System.Exception("Can't generate maze without win condition");
         }
 
         winCondition.OnCompleted += WinConditionCompleted;
@@ -50,28 +52,33 @@ public class MazeManager : MonoBehaviour
         return _winConditionMessages[0];
     }
 
+    // Metoda je zavolána z Win Condition, když je úkol k dokončení úrovně splňen
     private void WinConditionCompleted()
     {
         _completedWinCondition = true;
         GameManager.Instance.QuestUI.QueueMessage(_winConditionMessages[1]);
     }
 
+    // Zavolá metodu v Game Manageru, která načte scńu s výběrem úrovní
     private void ReturnToHub()
     {
-        GameManager.Instance.LoadHub(_completedWinCondition, _coinsCollected);
+        GameManager.Instance.ReturnToHub(_completedWinCondition, _coinsCollected);
     }
 
+    // Vždy, když je nepřítel poražen, "dostane" hráč 1 peníz
     private void GotCoin(Vector3 position)
     {
         _coinsCollected++;
     }
 
+    // Nastaví odebírání metod
     private void OnEnable()
     {
         ReturnPortal.OnMazeExit += ReturnToHub;
         EnemyController.OnEnemyDeath += GotCoin;
     }
 
+    // Zruší odebírání metod
     private void OnDisable()
     {
         ReturnPortal.OnMazeExit -= ReturnToHub;

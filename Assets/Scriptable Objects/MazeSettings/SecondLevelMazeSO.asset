@@ -42,5 +42,5 @@ MonoBehaviour:
   roomTileTypes: 00000000
   corridorTileTypes: 00000000
   spawnChance: 0.02
-  minEnemyCount: 20
-  maxEnemyCount: 10
+  minEnemyCount: 8
+  maxEnemyCount: 24

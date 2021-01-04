@@ -8,6 +8,7 @@ public static class GamePhysics
 
     #region Rotation
 
+    // Vrátí Quaternion, kterým směrem by se hráč měl natočit, když se chce otočit směrem, kterým jde
     public static Quaternion RotateTowardsMovementDirection(Quaternion rotation, Vector3 velocity, float rotationSpeed)
     {
         Vector3 velocityRotation = new Vector3(velocity.x, 0, velocity.z);
@@ -19,6 +20,7 @@ public static class GamePhysics
         return Quaternion.Slerp(rotation, Quaternion.LookRotation(velocityRotation, Vector3.up), rotationSpeed);
     }
 
+    // Vrácí postupnou rotaci, aby se objekt natočil směrem k cíli
     public static Quaternion RotateTowardsTarget(Quaternion rotation, Vector3 position, Vector3 targetPosition, float rotationSpeed)
     {
         Vector3 direction = new Vector3 (targetPosition.x - position.x, 0, targetPosition.z - position.z).normalized;
@@ -29,6 +31,7 @@ public static class GamePhysics
 
     #region Movement
 
+    // Posune objekt směrem k cíli, objekt může přejít přes cíl, neřeší Y-ovou souřadnici
     public static Vector3 MoveTowardsPositionNonYUnclamped(Vector3 position, Vector3 targetLocation, float speed)
     {
         Vector2 temp = new Vector2(targetLocation.x - position.x, targetLocation.z - position.z);
@@ -36,6 +39,7 @@ public static class GamePhysics
         return new Vector3(temp.x, 0, temp.y);
     }
 
+    // Posune objekt směrem k cíli, objekt může přejít přes cíl, neřeší Y-ovou souřadnici, navíc vrací počáteční vzdálenost od cíle
     public static Vector3 MoveTowardsPositionNonYUnclamped(Vector3 position, Vector3 targetLocation, float speed, out float initialDistance)
     {
         Vector2 temp = new Vector2(targetLocation.x - position.x, targetLocation.z - position.z);
@@ -44,6 +48,7 @@ public static class GamePhysics
         return new Vector3(temp.x, 0, temp.y);
     }
 
+    // Posune objekt směrem k cíli, objekt nepřejde přes cíl, neřeší Y-ovou souřadnici, navíc vrací počáteční vzdálenost od cíle
     public static Vector3 MoveTowardsPositionNonYClamped(Vector3 position, Vector3 targetLocation, float speed, out float initialDistance)
     {
         Vector2 temp = new Vector2(targetLocation.x - position.x, targetLocation.z - position.z);
@@ -57,13 +62,15 @@ public static class GamePhysics
         return new Vector3(temp.x, 0, temp.y);
     }
 
+    // Posune objekt směrem k cíli, objekt nepřejde přes cíl, neřeší Y-ovou souřadnici, počáteční pozice by měla zůstat stejná, mění se procento ušlé vzdálenosti
     public static Vector3 MoveTowardsPositionProgressivelyNonYClamped(Vector3 position, Vector3 targetLocation, float progress)
     {
-        return Vector3.Slerp(position, new Vector3(targetLocation.x, position.y, targetLocation.z), progress); // TODO fix; remove Y
+        return Vector3.Slerp(position, new Vector3(targetLocation.x, position.y, targetLocation.z), progress);
     }
 
     #endregion
 
+    // Spočítá gravitační sílu
     public static float GetGravitationalForce(float timeSinceGrounded)
     {
         return (- GRAVITY) * Mathf.Pow(timeSinceGrounded, 2);
@@ -71,6 +78,7 @@ public static class GamePhysics
 
     #region Grounded
 
+    // Zjistí jestli objekt stojí na zemi, případně upraví jeho výšku, přesnější než raycast
     public static bool IsGroundedSphereCast(Vector3 position, float sphereRadius, float groundOffset, float rayOverhead, LayerMask layer, out float yCorrection)
     {
         Ray ray = new Ray(position, Vector3.down);
@@ -88,6 +96,7 @@ public static class GamePhysics
         }
     }
 
+    // Zjistí jestli objekt stojí na zemi, případně upraví jeho výšku
     public static bool IsGroundedRayCast(Vector3 position, float groundOffset, float rayOverhead, LayerMask layer, out float yCorrection)
     {
         Ray ray = new Ray(position, Vector3.down);
@@ -105,6 +114,7 @@ public static class GamePhysics
         }
     }
 
+    // Zjistí jestli objekt stojí na zemi, případně upraví jeho výšku, pokud by výšková změna přesahovala stanovený limit, tak vyřeší kolize
     public static bool IsGroundedWithMaxStepDistanceAndCollisions(Vector3 rayPosition, float groundOffset, float rayOverhead, float maxStep, SphereCollider feetSphereCollider, Vector3 sphereColliderParentPosition, LayerMask layer, out Vector3 correction)
     {
         correction = Vector3.zero;
@@ -163,6 +173,7 @@ public static class GamePhysics
 
     #region Collisions
 
+    // Spočítá kolize a upraví pozici objektu, ale Y-ová pozice objektu je zachována
     public static Vector3 ResolveCollisionsNonY(Vector3 position, Quaternion rotation, Vector3 sphereColliderPosition, SphereCollider sphereCollider, LayerMask excludeCaster)
     {
         Vector3 collisionCorectionVector = Vector3.zero;
@@ -197,7 +208,7 @@ public static class GamePhysics
         return collisionCorectionVector;
     }
 
-    // TODO fix, error if 0,8, 0,9, 0,1
+    // Převede Vector3 upravující pozici na Vector2 (Y-ová souřadnice je vynechána), funguje pouze pro Sphere Collidery
     public static Vector3 GetXZPlaneVector(Vector3 input, float radius)
     {
         if(radius <= 0)
@@ -232,6 +243,7 @@ public static class GamePhysics
         return result * multiplier;
     }
 
+    // Kolize řešená 3 raycasty
     public static Vector3 RaycastCollisionDetection(Vector3 position, Vector3[] normalizedDirections, float rayDistance, LayerMask layer)
     {
         Ray ray;

@@ -73,6 +73,11 @@ public static class LoadManager
         }
     }
 
+    public static bool FileExists(string path)
+    {
+        return File.Exists(path);
+    }
+
     public static void DeleteDirectory(string path)
     {
         Directory.Delete(path, true);

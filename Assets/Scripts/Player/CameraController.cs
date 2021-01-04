@@ -17,7 +17,7 @@ public class CameraController : MonoBehaviour
     [SerializeField]
     private Vector2 _pitchMinMax;
     [SerializeField]
-    private float _cameraSensitivityX, _cameraSensitivityY, _distanceFromTarget, _rotationSmoothTime, _cameraClippingOffset, _automaticCameraRotationSpeed;
+    private float _distanceFromTarget, _rotationSmoothTime, _cameraClippingOffset, _automaticCameraRotationSpeed;
 
     
     private Transform _cameraLockedTarget;
@@ -25,6 +25,13 @@ public class CameraController : MonoBehaviour
     private Vector3 _rotationSmoothVelocity, _currentRotation, _velocityRotation;
     private float _yaw, _pitch;
     private Vector2 _lookInput;
+    private float _cameraSensitivityX, _cameraSensitivityY;
+
+    public void SetSensitivity(float x, float y)
+    {
+        _cameraSensitivityX = x;
+        _cameraSensitivityY = y;
+    }
 
     public void SetInput(Vector3 input, Vector3 velocityRotation, bool rotateManually)
     {

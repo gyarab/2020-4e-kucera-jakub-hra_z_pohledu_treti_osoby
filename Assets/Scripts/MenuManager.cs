@@ -9,12 +9,24 @@ using TMPro;
 public class MenuManager : MonoBehaviour
 {
     [Header("UI")] // TODO change to serialized
-    public Canvas menuCanvas;
-    public Canvas saveSelectionCanvas;
-    public TMP_InputField inputField;
-    public GameObject levelUIPrefab;
-    public GameObject deleteLevelUIPrefab;
-    public float uiOffset;
+    [SerializeField]
+    private Canvas _menuCanvas;
+    [SerializeField]
+    private Canvas _saveSelectionCanvas;
+    [SerializeField]
+    private Canvas _settingsCanvas;
+    [SerializeField]
+    private TMP_InputField _inputField;
+    [SerializeField]
+    private Slider _xSensitivitySlider;
+    [SerializeField]
+    private Slider _ySensitivitySlider;
+    [SerializeField]
+    private GameObject levelUIPrefab;
+    [SerializeField]
+    private GameObject deleteLevelUIPrefab;
+    [SerializeField]
+    private float uiOffset;
 
     [Header("Miscelanious")]
     [SerializeField]
@@ -23,16 +35,22 @@ public class MenuManager : MonoBehaviour
     private List<string> _savedGames;
     private List<GameObject> _saveSlots;
     private List<GameObject> _deleteSlotButton;
+    private SaveableSettings _settings;
 
     // Start is called before the first frame update
     void Start()
     {
-        menuCanvas.enabled = true;
-        saveSelectionCanvas.enabled = false;
+        _menuCanvas.enabled = true;
+        _saveSelectionCanvas.enabled = false;
+        _settingsCanvas.enabled = false;
 
         _savedGames = CheckForSavedGames();
+        _settings = GameManager.Instance.LoadSettings();
+        _xSensitivitySlider.value = _settings.xSensitivity;
+        _ySensitivitySlider.value = _settings.ySensitivity;
     }
 
+    // Zavolá metodu v GameManageru, aby zjistil, jestli jsou na zařízení uložené postupy ve hře
     private List<string> CheckForSavedGames()
     {
         List<string> directories = GameManager.Instance.GetSaves();
@@ -40,6 +58,7 @@ public class MenuManager : MonoBehaviour
         return directories;
     }
 
+    // Zavolá metodu v GameManageru, která vytvoří nový uložený postup
     private bool CreateNewSave(string _directory) // TODO move to gui?
     {
         GameManager.Instance.CreateNewSave(_directory);
@@ -47,6 +66,7 @@ public class MenuManager : MonoBehaviour
         return true;
     }
 
+    // Vykreslí talčítka na vybýraní uložených postupů ve hře
     private void DrawLevelUI()
     {
         if(_saveSlots != null)
@@ -63,38 +83,40 @@ public class MenuManager : MonoBehaviour
 
         for (int i = 0; i < _savedGames.Count; i++)
         {
-            _saveSlots.Add(Instantiate(levelUIPrefab, saveSelectionCanvas.transform));
+            _saveSlots.Add(Instantiate(levelUIPrefab, _saveSelectionCanvas.transform));
             _saveSlots[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(_saveSlots[i].GetComponent<RectTransform>().anchoredPosition.x, _saveSlots[i].GetComponent<RectTransform>().anchoredPosition.y - i * uiOffset);
             _saveSlots[i].GetComponentInChildren<TextMeshProUGUI>().SetText(_savedGames[i]);
             int x = i;
             _saveSlots[i].GetComponent<Button>().onClick.AddListener(delegate { GetSaveUI(x); });
 
-            _deleteSlotButton.Add(Instantiate(deleteLevelUIPrefab, saveSelectionCanvas.transform));
+            _deleteSlotButton.Add(Instantiate(deleteLevelUIPrefab, _saveSelectionCanvas.transform));
             _deleteSlotButton[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(_deleteSlotButton[i].GetComponent<RectTransform>().anchoredPosition.x, _deleteSlotButton[i].GetComponent<RectTransform>().anchoredPosition.y - i * uiOffset);
             _deleteSlotButton[i].GetComponent<Button>().onClick.AddListener(delegate { DeleteSaveUI(x); });
         }
     }
 
-    // TODO
-    private void LoadSave(string _path) // TODO loading bar?
+    // Zavolá metodu v GameManageru, která načte hru na příslušné cestě
+    private void LoadSave(string _path)
     {
-        saveSelectionCanvas.enabled = false;
-        GameManager.Instance.LoadGame(_path);
+        _saveSelectionCanvas.enabled = false;
+        GameManager.Instance.LoadGame(_path, _settings);
     }
 
     #region Button Methods
 
+    // Funkce talčítka, která zobrazí stránku s uloženými postupy
     public void PlayUI()
     {
-        menuCanvas.enabled = false;
-        saveSelectionCanvas.enabled = true;
+        _menuCanvas.enabled = false;
+        _saveSelectionCanvas.enabled = true;
         DrawLevelUI();
     }
 
-    // TODO
-    public void AboutUI()
+    // TODO rework to settings
+    public void SettingsUI()
     {
-        Debug.Log("About");
+        _menuCanvas.enabled = false;
+        _settingsCanvas.enabled = true;
     }
 
     public void ExitUI()
@@ -104,8 +126,26 @@ public class MenuManager : MonoBehaviour
 
     public void BackUI()
     {
-        menuCanvas.enabled = true;
-        saveSelectionCanvas.enabled = false;
+        _menuCanvas.enabled = true;
+        _saveSelectionCanvas.enabled = false;
+    }
+
+    public void SaveAndExitUI()
+    {
+        GameManager.Instance.SaveSettings(_settings);
+
+        _menuCanvas.enabled = true;
+        _settingsCanvas.enabled = false;
+    }
+
+    public void OnXSensitivityChangedUI()
+    {
+        _settings.xSensitivity = _xSensitivitySlider.value;
+    }
+
+    public void OnYSensitivityChangedUI()
+    {
+        _settings.ySensitivity = _ySensitivitySlider.value;
     }
 
     public void GetSaveUI(int _position)
@@ -124,7 +164,7 @@ public class MenuManager : MonoBehaviour
     {
         if(_savedGames.Count < _saveMaxCount)
         {
-            string newSaveName = inputField.text.Trim();
+            string newSaveName = _inputField.text.Trim();
 
             if (!newSaveName.Equals(""))
             {

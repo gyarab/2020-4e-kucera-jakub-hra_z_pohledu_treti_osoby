@@ -525,7 +525,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
         if(_currentHealth <= 0)
         {
-            GameManager.Instance.LoadHub(false, 0);
+            GameManager.Instance.ReturnToHub(false, 0);
         }
     }
 }

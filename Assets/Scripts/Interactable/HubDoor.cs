@@ -14,7 +14,7 @@ public class HubDoor : MonoBehaviour, IDoor // TODO rework to button press?
 
     public void Entered()
     {
-        GameManager.Instance.LoadMaze(_mazeSettings);
+        GameManager.Instance.EnterMaze(_mazeSettings);
     }
 
     public void Enabled()
