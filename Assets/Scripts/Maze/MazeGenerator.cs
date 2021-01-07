@@ -4,30 +4,28 @@ using UnityEngine;
 
 public class MazeGenerator : MonoBehaviour
 {
-    private GameObject _enemyPrefab;
+    [SerializeField]
+    private float _playerYOffset;
 
     private Vector3 _startPoint;
-    private CellData _cellData; // TODO try to remove
-    private SubcellData _subcellData; // TODO try to remove
-    private PathfindingNode[] _pathfindingNodes; // TODO remove later?
+    private CellData _cellData;
+    private SubcellData _subcellData;
+    private PathfindingNode[] _pathfindingNodes;
     private MazeSettingsSO _mazeSettings;
     private List<GenerationRule> _generationsRules; 
     private IWinCondition _winCondition;
 
-    private void Awake()
-    {
-        _enemyPrefab = Resources.Load<GameObject>("Maze/TempEnemy"); // TODO move to spawner script
-    }
-
-    // Start is called before the first frame update
+    // Vygeneruje mapu, jako parametry přijíma Maze Settings a IWinCondition, jinými slovy pravidla, jak se má mapa generovat, a podmínku pro splnění úrovně
     public PathfindingNode[] GenerateMaze(MazeSettingsSO mazeSettings, IWinCondition winCondition, out int nodeCount)
     {
         _mazeSettings = mazeSettings;
         _winCondition = winCondition;
         _generationsRules = _winCondition.SpecialGenerationRules();
 
+        // Vygeneruje buňky, pokud jich vygeneruje málo může generaci opakovat
         ICellGenerator cellGenerator = GetComponent<ICellGenerator>();
         _startPoint = new Vector3(_mazeSettings.centerPoint.x - ((float)_mazeSettings.width / 2f) * _mazeSettings.distanceBetweenCells, _mazeSettings.centerPoint.y, _mazeSettings.centerPoint.z - ((float)_mazeSettings.length / 2f) * _mazeSettings.distanceBetweenCells); // RLpos
+
         int generationCounter = 0;
         while (generationCounter < _mazeSettings.triesToGenerateMaze)
         {
@@ -38,27 +36,27 @@ public class MazeGenerator : MonoBehaviour
             }
             generationCounter++;
         }
-        Debug.Log("Tries: " + generationCounter);
-        Debug.Log("Max Subcells: " + _cellData.MaximumSubcellCount);
 
+        // Rozdělí buňky na podbuňky
         ISubcellGenerator subcellGenerator = GetComponent<ISubcellGenerator>();
         _subcellData = subcellGenerator.GenerateSubcells(_mazeSettings, _cellData, _startPoint, 1);
 
+        // Pokud je u podmínky k zvítězení pravidlo na vedlejší místnost, tak ji vygeneruje
         if (_generationsRules.Contains(GenerationRule.OuterRoom))
         {
             CreateOuterRoom();
         }
 
+        // Spawne části místností pro všechny podbuňky
         ITileGenerator tileGenerator = GetComponent<TileGenerator>();
         tileGenerator.GenerateTiles(_subcellData, _generationsRules.Contains(GenerationRule.OuterRoom) ? (_subcellData.EmptySpotInArray - 1) : _subcellData.EmptySpotInArray);
 
+        // Vytvoří vrcholy pro hledání cesty
         PathfindingNodeGenerator pathfindingNodeGenerator = GetComponent<PathfindingNodeGenerator>();
         _pathfindingNodes = pathfindingNodeGenerator.GenerateNodes(_mazeSettings, _subcellData);
 
-        Debug.Log("Generation Done");
-        // TODO remove or move?
         GetComponent<Spawner>().SpawnReturnPortal(_subcellData.SpawnPoint);
-        GameManager.Instance.Player.transform.position = new Vector3(_subcellData.SpawnPoint.x, _subcellData.SpawnPoint.y + 2, _subcellData.SpawnPoint.z); // TODO hardcoded
+        GameManager.Instance.Player.transform.position = new Vector3(_subcellData.SpawnPoint.x, _subcellData.SpawnPoint.y + _playerYOffset, _subcellData.SpawnPoint.z);
 
         // TODO make better & move?
         SpawnEnemies();
@@ -373,7 +371,6 @@ public class MazeGenerator : MonoBehaviour
     private void SpawnEnemies()
     {
         List<Vector3> positionsToSpawn = new List<Vector3>();
-        Debug.Log("max step count " + _pathfindingNodes.Length);
 
         float minEnemyPercentage = (float)(_mazeSettings.minEnemyCount + 1f) / (float)_pathfindingNodes.Length;
 
@@ -386,12 +383,10 @@ public class MazeGenerator : MonoBehaviour
                     positionsToSpawn.Add(new Vector3(_pathfindingNodes[i].Position.x, _pathfindingNodes[i].Position.y + 0.5f, _pathfindingNodes[i].Position.z)); // TODO hardcoded
                     if(positionsToSpawn.Count == _mazeSettings.maxEnemyCount)
                     {
-                        Debug.Log("ended at " + i + " step out of" + _pathfindingNodes.Length);
                         break;
                     }
                 } else if (((float)positionsToSpawn.Count + 1f) / ((float)i + 1f) < minEnemyPercentage)
                 {
-                    Debug.Log("forced at " + i + " enemy no " + positionsToSpawn.Count);
                     positionsToSpawn.Add(new Vector3(_pathfindingNodes[i].Position.x, _pathfindingNodes[i].Position.y + 0.5f, _pathfindingNodes[i].Position.z)); // TODO hardcoded
                 }
             }

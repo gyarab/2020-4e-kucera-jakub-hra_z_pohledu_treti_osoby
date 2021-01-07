@@ -24,28 +24,32 @@ public class InputManager : MonoBehaviour
     [SerializeField]
     private LayerMask _excludeUILayer;
 
-    private int _rightFingerId;
+    private int _cameraFingerId;
     private Dictionary<int, float> _fingerTouchTimeDictionary;
 
+    // Nastaví id doteku, který má pohybovat s kamerou na -1 (znamená, že není zatím id přiřazeno) a vytvoří slovník pro uložení doteků obrazovky
     private void Awake()
     {
-        _rightFingerId = -1;
+        _cameraFingerId = -1;
         _fingerTouchTimeDictionary = new Dictionary<int, float>(_recordedTouchesLimit);
     }
 
+    // Předá odkaz na sebe Game Manageru, aby se mohlo načítání pokračovat
     private void Start()
     {
         GameManager.Instance.InputManager = this;
     }
 
+    // Každý snímek zavolá metodu Get Input, která kontroluje vstup
     private void Update()
     {
         GetInput();
     }
 
+    // Kontroluje uživatelský vstup spojený s otáčením kamery, pohybem a uzamčení otáčení obrazovky na nepřátelích
     private void GetInput()
     {
-        // Tracking the finger that controlls the camera
+        // Projde všechny doteky obrazovky
         for (int i = 0; i < Input.touchCount; i++)
         {
             Touch t = Input.GetTouch(i);
@@ -53,18 +57,18 @@ public class InputManager : MonoBehaviour
             switch (t.phase)
             {
                 case TouchPhase.Began:
-                    // Didn't touch UI
+                    // Zkontroluje jestli prst se dotkl prvku grafického rozhraní
                     if (!EventSystem.current.IsPointerOverGameObject(t.fingerId))
                     {
-                        if (_rightFingerId == -1)
+                        if (_cameraFingerId == -1)
                         {
-                            // Start tracking the rightfinger if it was not previously being tracked
-                            _rightFingerId = t.fingerId;
+                            // Považuje tento dotek za dotek pohybující kamerou
+                            _cameraFingerId = t.fingerId;
                         }
 
                         if (_fingerTouchTimeDictionary.Count < _recordedTouchesLimit)
                         {
-                            // and if it hits enemy; maybe not
+                            // Sleduje i další doteky, protože pomocí nich může hráč zaměřit kameru na protivníka
                             _fingerTouchTimeDictionary.Add(t.fingerId, 0);
                         }
                     }
@@ -72,11 +76,10 @@ public class InputManager : MonoBehaviour
 
                 case TouchPhase.Ended:
                 case TouchPhase.Canceled:
-                    if (t.fingerId == _rightFingerId)
+                    // Přestane sledovat dotek, když skončil
+                    if (t.fingerId == _cameraFingerId)
                     {
-                        // Stop tracking the right finger
-                        _rightFingerId = -1;
-                        //Debug.Log("Stopped tracking right finger");
+                        _cameraFingerId = -1;
                     }
 
                     if (_fingerTouchTimeDictionary.ContainsKey(t.fingerId))
@@ -89,8 +92,6 @@ public class InputManager : MonoBehaviour
                         {
                             if (hit.transform.tag == "Damageable")
                             {
-                                Debug.Log("Enemy Lock; dst: " + hit.distance);
-                                // TODO pass data to camera; move to camera
                                 _cameraController.SetTarget(hit.transform);
                             }
                         }
@@ -98,8 +99,8 @@ public class InputManager : MonoBehaviour
                     break;
 
                 case TouchPhase.Moved:
-                    // Get input for looking around
-                    if (t.fingerId == _rightFingerId)
+                    // Získání vstupu pro rozhlížení
+                    if (t.fingerId == _cameraFingerId)
                     {
                         _cameraController.SetInput(t.deltaPosition * Time.deltaTime, _playerController.GetRotationVelocity(), true);
                     }
@@ -115,8 +116,8 @@ public class InputManager : MonoBehaviour
                     break;
 
                 case TouchPhase.Stationary:
-                    // Set the look input to zero if the finger is still
-                    if (t.fingerId == _rightFingerId)
+                    // Vstup je 0, když dotek je na stejném místě
+                    if (t.fingerId == _cameraFingerId)
                     {
                         _cameraController.SetInput(Vector2.zero, _playerController.GetRotationVelocity(), true);
                     }
@@ -133,7 +134,7 @@ public class InputManager : MonoBehaviour
             }
         }
 
-        if(_rightFingerId == -1)
+        if(_cameraFingerId == -1)
         {
             _cameraController.SetInput(Vector2.zero, _playerController.GetRotationVelocity(), false);
         }
@@ -142,28 +143,33 @@ public class InputManager : MonoBehaviour
 
     #region Button Activated Methods
 
+    // Tato metoda je aktivována tlačítkem pro útočení
     public void AttackUI()
     {
         _playerController.SendInput(PlayerActionType.Attack);
     }
 
+    // Tato metoda je zavolána tlačítkem pro vyhýbaní se
     public void RollUI()
     {
         _playerController.SendInput(PlayerActionType.Roll);
     }
 
+    // Tato metoda je aktivována tlačítkem pro skákání
     public void JumpUI()
     {
         _playerController.SendInput(PlayerActionType.Jump);
     }
 
-    public void PauseGameUI()
+    // Tato metoda je zavolána pomocí tlačítka pro pozastavení otevžení menu
+    public void OpenMenuUI()
     {
         _inventory.ShowInventory(false);
     }
 
     #endregion
 
+    // Vrací Transform kamery, která sleduje hráčovu postavu
     public Transform GetCameraTransform()
     {
         return _cameraController.transform;

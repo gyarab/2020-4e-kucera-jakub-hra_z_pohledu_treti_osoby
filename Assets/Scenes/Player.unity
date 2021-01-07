@@ -398,7 +398,7 @@ GameObject:
   - component: {fileID: 239144814}
   - component: {fileID: 239144813}
   m_Layer: 5
-  m_Name: Button
+  m_Name: Pause
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -465,7 +465,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1075918493}
-        m_MethodName: PauseGameUI
+        m_MethodName: OpenMenuUI
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1570,8 +1570,6 @@ MonoBehaviour:
     m_Bits: 4608
   _cameraOffset: {x: 0, y: 1.4, z: 0}
   _pitchMinMax: {x: -40, y: 85}
-  _cameraSensitivityX: 30
-  _cameraSensitivityY: 30
   _distanceFromTarget: 5.5
   _rotationSmoothTime: 0.1
   _cameraClippingOffset: 0
@@ -3446,7 +3444,6 @@ MonoBehaviour:
   _groundRayOverhead: 0.006
   _groundRayJumpDecrease: 0.1
   _sphereOffset: 1.7
-  _sphereRadius: 0.5
   _groundOffset: 1.8
   _sphereCollider: {fileID: 1309589045}
   _sphereFeetCollider: {fileID: 1309589047}
@@ -4430,7 +4427,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-  m_text: Pause
+  m_text: Menu
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4499,7 +4496,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_textInfo:
     textComponent: {fileID: 1623637191}
-    characterCount: 5
+    characterCount: 4
     spriteCount: 0
     spaceCount: 0
     wordCount: 1

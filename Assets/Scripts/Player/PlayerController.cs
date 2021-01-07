@@ -5,14 +5,12 @@ using UnityEngine.EventSystems;
 
 public class PlayerController : MonoBehaviour, IDamageable
 {
+    // Základní proměnné
     #region Basic Variables
 
     [Header("General")]
     [SerializeField]
     private float _controllerGroundHeightOffset;
-    [Range(0.0f, 89.0f)]
-    [SerializeField]
-    private float _walkAngle; // not working rn
     [SerializeField]
     private float _rollDuration;
     [SerializeField]
@@ -29,9 +27,9 @@ public class PlayerController : MonoBehaviour, IDamageable
     private float _rollSpeedMultiplier;
 
     [Header("Physics"), SerializeField]
-    private float gravity;
+    private float _jumpForce;
     [SerializeField]
-    private float _jumpForce, _maxStep;
+    private float _maxStep;
     [SerializeField]
     private LayerMask _collisionLayer;
 
@@ -39,7 +37,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     [SerializeField]
     private LayerMask _groundLayer;
     [SerializeField]
-    private float _groundRayOffset, _groundRayOverhead, _groundRayJumpDecrease, _sphereOffset, _sphereRadius, _groundOffset; // TODO remove _sphereRadius?
+    private float _groundRayOffset, _groundRayOverhead, _groundRayJumpDecrease, _sphereOffset, _groundOffset;
 
     [Header("Components"), SerializeField]
     private SphereCollider _sphereCollider;
@@ -87,6 +85,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     #endregion
 
+    // Proměnné spojené s útočením
     #region Attack Variables 
 
     [Header("Attack General")]
@@ -121,6 +120,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     #region Unity methods
 
+    // Inicializace proměnných
     private void Awake()
     {
         _groundRayPosition = new Vector3(0, -_controllerGroundHeightOffset + _groundRayOffset, 0);
@@ -132,28 +132,29 @@ public class PlayerController : MonoBehaviour, IDamageable
 
         AttackSettings();
 
-        // TODO set stats and rigth animation controller
         SwitchAnimationController(AnimationType.Onehanded);
     }
 
-    // Staaaaaaaaaaart
+    // Inicializace proměnných 2
     private void Start()
     {
         GameManager.Instance.Player = gameObject;
         _currentHealth = _baseStats.health;
     }
 
-    //Everything else
+    // Metoda je volána jednou za stálý interval času
     void FixedUpdate()
     {
-        // FixedUpdate or Update?
+        // Pokud postava může provést akci a je na zemi
         if (_canDoAction && _grounded)
         {
             switch (_nextAction)
             {
                 case PlayerActionType.None:
+                    // Nic k porvedení
                     break;
                 case PlayerActionType.Attack:
+                    // Hráč se zastaví na místě a spustí animaci útočení
                     _acceptingInput = false;
                     _canDoAction = false;
                     _nextAction = PlayerActionType.None;
@@ -164,6 +165,7 @@ public class PlayerController : MonoBehaviour, IDamageable
                     animator.SetBool("Attack", true);
                     break;
                 case PlayerActionType.Roll:
+                    // Hráč se začne kutálet dopředu, stane se nezasažitelným a spustí animaci útočení
                     _acceptingInput = false;
                     _canDoAction = false;
                     _nextAction = PlayerActionType.None;
@@ -171,6 +173,7 @@ public class PlayerController : MonoBehaviour, IDamageable
                     _rolling = true;
                     animator.SetTrigger("Roll");
 
+                    // Určení směru kotoulu, buď směrem, kterým se postava pohybuje, nebo směrem, kterým se dívá; spustí animaci uhýbání
                     if (_joystickInput.x == 0 && _joystickInput.z == 0)
                     {
                         _rollVector = transform.forward * _moveSpeed * _rollSpeedMultiplier;
@@ -184,6 +187,7 @@ public class PlayerController : MonoBehaviour, IDamageable
                     _rollTimer = 0;
                     break;
                 case PlayerActionType.Jump:
+                    // Postava vyskočí do vzduchu a začne se přehrávat animace skoku
                     _acceptingInput = false;
                     _canDoAction = false;
                     _nextAction = PlayerActionType.None;
@@ -197,24 +201,21 @@ public class PlayerController : MonoBehaviour, IDamageable
             }
         }
 
+        // Když postava útočí, je zavolána tato metoda
         if (_attacking)
         {
             Attack();
         }
 
+        // Spočítá pozici postavy
         CalculatePosition();
-        //Debug.Log("1: " + transform.position.x + ", " + transform.position.y + ", " + transform.position.z);
-        transform.position += _velocity;
-        //Debug.Log("2: " + transform.position.x + ", " + transform.position.y + ", " + transform.position.z);
-        //Debug.Log("1: " + _velocity.x + ", " + _velocity.y + ", " + _velocity.z);
-
+        
+        // Nasměruje postavu správným směrem
         Rotate();
-        //Debug.Log("3: " + transform.position.x + ", " + transform.position.y + ", " + transform.position.z);
         CheckForCollisions();
-        //Debug.Log("4: " + transform.position.x + ", " + transform.position.y + ", " + transform.position.z);
 
+        // Zjistí, jestli je postava na zemi
         _grounded = IsGrounded();
-        //Debug.Log("5: " + transform.position.x + ", " + transform.position.y + ", " + transform.position.z);
         animator.SetBool("Grounded", _grounded);
     }
 
@@ -222,6 +223,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     #region FixedUpdate methods
 
+    // Měří čas, kdy by postava měla zaútočit, a po uplynutí prodlevy postava zaútočí
     private void Attack()
     {
         _attackingForSeconds += Time.fixedDeltaTime;
@@ -247,17 +249,21 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
     }
 
+    // Otáčí postavou, aby mířil směrem, kterým se pohybuje
     private void Rotate()
     {
         transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, _velocity, _playerRotationSpeed);
     }
 
+    // Spočítá novou pozici postavy; bere v potaz stav postavy a vstup hráče
     private void CalculatePosition()
     {
-        if(_grounded)
+        // Když je postava na zemi, nastaví časovač stráveného času ve vzduchu na 0
+        if (_grounded)
         {
             if (_jumping)
             {
+                // Po stisknutí tlačítka ke skoku nechá postavu se "odrazit" od země
                 if(_jumpNow == false)
                 {
                     _jumping = false;
@@ -266,26 +272,29 @@ public class PlayerController : MonoBehaviour, IDamageable
                 }
             }
             _timeSinceGrounded = 0;
-        } else
+        } else // Jinak přičte k času strávenému ve vzduchu, čas strávený ve vzduchu před opětovným zavoláním této metody
         {
             _timeSinceGrounded += Time.fixedDeltaTime;
         }
 
+        // Když hráč vyskočil do vzduchu je u výpočtu gravitace brán ohled na původní rychlost
         if (_jumping)
         {
-            _currentGravity = _jumpForce * _timeSinceGrounded - 0.5f * gravity * Mathf.Pow(_timeSinceGrounded, 2);
-        } else
+            _currentGravity = GamePhysics.GetGravitationalForceWithInitialVelocity(_timeSinceGrounded, _jumpForce);
+        } else // Jinak pouze počítá gravitační sílu
         {
-            _currentGravity = (-gravity) * Mathf.Pow(_timeSinceGrounded, 2);
+            _currentGravity = GamePhysics.GetGravitationalForce(_timeSinceGrounded);
         }
 
+        // Když postava útočí, tak na ni působí pouze gravitace
         if (_attacking)
         {
-            _velocity = new Vector3(0, _currentGravity, 0) * _moveSpeed;
+            _velocity = new Vector3(0, _currentGravity, 0);
         }
-        else if (_rolling)
+        else if (_rolling) // Postava vykonává kotoul stále stejným směrem
         {
             _velocity = _rollVector;
+            _velocity.y = _currentGravity;
             if(_rollTimer < _rollDuration)
             {
                 _rollTimer += Time.fixedDeltaTime;
@@ -295,13 +304,16 @@ public class PlayerController : MonoBehaviour, IDamageable
                 _canDoAction = true;
                 _acceptingInput = true;
             }
-        } else
+        }
+        else // Když pohyb postavy není omezen, pak je se pohybuje podle vstupu hráče
         {
-            _velocity = new Vector3(_joystickInput.x, _currentGravity, _joystickInput.z) * _moveSpeed;
+            _velocity = new Vector3(_joystickInput.x, 0, _joystickInput.z) * _moveSpeed;
+            _velocity.y = _currentGravity;
             _velocity = Quaternion.Euler(0, _yCameraRotation, 0) * _velocity;
 
             if (!_jumping)
             {
+                // Nastaví animaci postavy podle toho, jestli se pohybuje
                 if (_joystickInput.x == 0 && _joystickInput.z == 0)
                 {
                     animator.SetBool("Run", false);
@@ -312,13 +324,17 @@ public class PlayerController : MonoBehaviour, IDamageable
                 }
             }
         }
+
+        transform.position += _velocity;
     }
 
+    // Zkontroluje, jestli postava s něčím nekoliduje a případně upraví její pozici
     private void CheckForCollisions()
     {
         transform.position += GamePhysics.ResolveCollisionsNonY(transform.position, transform.rotation, transform.TransformPoint(_sphereCollider.center), _sphereCollider, _collisionLayer);
     }
 
+    // Zjistí jestli postava se dotýká země
     private bool IsGrounded()
     {
         if(_velocity.y > 0 || _jumpNow)
@@ -336,6 +352,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     #region Input
 
+    // Obdrří vstup a zpracuje ho
     public void SendInput(PlayerActionType action)
     {
         if (_acceptingInput)
@@ -349,6 +366,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
     }
 
+    // Zpracovává vstup z joysticku
     public void SetJoystickInput(float horizontalInput, float verticalInput, float cameraYRotation)
     {
         _joystickInput = new Vector3(horizontalInput, 0, verticalInput);
@@ -359,6 +377,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     #region Camera
 
+    // Metoda je volána z Input Manageru, který vektor předá kameře
     public Vector3 GetRotationVelocity()
     {
         return new Vector3(_velocity.x, 0, _velocity.z);
@@ -368,12 +387,14 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     #region Attack
 
+    // Inicializace prměnných spojených s útočením
     private void AttackSettings()
     {
         _attackDirection = new Vector3(0, 0, 1.0f);
         _attackOverlaps = new Collider[_maxAttackCollisions];
     }
 
+    // Vypočítá, jestli útok postavy někoho trafil a udělí příslušný počet poškození
     private void CalculateAttack()
     {
         _attackCollisions = Physics.OverlapSphereNonAlloc(transform.position, _weaponRange, _attackOverlaps, _enemies);
@@ -387,14 +408,9 @@ public class PlayerController : MonoBehaviour, IDamageable
 
             Vector3 attackDirection = _attackOverlaps[i].ClosestPoint(transform.position) - transform.position;
 
-            if (_angleInDegrees > Vector3.Angle(transform.TransformVector(this._attackDirection), attackDirection))
+            if (_angleInDegrees > Vector3.Angle(transform.TransformVector(_attackDirection), attackDirection))
             {
                 _attackOverlaps[i].transform.root.GetComponent<IDamageable>().TakeDamage(_currentStats.Damage, _currentStats.ArmourPenetration);
-                Debug.DrawRay(transform.position, attackDirection, Color.green);
-            }
-            else
-            {
-                Debug.DrawRay(transform.position, attackDirection, Color.grey);
             }
         }
     }
@@ -403,6 +419,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     #region Animations
     
+    // Nastaví animaci podle parametru AnimationType
     public void SwitchAnimationController(AnimationType type)
     {
         switch (type)
@@ -424,6 +441,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
     }
 
+    // Změní ovladač animací
     private void SetAnimationsController(AnimatorOverrideController overrideController)
     {
         animator.runtimeAnimatorController = overrideController;
@@ -433,9 +451,9 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     #region Stats
 
+    // Přepočítá staty postavy, jako parametr jsou předány staty z vybavení
     public void SetStats(CharacterStats equipmentStats)
     {
-        // TODO add equipment stats
         _currentStats = new CharacterStats(_baseStats.health, _baseStats.armour, _baseStats.damage, _baseStats.armourPenetration);
         _currentStats.AddStats(equipmentStats);
 
@@ -446,11 +464,13 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
     }
 
+    // Vrátí aktuální staty
     public CharacterStats GetStats()
     {
         return _currentStats;
     }
 
+    // Obnoví životy na 100%
     public bool RestoreHealth(float healAmount)
     {
         if (_currentHealth < _currentStats.Health)
@@ -471,6 +491,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
     }
 
+    // Obnoví životy a odstraní limitované objekty z inventáře
     public void Reset()
     {
         _currentHealth = _currentStats.Health;
@@ -481,11 +502,13 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     #endregion
 
+    // Vrátí inventář spojený s hráčem
     public InventoryMonoBehaviour GetPlayerInventory()
     {
         return _inventory;
     }
 
+    // Zasadí model zbraně do ruky postavy
     public void SetWeapons(GameObject prefab, Vector3 offset, bool twoHanded)
     {
         if(_rightHandTransform.childCount > 0)
@@ -508,6 +531,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
     }
 
+    // Metoda je volána, když hráč má obdržet poškození
     public void TakeDamage(float damageTaken, float armourPenetration)
     {
         Debug.Log("hit");

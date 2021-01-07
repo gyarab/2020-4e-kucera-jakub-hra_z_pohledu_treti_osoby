@@ -70,11 +70,21 @@ public static class GamePhysics
 
     #endregion
 
+    #region Gravity
+
     // Spočítá gravitační sílu
     public static float GetGravitationalForce(float timeSinceGrounded)
     {
         return (- GRAVITY) * Mathf.Pow(timeSinceGrounded, 2);
     }
+
+    // Spočítá gravitační sílu s počáteční silou
+    public static float GetGravitationalForceWithInitialVelocity(float timeSinceGrounded, float initialForce)
+    {
+        return initialForce * timeSinceGrounded - 0.5f * (GRAVITY) * Mathf.Pow(timeSinceGrounded, 2);
+    }
+
+    #endregion
 
     #region Grounded
 
