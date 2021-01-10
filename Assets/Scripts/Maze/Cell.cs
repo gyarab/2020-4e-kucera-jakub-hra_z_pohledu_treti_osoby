@@ -5,23 +5,24 @@ using UnityEngine;
 
 public class Cell
 {
-    // top = 0; right = 1; bottom = 2; left = 3
+    // top = 0; right = 1; bottom = 2; left = 3; true if open
     private bool[] doors;
     public bool generated;
-    public int tileCount; // TODO prob useless
     public int lowestSubcellIndex;
 
+    // Konstruktor
     public Cell()
     {
-        // true if open
         doors = new bool[4];
     }
 
+    // Konstruktor s 4 parametry typu bool
     public Cell(bool top, bool right, bool bottom, bool left)
     {
         doors = new bool[] { top, right, bottom, left };
     }
 
+    // Konstruktor, který vytvoří buňku s jednou otevřenou zdí
     public Cell(Side invertedSide)
     {
         doors = new bool[4];
@@ -45,6 +46,7 @@ public class Cell
         }
     }
 
+    // Otevře zeď
     public void OpenWall(Side position)
     {
         switch (position)
@@ -66,6 +68,7 @@ public class Cell
         }
     }
 
+    // avře zeď
     public void CloseDoor(Side position)
     {
         switch (position)
@@ -87,6 +90,7 @@ public class Cell
         }
     }
 
+    // Vrátí true, když je buňka z té strany otevřená
     public bool IsDoor(Side position)
     {
         switch (position)
@@ -104,6 +108,7 @@ public class Cell
         }
     }
 
+    // Vrátí počet otevřených zdí
     public int GetDoorCount()
     {
         int counter = 0;
@@ -116,31 +121,5 @@ public class Cell
         }
 
         return counter;
-    }
-
-    // TODO remove
-    public string ToString2()
-    {
-        return doors[0] + ", " + doors[1] + ", " + doors[2] + ", " + doors[3];
-    }
-
-    //TODO remove
-    public bool CompareCells(Cell cell)
-    {
-        if(IsDoor(Side.Top) == cell.IsDoor(Side.Top))
-        {
-            if (IsDoor(Side.Right) == cell.IsDoor(Side.Right))
-            {
-                if (IsDoor(Side.Bottom) == cell.IsDoor(Side.Bottom))
-                {
-                    if (IsDoor(Side.Left) == cell.IsDoor(Side.Left))
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 }

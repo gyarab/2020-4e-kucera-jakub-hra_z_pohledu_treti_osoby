@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Obsahuje data o bojových hodnotách postav
 [CreateAssetMenu(fileName = "New Character Stats", menuName = "Stats/Character")]
 public class CharacterStatsSO : ScriptableObject
 {

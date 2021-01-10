@@ -5,17 +5,19 @@ using UnityEngine;
 
 public class PathfindingHeap<T> where T : IPathfindingNode<T>
 {
+    // První pole v poli bude prázdné
     private T[] _array;
     private int _count;
 
 
-    // First field is going to be empty
+    // Konstruktor
     public PathfindingHeap(int size)
     {
         _count = 0;
-        _array = new T[size + 2]; // IDK why
+        _array = new T[size + 2]; // Why?
     }
 
+    // Vloží do haldy prvek na poslední index a obnoví haldu
     public void Insert(T node)
     {
         _count++;
@@ -24,6 +26,7 @@ public class PathfindingHeap<T> where T : IPathfindingNode<T>
         MoveDown(_count);
     }
 
+    // Odstraní první prvek a poté obnoví haldu
     public T RemoveFirst()
     {
         T first = _array[1];
@@ -35,6 +38,7 @@ public class PathfindingHeap<T> where T : IPathfindingNode<T>
         return first;
     }
 
+    // Posouvá prvek haldou dolu, dokud se nestane prvním prvkem nebo jeho hodnota mu to nedovoluje
     public void MoveDown(int index)
     {
         T node = _array[index];
@@ -50,20 +54,21 @@ public class PathfindingHeap<T> where T : IPathfindingNode<T>
         node.IndexInHeap = index;
     }
 
+    // Posouvá prvek haldou nahoru, dokud se nestane na okraj nebo jeho hodnota mu to nedovoluje
     public void MoveUp(int index)
     {
         T node = _array[index];
 
         while (true)
         {
-            // Node doesn't have any children
+            // Prvek nemá potomka
             if (index * 2 > _count)
             {
                 break;
             }
-            else if (index * 2 + 1 > _count) // Only first child is not null
+            else if (index * 2 + 1 > _count) // Pouze první potomek je nenulový
             {
-                // Is node greater than it's first child
+                // Je prvek větší než hodnota jeho prvního potomka
                 if (node.CompareTo(_array[index * 2]) > 0)
                 {
                     _array[index] = _array[index * 2];
@@ -77,12 +82,12 @@ public class PathfindingHeap<T> where T : IPathfindingNode<T>
                     break;
                 }
             }
-            else //if (index * 2 + 1 <= _count) // Both children are not null
+            else // Prvek má oba potomky
             {
-                // First child has higher value
+                // První potomek má větší hodnotu
                 if (_array[index * 2].CompareTo(_array[index * 2 + 1]) > 0)
                 {
-                    // Is node greater than second child (with lesser value)
+                    // Je prvek větší než hodnota jeho druhého potomka (s menší hodnotou)
                     if (node.CompareTo(_array[index * 2 + 1]) > 0)
                     {
                         _array[index] = _array[index * 2 + 1];
@@ -91,7 +96,7 @@ public class PathfindingHeap<T> where T : IPathfindingNode<T>
                         node.IndexInHeap = index * 2 + 1;
                         index = index * 2 + 1;
                     }
-                    else if (node.CompareTo(_array[index * 2]) > 0) // Is node greater than first child (with greater value)
+                    else if (node.CompareTo(_array[index * 2]) > 0) // Je prvek větší než hodnota jeho prvního potomka (s větší hodnotou)
                     {
                         _array[index] = _array[index * 2];
                         _array[index].IndexInHeap = index;
@@ -103,9 +108,9 @@ public class PathfindingHeap<T> where T : IPathfindingNode<T>
                     {
                         break;
                     }
-                } else // Second child has higher value
+                } else // Druhý potomek má větší hodnotu
                 {
-                    // Is node greater than first child (with lesser value)
+                    // Je prvek větší než hodnota jeho prvního potomka (s menší hodnotou)
                     if (node.CompareTo(_array[index * 2]) > 0)
                     {
                         _array[index] = _array[index * 2];
@@ -114,7 +119,7 @@ public class PathfindingHeap<T> where T : IPathfindingNode<T>
                         node.IndexInHeap = index * 2;
                         index *= 2;
                     }
-                    else if (node.CompareTo(_array[index * 2 + 1]) > 0) // Is node greater than second child (with greater value)
+                    else if (node.CompareTo(_array[index * 2 + 1]) > 0) // Je prvek větší než hodnota jeho druhý potomka (s větší hodnotou)
                     {
                         _array[index] = _array[index * 2 + 1];
                         _array[index].IndexInHeap = index;
@@ -131,11 +136,13 @@ public class PathfindingHeap<T> where T : IPathfindingNode<T>
         }
     }
 
+    // Nastaví počet prvků na 0
     public void Reset()
     {
         _count = 0;
     }
 
+    // Vrátí počet prvků v haldě
     public int GetCount()
     {
         return _count;

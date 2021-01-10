@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Typy akce bosse
 public enum BossActionType
 {
     RotateTowardsTarget,

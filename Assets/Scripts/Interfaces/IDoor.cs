@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Speciální pravidla pro vytváření map
-public enum GenerationRule
+public interface IDoor
 {
-    OuterRoom
+    void Entered();
+    void Enabled();
 }

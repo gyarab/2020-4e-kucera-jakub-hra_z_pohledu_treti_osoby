@@ -70,11 +70,13 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
     #endregion
 
+    // Inicializace
     public void Awake()
     {
         _equipBuyButtonTMPT = _equipBuyButton.GetComponentInChildren<TextMeshProUGUI>();
     }
 
+    // Skryje grafické rozhraní a předá hráčově postavě staty
     public void Start()
     {
         HideInventoryUI();
@@ -82,11 +84,13 @@ public class InventoryMonoBehaviour : MonoBehaviour
         _bossHealthBar.SetVisibility(false);
     }
 
+    // Při aktivaci začne odebírat akci On Item Picked Up, která je vyvolána při zvednutí předmětu
     private void OnEnable()
     {
         GroundItem.OnItemPickedUp += AddItem;
     }
 
+    // Při deaktivaci přestane odebírat akci On Item Picked Up
     private void OnDisable()
     {
         GroundItem.OnItemPickedUp -= AddItem;
@@ -94,6 +98,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
     #region Displaying
 
+    // Zobrazí inventář a podle toho, jestli je to obchod, má uživatel jiné možnosti interakce s předměty v inventáři
     public void ShowInventory(bool shop)
     {
         _isShop = shop;
@@ -112,6 +117,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         _inGameCanvas.enabled = false;
     }
 
+    // Zobrazí informace o předmětu
     public void DisplayInfo(int itemID)
     {
         InventorySlotContainer inventoryContainer;
@@ -177,6 +183,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         }
     }
 
+    // Zobrazí inventář
     public void DisplayInventory(InventorySlotContainer inventory)
     {
         _coinBalanceTMPT.text = _playerInventoryContainer.Coins.ToString();
@@ -210,6 +217,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         }
     }
 
+    // Nastaví popis předmětu ve slotu
     public void SetSlotDescription(GameObject slot, InventorySlot item, int index)
     {
         slot.GetComponent<Image>().sprite = item.ItemObject.uiSprite;
@@ -250,6 +258,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
     #endregion
 
+    // Vrcí true, když je předmět v slotu vybaven
     private bool CheckIfEquipped(InventorySlot slot)
     {
         if(_equippedWeaponSlot != null)
@@ -263,6 +272,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         return false;
     }
 
+    // Vybaví předmět podle ID
     public void EquipItem(int itemID)
     {
         InventorySlot inventorySlot = _playerInventoryContainer.GetSlotByItemID(itemID);
@@ -272,6 +282,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         DisplayInfo(itemID);
     }
 
+    // Vybaví item v určitém slotu
     public void EquipItemInSlot(InventorySlot inventorySlot, bool visualEffect)
     {
         if (inventorySlot.ItemObject.type == ItemType.Weapon) // ADD more equippable categories
@@ -293,6 +304,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         }
     }
 
+    // Spotřebuje předmět s určitým ID
     public void ConsumeItem(int itemID)
     {
         InventorySlot inventorySlot = _playerInventoryContainer.GetSlotByItemID(itemID);
@@ -300,6 +312,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         ConsumeItemInSlot(inventorySlot);
     }
 
+    // Spotřebuje předmět ve slotu
     private void ConsumeItemInSlot(InventorySlot inventorySlot)
     {
         bool consumed = false;
@@ -325,6 +338,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         }
     }
 
+    // Odebere předmět z obchodu a hráči peníze a přidá předmět hráčovi do inventáře
     public void BuyItem(int itemID)
     {
         InventorySlot inventorySlot = _secondaryShopInventoryContainer.GetSlotByItemID(itemID);
@@ -336,7 +350,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
         if(inventorySlot.ItemObject.type == ItemType.Consumable)
         {
-            // infinite stock do nothing
+            // infinite stock, do nothing
         }
         else if (_secondaryShopInventoryContainer.RemoveItem(inventorySlot.ItemObject.itemID)) {
             _slotHolder.transform.GetChild(inventorySlot.SlotHolderChildPosition).gameObject.SetActive(false);
@@ -352,6 +366,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         RemoveCoinsFromPlayer(inventorySlot.ItemObject.price);
     }
 
+    // Odstraní předmět, pokud je u hráče v inventáři; vrací hodnotu, jestli se podařilo předmět odstranit
     public bool RemoveItemIfInInventory(int itemID)
     {
         if (_playerInventoryContainer.HasItem(itemID))
@@ -364,11 +379,13 @@ public class InventoryMonoBehaviour : MonoBehaviour
         return false;
     }
 
+    // Předá hráči data vybavenách předmětů
     public void PassStatsToPlayer()
     {
         _player.SetStats(GetFullEquipmentStats());
     }
 
+    // Vrací součet hodnot vybavených předmětů
     private CharacterStats GetFullEquipmentStats()
     {
         CharacterStats stats = new CharacterStats();
@@ -381,6 +398,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         return stats;
     }
 
+    // Převede hodnoty vybaveného předmětu na Character Stats
     private CharacterStats EquipmentToStats(ItemObject equipment)
     {
         CharacterStats stats = new CharacterStats();
@@ -403,28 +421,33 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
     #region Item List Manipulation // TODO move some?
 
+    // Přidá hráčovi peníze
     public void AddCoinsToPlayer(int amount)
     {
         _playerInventoryContainer.Coins += amount;
         _coinBalanceTMPT.text = _playerInventoryContainer.Coins.ToString();
     }
 
+    // Odebere hráčovi peníze
     public void RemoveCoinsFromPlayer(int amount)
     {
         _playerInventoryContainer.Coins -= amount;
         _coinBalanceTMPT.text = _playerInventoryContainer.Coins.ToString();
     }
 
+    // Přidá určité množství předmětů do inventáře
     public void AddItem(ItemObject itemObject, int amount)
     {
         _playerInventoryContainer.AddItem(itemObject, amount);
     }
 
+    // Odstraní předmět z inventáře
     public void RemoveItem(int itemObjectID)
     {
         _playerInventoryContainer.RemoveItem(itemObjectID);
     }
 
+    // Odstaní dočasné předměty
     public void RemoveTemporaryItems()
     {
         for (int i = 0; i < _playerInventoryContainer.Slots.Count; i++)
@@ -436,6 +459,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         }
     }
 
+    // Uloží stav inventářů
     public void Save()
     {
         if (_playerInventoryContainer != null)
@@ -456,6 +480,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         }
     }
 
+    // Načte stav inventářů ze souboru
     public void Load(string path)
     {
         _playerInventoryContainer = new InventorySlotContainer(path);
@@ -468,6 +493,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         PassStatsToPlayer();
     }
 
+    // Načte stav inventáře obchodu ze souboru
     public void LoadAndOpenShop(InventorySlotContainer container)
     {
         if (_secondaryShopInventoryContainer != null)
@@ -479,6 +505,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         ShowInventory(true);
     }
 
+    // Uloží inventář při vypnutí aplikace
     private void OnApplicationQuit()
     {
         Save();
@@ -488,6 +515,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
     #region UI Methods
 
+    // Změní okno v inventáři na okno s inventářem hráče
     public void SwitchToInventoryTabUI()
     {
         Debug.Log("Player inventory");
@@ -495,6 +523,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         DisplayInventory(_playerInventoryContainer);
     }
 
+    //Změní okno v inventáři na okno s inventářem obchodu
     public void SwitchToShopTabUI()
     {
         Debug.Log("Shop inventory");
@@ -502,6 +531,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         DisplayInventory(_secondaryShopInventoryContainer);
     }
 
+    // Skryje inventář
     public void HideInventoryUI()
     {
         _inventoryCanvas.enabled = false;

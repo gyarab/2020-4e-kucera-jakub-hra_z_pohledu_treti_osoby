@@ -22,11 +22,11 @@ public class MenuManager : MonoBehaviour
     [SerializeField]
     private Slider _ySensitivitySlider;
     [SerializeField]
-    private GameObject levelUIPrefab;
+    private GameObject _levelUIPrefab;
     [SerializeField]
-    private GameObject deleteLevelUIPrefab;
+    private GameObject _deleteLevelUIPrefab;
     [SerializeField]
-    private float uiOffset;
+    private float _uiOffset;
 
     [Header("Miscelanious")]
     [SerializeField]
@@ -83,14 +83,14 @@ public class MenuManager : MonoBehaviour
 
         for (int i = 0; i < _savedGames.Count; i++)
         {
-            _saveSlots.Add(Instantiate(levelUIPrefab, _saveSelectionCanvas.transform));
-            _saveSlots[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(_saveSlots[i].GetComponent<RectTransform>().anchoredPosition.x, _saveSlots[i].GetComponent<RectTransform>().anchoredPosition.y - i * uiOffset);
+            _saveSlots.Add(Instantiate(_levelUIPrefab, _saveSelectionCanvas.transform));
+            _saveSlots[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(_saveSlots[i].GetComponent<RectTransform>().anchoredPosition.x, _saveSlots[i].GetComponent<RectTransform>().anchoredPosition.y - i * _uiOffset);
             _saveSlots[i].GetComponentInChildren<TextMeshProUGUI>().SetText(_savedGames[i]);
             int x = i;
             _saveSlots[i].GetComponent<Button>().onClick.AddListener(delegate { GetSaveUI(x); });
 
-            _deleteSlotButton.Add(Instantiate(deleteLevelUIPrefab, _saveSelectionCanvas.transform));
-            _deleteSlotButton[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(_deleteSlotButton[i].GetComponent<RectTransform>().anchoredPosition.x, _deleteSlotButton[i].GetComponent<RectTransform>().anchoredPosition.y - i * uiOffset);
+            _deleteSlotButton.Add(Instantiate(_deleteLevelUIPrefab, _saveSelectionCanvas.transform));
+            _deleteSlotButton[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(_deleteSlotButton[i].GetComponent<RectTransform>().anchoredPosition.x, _deleteSlotButton[i].GetComponent<RectTransform>().anchoredPosition.y - i * _uiOffset);
             _deleteSlotButton[i].GetComponent<Button>().onClick.AddListener(delegate { DeleteSaveUI(x); });
         }
     }

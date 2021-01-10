@@ -27,7 +27,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
     [Header("Collision"), SerializeField]
     private LayerMask _collisionLayer;
     [SerializeField]
-    private float _rayLength;
+    private float _rayLength, _rayYLocationOffset;
 
     [Header("Stats"), SerializeField]
     private CharacterStatsSO _bossStats;
@@ -66,7 +66,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
     #region Unity Methods
 
-    // Start is called before the first frame update
+    // Inicializace proměnných
     void Awake()
     {
         _currentHealth = _bossStats.health;
@@ -77,11 +77,13 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         _rayPosition = new Vector3(0, _yRayPositionOffset, 0);
     }
 
+    // Inicializace proměnných 2
     void Start()
     {
         _target = GameManager.Instance.Player.transform;
     }
 
+    // Metoda se volá v pravidlených intervalech; zjišťuje jestli hráč je na zemi a řeší kolize
     void FixedUpdate()
     {
         IsGrounded();
@@ -89,11 +91,13 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         CheckForCollisions();
     }
 
+    // Při aktivaci odebírá akci On Doors Opened
     private void OnEnable()
     {
         BossRoomDoor.OnDoorsOpened += PlayIntro;
     }
 
+    // Při deaktivaci přestane odebírat akci On Doors Opened
     private void OnDisable()
     {
         BossRoomDoor.OnDoorsOpened -= PlayIntro;
@@ -103,12 +107,14 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
     #region Physics
 
+    // Kontroluje, jestli je boss na zemo
     private void IsGrounded()
     {
         _grounded = GamePhysics.IsGroundedRayCast(transform.TransformPoint(_rayPosition), _groundOffset, _rayOverhead, _ground, out float yCorrection);
         transform.position = new Vector3(transform.position.x, transform.position.y + yCorrection, transform.position.z);
     }
 
+    // Aplikuje na bosse gravitační sílu
     private void ApplyGravity()
     {
         if (_grounded)
@@ -124,15 +130,17 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         transform.position = new Vector3(transform.position.x, transform.position.y + gravitationalForce, transform.position.z);
     }
 
+    // Řeší kolize pomocí 3 paprsků
     private void CheckForCollisions()
     {
         _raycastDirections = new Vector3[] { transform.right, -transform.right, transform.forward };
-        transform.position += GamePhysics.RaycastCollisionDetection(transform.position, _raycastDirections, _rayLength, _collisionLayer);
+        transform.position += GamePhysics.RaycastCollisionDetection(new Vector3(transform.position.x, transform.position.y + _rayYLocationOffset, transform.position.z), _raycastDirections, _rayLength, _collisionLayer);
     }
 
     #endregion
 
-    private void PlayIntro() // TODO rename?
+    // Zobrazí ukazatel s životy bosse
+    private void PlayIntro()
     {
         _healthBar = GameManager.Instance.Player.GetComponent<PlayerController>().GetPlayerInventory().BossHealthBar;
         _healthBar.SetVisibility(true);
@@ -141,6 +149,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
     #region Combo
 
+    // Vybere jednu z kombinaci útoků, které jsou předem vytvořené
     private ComboSO ChooseNextCombo()
     {
         float targetBossAngle = Vector2.Angle(transform.forward, _target.position - transform.position);
@@ -180,6 +189,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         return _combos[indexWithHighestBias];
     }
 
+    // Provádí akce, tak jak jsou uvedeny v kombinaci
     private void StartNextAction()
     {
         _canDealDamage = true;
@@ -221,6 +231,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
     #region Actions
 
+    // Nechává hráčí čas se přiblížit na počátku souboje
     private IEnumerator Intro()
     {
         yield return new WaitForSeconds(_delayAfterEntering);
@@ -228,6 +239,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         StartNextAction();
     }
 
+    // Časová prodleva, kdy může hráč zaútočit
     private IEnumerator Wait(float timeToWait)
     {
         float timePlaying = 0;
@@ -241,6 +253,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         StartNextAction();
     }
 
+    // Boss se pohybuje směrem k cíli
     private IEnumerator MoveTowardsTarget()
     {
         _animator.SetBool("Walk", true);
@@ -266,6 +279,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         StartNextAction();
     }
 
+    // Natočí bosse směrem na cíl
     private IEnumerator RotateTowardsTarget()
     {
         Vector2 transformForwardDirection;
@@ -284,7 +298,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         StartNextAction();
     }
 
-    // TODO Y movement; speed throughout the animation
+    // Provede útok, během kterého skočí do vzduchu; TODO Y movement; speed throughout the animation
     private IEnumerator JumpSmash()
     {
         const float TIME_TO_HIT = 1.3f;
@@ -318,6 +332,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         StartNextAction();
     }
 
+    // Uhodí do země a udělí poškození
     private IEnumerator GroundSmash()
     {
         const float TIME_TO_HIT = 1f;
@@ -343,6 +358,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         StartNextAction();
     }
 
+    // Rozmáchne se a po uplynutí časové prodlevy udělí hráči poškození
     private IEnumerator Swipe()
     {
         const float TIME_TO_HIT = 0.67f;
@@ -392,6 +408,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
     #region Attacks
     
+    // Detekuje, jestli je hráč ve v určité vzdálenosti od bodu, když ano, tak mu udělí poškození
     private void SphericalHitDetection(float radius, Vector3 position)
     {
         if (_canDealDamage)
@@ -404,11 +421,13 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         }
     }
 
+    // Vrátí pozici mezi rukama
     private Vector3 GetHandsCenterPosition()
     {
         return (_rightHand.position + _leftHand.position) / 2;
     }
 
+    // Vrátí pozici mezi středem rukou a tělem
     private Vector3 GetBossCenterPosition()
     {
         Vector3 handsPosition = GetHandsCenterPosition();
@@ -417,6 +436,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
 
     #endregion
 
+    // Po poražení vyvolá akci On Boss Death a zničí se tento Game Object
     private void GetDestroyed()
     {
         _healthBar.SetVisibility(false);
@@ -424,6 +444,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         Destroy(gameObject);
     }
 
+    // Implementace interface Damageable, umožňuje bossovi dostat poškození
     public void TakeDamage(float damage, float armourPenetration)
     {
         _currentHealth -= DamageCalculator.CalculateDamage(damage, armourPenetration, _bossStats.armour);

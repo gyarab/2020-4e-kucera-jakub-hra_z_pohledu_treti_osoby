@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Obsahuje nastavení spojená s vytvářením mapy
 [CreateAssetMenu(fileName = "New Maze Settings", menuName = "Maze Settings")]
 public class MazeSettingsSO : ScriptableObject
 {

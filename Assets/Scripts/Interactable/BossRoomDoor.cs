@@ -15,11 +15,13 @@ public class BossRoomDoor : MonoBehaviour, IDoor
     [SerializeField]
     private Transform _rightDoor, _leftDoor;
 
+    // Inicializace proměnných
     private void Awake()
     {
         _opened = false;
     }
 
+    // Metoda vyvolá akci On Doors Opened; a zavře dveře
     public void Entered()
     {
         if (!_opened)
@@ -30,16 +32,19 @@ public class BossRoomDoor : MonoBehaviour, IDoor
         }
     }
 
+    // Spustí Coroutine k otevření dveří
     public void Open()
     {
         StartCoroutine(OpenDoor());
     }
 
+    // Spustí Coroutine k uzavření dveří
     public void Close()
     {
         StartCoroutine(CloseDoor());
     }
 
+    // Coroutine otevírající dveře tím, že je otáčí okol osy Y
     private IEnumerator OpenDoor()
     {
         float degreesRotated = 0;
@@ -64,6 +69,7 @@ public class BossRoomDoor : MonoBehaviour, IDoor
         }
     }
 
+    // Coroutine uzavírající dveře tím, že je otáčí okol osy Y
     private IEnumerator CloseDoor()
     {
         float degreesRotated = 0;
@@ -88,6 +94,7 @@ public class BossRoomDoor : MonoBehaviour, IDoor
         }
     }
 
+    // Není potřeba nic udělat při aktivaci (metoda z interface IDoor)
     public void Enabled()
     {
 

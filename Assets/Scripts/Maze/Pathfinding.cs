@@ -9,20 +9,24 @@ public class Pathfinding<T> where T : IPathfindingNode<T>
     private int _nodeCount;
     private PathfindingHeap<T> _openSet;
 
+    // Vytvoří objekt pathfinding, který obdrží pole s uzly a jejich počet
     public Pathfinding(T[] nodes, int count)
     {
         _nodes = nodes;
         _nodeCount = count;
-        _openSet = new PathfindingHeap<T>(_nodeCount); // TODO prob optimize 
+        _openSet = new PathfindingHeap<T>(_nodeCount);
     }
 
+    // Vrátí cestu z pozice A do pozice B
     public List<Vector3> GetPath(Vector3 position, Vector3 targetPosition)
     {
         return FindPath(GetCurrentNodeID(position), GetCurrentNodeID(targetPosition));
     }
 
+    // Najde optimální cestu z uzlu s daným ID do uzlu s dalším ID
     private List<Vector3> FindPath(int startID, int endID)
     {
+        // Nastaví hodnoty uzlů na počáteční
         _openSet.Reset();
         T node;
 
@@ -35,13 +39,16 @@ public class Pathfinding<T> where T : IPathfindingNode<T>
             }
         }
 
+        // Vloží do haldy s otevřenými uzly
         _openSet.Insert(_nodes[startID]);
 
+        // Dokud halda není prázdná
         while(_openSet.GetCount() > 0)
         {
+            // Z otevřené množiny (haldy) je odebrán uzel s nejnižší hodnotou a zařazen do uzavřené množiny
             node = _openSet.RemoveFirst();
 
-            // After reaching goal return path
+            // Po dosažení cíle zrekonsrtuuje cestu
             if (node.ID == endID)
             {
                 return ReconstructPath(startID, endID);
@@ -49,18 +56,20 @@ public class Pathfinding<T> where T : IPathfindingNode<T>
 
             node.Status = Status.CLOSEDSET;
             
-            // Check every neighbour
+            // Projde všechny sousední uzly
             for (int i = 0; i < 8; i++)
             {
                 if(node.Neighbours[i] != null)
                 {
+                    // Když je soused v uzavřeném uzlu, nic se nemění
                     if (node.Neighbours[i].Status == Status.CLOSEDSET)
                     {
-                        continue; // if it doesnt work put return here and instead of return return null;
+                        continue;
                     }
 
                     currentGCost = node.GCost + Vector2.Distance(new Vector2(node.Position.x, node.Position.z), new Vector2(node.Neighbours[i].Position.x, node.Neighbours[i].Position.z));
 
+                    // Když uzel není zařazen, tak je vložen do otevřené množiny
                     if (node.Neighbours[i].Status == Status.NOWHERE)
                     {
                         node.Neighbours[i].GCost = currentGCost;
@@ -68,7 +77,7 @@ public class Pathfinding<T> where T : IPathfindingNode<T>
                         node.Neighbours[i].CameFromID = node.ID;
                         node.Neighbours[i].Status = Status.OPENSET;
                         _openSet.Insert(node.Neighbours[i]);
-                    } else if (currentGCost < node.Neighbours[i].GCost)
+                    } else if (currentGCost < node.Neighbours[i].GCost) // Jinak je porovnána nová hodnota uzlu s jeho předchozí hodnotou a případně změněna
                     {
                         node.Neighbours[i].GCost = currentGCost;
                         node.Neighbours[i].CameFromID = node.ID;
@@ -81,6 +90,7 @@ public class Pathfinding<T> where T : IPathfindingNode<T>
         return null;
     }
 
+    // Vrátí cestu z cíle do počátečního uzlu
     private List<Vector3> ReconstructPath(int startID, int endID)
     {
         List<Vector3> result = new List<Vector3>();
@@ -89,6 +99,7 @@ public class Pathfinding<T> where T : IPathfindingNode<T>
         return AddStop(result, currentNode, startID);
     }
 
+    // Rekurzivní funkcem, která se zavolá a přidá do seznamu uzel z parametru, dokud nenarazí na počáteční uzel
     private List<Vector3> AddStop(List<Vector3> list, T currentNode, int startID)
     {
         if (currentNode.ID == startID)
@@ -103,6 +114,7 @@ public class Pathfinding<T> where T : IPathfindingNode<T>
         return list;
     }
 
+    // Najde uzel nejblíže k dané pozici
     private int GetCurrentNodeID(Vector3 position)
     {
         float minDist = GetApproximateDistance(position, _nodes[0].Position);
@@ -126,11 +138,13 @@ public class Pathfinding<T> where T : IPathfindingNode<T>
         return minDistID;
     }
 
+    // Sppočítá druhou mocninu vzdáleností
     private float GetApproximateDistance(Vector3 objectPosition, Vector3 nodePosition)
     {
         return Mathf.Pow(nodePosition.x - objectPosition.x, 2) + Mathf.Pow(nodePosition.z - objectPosition.z, 2);
     }
 
+    // Vrátí částečně náhodný seznam sousedícíh vrcholů
     public List<Vector3> GetRandomPath(Vector3 position, int cycles, int cycleLength)
     {
         int direction = UnityEngine.Random.Range(0, 8);

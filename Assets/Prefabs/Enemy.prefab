@@ -81,6 +81,7 @@ MonoBehaviour:
   _raycastLength: 0.5
   _attackRange: 2.5
   _secondaryAttackRangeMultiplier: 0.3
+  _attackInitiationPercentage: 0.8
   _secondaryAttackAngleInDegrees: 70
   _delayBeforeAttack: 1.5
   _delayAfterAttack: 1.5

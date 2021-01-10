@@ -8,6 +8,7 @@ public class SubcellData
     public int EmptySpotInArray { get; set; }
     public Vector3 SpawnPoint { get; set; }
 
+    // Konstruktor
     public SubcellData(Subcell[] subcells, int firstEmptySpotInArray, Vector3 spawnPoint)
     {
         Subcells = subcells;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Konzumovatelný předmět
 [CreateAssetMenu(fileName = "New Consumable Object", menuName = "InventorySystem/Items/Consumable")]
 public class ConsumableObject : ItemObject
 {

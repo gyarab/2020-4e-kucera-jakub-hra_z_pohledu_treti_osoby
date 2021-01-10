@@ -20,6 +20,7 @@ public class Subcell
         NodesCreated = false;
     }
 
+    // Vrátí první otevřenou zeď, začínajíc od souseda na pozici 0
     public int GetFirstDoor()
     {
         bool foundWall = false;
@@ -46,6 +47,7 @@ public class Subcell
         return -1;
     }
 
+    // Vrátí počet otevřených zdí
     public int GetDoorCount()
     {
         int count = 0;
@@ -58,5 +60,45 @@ public class Subcell
         }
 
         return count;
+    }
+
+    // Propojí navzájem podbuňku s druhou podbuňkou
+    public void ConnectToSubcell(Subcell other, Side direction)
+    {
+        switch (direction)
+        {
+            case Side.Top:
+                Neighbours[0] = other;
+                other.Neighbours[4] = this;
+                break;
+            case Side.Right:
+                Neighbours[2] = other;
+                other.Neighbours[6] = this;
+                break;
+            case Side.Bottom:
+                Neighbours[4] = other;
+                other.Neighbours[0] = this;
+                break;
+            case Side.Left:
+                Neighbours[6] = other;
+                other.Neighbours[2] = this;
+                break;
+            case Side.TopRight:
+                Neighbours[1] = other;
+                other.Neighbours[5] = this;
+                break;
+            case Side.BottomRight:
+                Neighbours[3] = other;
+                other.Neighbours[7] = this;
+                break;
+            case Side.BottomLeft:
+                Neighbours[5] = other;
+                other.Neighbours[1] = this;
+                break;
+            case Side.TopLeft:
+                Neighbours[7] = other;
+                other.Neighbours[3] = this;
+                break;
+        }
     }
 }

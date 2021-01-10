@@ -5,7 +5,7 @@ using UnityEngine;
 public class MazeGenerator : MonoBehaviour
 {
     [SerializeField]
-    private float _playerYOffset;
+    private float _playerYOffset, _enemyYOffset;
 
     private Vector3 _startPoint;
     private CellData _cellData;
@@ -47,7 +47,7 @@ public class MazeGenerator : MonoBehaviour
             CreateOuterRoom();
         }
 
-        // Spawne části místností pro všechny podbuňky
+        // Vytvoří na mapě části místností pro všechny podbuňky
         ITileGenerator tileGenerator = GetComponent<TileGenerator>();
         tileGenerator.GenerateTiles(_subcellData, _generationsRules.Contains(GenerationRule.OuterRoom) ? (_subcellData.EmptySpotInArray - 1) : _subcellData.EmptySpotInArray);
 
@@ -58,23 +58,23 @@ public class MazeGenerator : MonoBehaviour
         GetComponent<Spawner>().SpawnReturnPortal(_subcellData.SpawnPoint);
         GameManager.Instance.Player.transform.position = new Vector3(_subcellData.SpawnPoint.x, _subcellData.SpawnPoint.y + _playerYOffset, _subcellData.SpawnPoint.z);
 
-        // TODO make better & move?
         SpawnEnemies();
 
         nodeCount = _pathfindingNodes.Length;
         return _pathfindingNodes;
     }
 
-    // TODO remove
-    #region Visualization in Editor
-    
+#if UNITY_EDITOR // Kód funguje pouze v editoru, není součástí buildu
+    #region Visualization in the Editor
+
+    // Vizualizace v editoru
     private void OnDrawGizmos()
     {
         //DrawCells();
-
         DrawNodes();
     }
     
+    // Vykresluje pozice vrcholů k vyhledávání cesty
     private void DrawNodes()
     {
         if (_pathfindingNodes != null)
@@ -107,6 +107,7 @@ public class MazeGenerator : MonoBehaviour
         }
     }
 
+    // Vykresluje pozice buňek
     private void DrawCells()
     {
         if (_cellData.Cells != null)
@@ -133,6 +134,7 @@ public class MazeGenerator : MonoBehaviour
         }
     }
 
+    // Vykresluje spojnice mezi buňkami
     private void DrawPaths(int x, int y)
     {
         float xPos = _cellData.XDistance[x] * _mazeSettings.distanceBetweenCells;
@@ -174,12 +176,13 @@ public class MazeGenerator : MonoBehaviour
             Gizmos.DrawLine(start, end);
         }
     }
-    
+
     #endregion
-    
-    // TODO move some part to subcell generator?
+#endif
+
     #region Special Generation Rules
 
+    // Vytvoří místnost na kraji mapy a prpojí ji ke zbytku 
     private void CreateOuterRoom()
     {
         int side = Random.Range(0, 4);
@@ -196,6 +199,7 @@ public class MazeGenerator : MonoBehaviour
         boss.GetComponent<Boss>().OnBossDeath = _winCondition.OnCompleted;
     }
 
+    // Náhodně najde buňku, ke které může připojit vedlejší místnost
     private Vector2Int GetOuterCell(int side)
     {
         Vector2Int startPos;
@@ -272,6 +276,7 @@ public class MazeGenerator : MonoBehaviour
         throw new System.Exception("Could not find cell");
     }
 
+    // Připojí vedlejší místnost
     private Subcell CreateOuterRoomSubcell(int subcellPositionInArray, int side)
     {
         Subcell currentSubcell = _subcellData.Subcells[subcellPositionInArray];
@@ -286,7 +291,7 @@ public class MazeGenerator : MonoBehaviour
                 }
 
                 newSubcell = new Subcell(_subcellData.EmptySpotInArray, currentSubcell.Position.x, currentSubcell.Position.y, currentSubcell.Position.z + _mazeSettings.distanceBetweenCells, currentSubcell.TileType);
-                ConnectTwoSubcells(currentSubcell, newSubcell, Side.Top);
+                currentSubcell.ConnectToSubcell(newSubcell, Side.Top);
                 break;
             case 1: // RIGHT
                 while (currentSubcell.Neighbours[2] != null)
@@ -295,7 +300,7 @@ public class MazeGenerator : MonoBehaviour
                 }
 
                 newSubcell = new Subcell(_subcellData.EmptySpotInArray, currentSubcell.Position.x + _mazeSettings.distanceBetweenCells, currentSubcell.Position.y, currentSubcell.Position.z, currentSubcell.TileType);
-                ConnectTwoSubcells(currentSubcell, newSubcell, Side.Right);
+                currentSubcell.ConnectToSubcell(newSubcell, Side.Right);
                 break;
             case 2: // BOTTOM
                 while (currentSubcell.Neighbours[4] != null)
@@ -304,7 +309,7 @@ public class MazeGenerator : MonoBehaviour
                 }
 
                 newSubcell = new Subcell(_subcellData.EmptySpotInArray, currentSubcell.Position.x, currentSubcell.Position.y, currentSubcell.Position.z - _mazeSettings.distanceBetweenCells, currentSubcell.TileType);
-                ConnectTwoSubcells(currentSubcell, newSubcell, Side.Bottom);
+                currentSubcell.ConnectToSubcell(newSubcell, Side.Bottom);
                 break;
             case 3: // LEFT
                 while (currentSubcell.Neighbours[6] != null)
@@ -313,7 +318,7 @@ public class MazeGenerator : MonoBehaviour
                 }
 
                 newSubcell = new Subcell(_subcellData.EmptySpotInArray, currentSubcell.Position.x - _mazeSettings.distanceBetweenCells, currentSubcell.Position.y, currentSubcell.Position.z, currentSubcell.TileType);
-                ConnectTwoSubcells(currentSubcell, newSubcell, Side.Left);
+                currentSubcell.ConnectToSubcell(newSubcell, Side.Left);
                 
                 break;
             default:
@@ -326,48 +331,9 @@ public class MazeGenerator : MonoBehaviour
         return newSubcell;
     }
 
-    // TODO rework cuz duplicate
-    private void ConnectTwoSubcells(Subcell first, Subcell second, Side direction)
-    {
-        switch (direction)
-        {
-            case Side.Top:
-                first.Neighbours[0] = second;
-                second.Neighbours[4] = first;
-                break;
-            case Side.Right:
-                first.Neighbours[2] = second;
-                second.Neighbours[6] = first;
-                break;
-            case Side.Bottom:
-                first.Neighbours[4] = second;
-                second.Neighbours[0] = first;
-                break;
-            case Side.Left:
-                first.Neighbours[6] = second;
-                second.Neighbours[2] = first;
-                break;
-            case Side.TopRight:
-                first.Neighbours[1] = second;
-                second.Neighbours[5] = first;
-                break;
-            case Side.BottomRight:
-                first.Neighbours[3] = second;
-                second.Neighbours[7] = first;
-                break;
-            case Side.BottomLeft:
-                first.Neighbours[5] = second;
-                second.Neighbours[1] = first;
-                break;
-            case Side.TopLeft:
-                first.Neighbours[7] = second;
-                second.Neighbours[3] = first;
-                break;
-        }
-    }
-
     #endregion
 
+    // Přída na mapu nepřátele
     private void SpawnEnemies()
     {
         List<Vector3> positionsToSpawn = new List<Vector3>();
@@ -380,14 +346,14 @@ public class MazeGenerator : MonoBehaviour
             {
                 if (Random.Range(0f, 1f) <= _mazeSettings.spawnChance)
                 {
-                    positionsToSpawn.Add(new Vector3(_pathfindingNodes[i].Position.x, _pathfindingNodes[i].Position.y + 0.5f, _pathfindingNodes[i].Position.z)); // TODO hardcoded
+                    positionsToSpawn.Add(new Vector3(_pathfindingNodes[i].Position.x, _pathfindingNodes[i].Position.y + _enemyYOffset, _pathfindingNodes[i].Position.z));
                     if(positionsToSpawn.Count == _mazeSettings.maxEnemyCount)
                     {
                         break;
                     }
                 } else if (((float)positionsToSpawn.Count + 1f) / ((float)i + 1f) < minEnemyPercentage)
                 {
-                    positionsToSpawn.Add(new Vector3(_pathfindingNodes[i].Position.x, _pathfindingNodes[i].Position.y + 0.5f, _pathfindingNodes[i].Position.z)); // TODO hardcoded
+                    positionsToSpawn.Add(new Vector3(_pathfindingNodes[i].Position.x, _pathfindingNodes[i].Position.y + _enemyYOffset, _pathfindingNodes[i].Position.z));
                 }
             }
         }

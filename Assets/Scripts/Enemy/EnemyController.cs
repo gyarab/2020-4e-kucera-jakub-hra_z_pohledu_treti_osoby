@@ -4,10 +4,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 
-public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TODO combine visual navigation w pathfinding / rework nav; attack as class with interface / get attack component
+public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
 {
     public static Action<Vector3> OnEnemyDeath;
-    public static Pathfinding<PathfindingNode> Pathfinder { get; set; } // TODO do differently?
+    public static Pathfinding<PathfindingNode> Pathfinder { get; set; }
 
     #region Variables
 
@@ -42,7 +42,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
     [SerializeField]
     private float _attackRange;
     [SerializeField, Range(0f, 1f)]
-    private float _secondaryAttackRangeMultiplier;
+    private float _secondaryAttackRangeMultiplier, _attackInitiationPercentage;
     [SerializeField]
     private float _secondaryAttackAngleInDegrees, _delayBeforeAttack, _delayAfterAttack, _attackAngleInDegrees;
 
@@ -74,6 +74,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
     #endregion
 
+    // Inicializace proměnných
     void Start()
     {
         _mainCamera = Camera.main;
@@ -90,6 +91,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         ChangeState(WaitForNextAction());
     }
 
+    // Otáčí ukazatel životů směrem ke kameře
     void Update()
     {
         if (_healthBarCanvas.enabled)
@@ -98,6 +100,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         }
     }
 
+    // Řeší fyzickou stránku objektu, tedy gravitaci, pohyb a kolize
     void FixedUpdate()
     {
         _grounded = IsGrounded();
@@ -107,6 +110,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
     #region State Methods
 
+    // Coroutine, která následuje hráče po cestě z Pathfinding, dokud nedorazí nakonec nebo hráč je dost blízko
     private IEnumerator FollowPathToTarget()
     {
         animator.SetBool("Walk", true);
@@ -127,7 +131,6 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
         while (true)
         {
-            // TODO check if close to player
             if (CanAttack())
             {
                 break;
@@ -140,7 +143,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
             {
                 index++;
 
-                if (index >= _path.Count || _path[index] == null) // TODO how can it be null
+                if (index >= _path.Count || _path[index] == null) // how can it be null
                 {
                     break;
                 }
@@ -155,6 +158,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         ChangeState(FollowTarget());
     }
 
+    // Nepřítel v tomto stavu stojí na místě a čeká na uplynutí doby, zároveň se rozhlíží, jestli neuvidí hráče
     private IEnumerator WaitForNextAction()
     {
         float timer = 0;
@@ -178,6 +182,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         }
     }
 
+    // Zaútočí na protivníka a po prodlevě udělí hráči poškození, jestli se vyskytuje v oblasti zásahu
     private IEnumerator AttackTarget()
     {
         animator.SetTrigger("Attack");
@@ -188,6 +193,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         ChangeState(FollowPathToTarget());
     }
 
+    // Následuje hráče vizuálně, dokud je vidět nebo na něj může zaútočit
     private IEnumerator FollowTarget()
     {
         animator.SetBool("Walk", true);
@@ -196,12 +202,12 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         Vector3 positionDelta;
         bool attack = false;
 
-        while (IsTargetVisible())
+        while (IsTargetVisible(_detectionRange))
         {
             positionDelta = GamePhysics.MoveTowardsPositionNonYClamped(transform.position, _target.position, _movementSpeed, out distance);
             transform.rotation = GamePhysics.RotateTowardsTarget(transform.rotation, transform.position, _target.position, _rotationSpeed);
 
-            if (distance <= _attackRange * 0.75f) // TODO hardcoded
+            if (distance <= _attackRange * _attackInitiationPercentage)
             {
                 attack = true;
                 break;
@@ -222,6 +228,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         }
     }
 
+    // Vybere si náhodnou pozici, na kterou přejde; zároveň se rozhlíží po hráči
     private IEnumerator WalkToRandomPlace()
     {
         animator.SetBool("Walk", true);
@@ -258,6 +265,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         ChangeState(WaitForNextAction());
     }
 
+    // Otočí se náhodným směrem
     private IEnumerator FaceRandomDirection()
     {
         float degreesToRotate = UnityEngine.Random.Range(90f, 180f);
@@ -290,6 +298,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
     #region Attack Methods
 
+    // Spočítá vzdálenost mezi sebou a hráčem a taky úhel a podle toho mu udělí nebo neudělí poškození
     private void Attack()
     {
         float distance = Vector3.Distance(transform.position, _target.transform.position);
@@ -315,21 +324,18 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         }
     }
 
+    // Vrátí boolean, jestli je hráč v dosahu
     private bool InRangeToAttack()
     {
         return Vector3.Distance(transform.position, _target.transform.position) < _attackRange;
     }
 
-    private bool IsTargetVisible()
-    {
-        return Physics.Raycast(transform.position, _target.transform.position - transform.position, _attackRange, ~transform.gameObject.layer);
-    }
-
+    // Vrací true, když je ráč viditelný a v dosahu
     public bool CanAttack()
     {
         if (InRangeToAttack()) // Is enemy in range to attack?
         {
-            if (IsTargetVisible())
+            if (IsTargetVisible(_attackRange))
             {
                 return true;
             }
@@ -342,6 +348,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
     #region Physics Methods
 
+    // Počítá sílu gravitace
     private void CalculateYSpeed()
     {
         if (_grounded)
@@ -356,6 +363,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         transform.position = new Vector3(transform.position.x, transform.position.y + GamePhysics.GetGravitationalForce(_timeSinceGrounded), transform.position.z);
     }
 
+    // Určuje jestli je nepřítel na zemi
     private bool IsGrounded()
     {
         bool grounded = GamePhysics.IsGroundedRayCast(transform.position, _groundOffset, _rayOverhead, _groundLayer, out float yCorrection);
@@ -363,6 +371,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
         return grounded;
     }
 
+    // Řeší kolize
     private void ResolveCollisions()
     {
         _raycastDirections = new Vector3[] { transform.right, -transform.right, transform.forward };
@@ -371,36 +380,47 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable // TO
 
     #endregion
 
-    #region Update Methods
-
+    // Otáčí Canvas s životy směrem ke kameře
     private void LookAtCamera()
     {
         _healthBarGO.transform.LookAt(_mainCamera.transform);
         _healthBarGO.transform.Rotate(0, 180, 0);
     }
 
+    // Kontroluje, jestli je hráč v zorném poli protivníka
     private void CheckForTarget()
     {
         if (!_seenTarget)
         {
             if (Vector3.Distance(transform.position, _target.transform.position) < _detectionRange)
             {
-                if (Vector3.Angle(transform.forward, _target.transform.position - transform.position) < _detectionAngle)
+                if (IsTargetVisible(_detectionRange))
                 {
-                    ChangeState(FollowPathToTarget());
+                    Vector3 forward = transform.forward;
+                    Vector3 targetDirection = _target.transform.position - transform.position;
+                    if (Vector2.Angle(new Vector2(forward.x, forward.z), new Vector2(targetDirection.x, targetDirection.z)) < _detectionAngle)
+                    {
+                        ChangeState(FollowPathToTarget());
+                    }
                 }
             }
         }
     }
 
-    #endregion
- 
+    // Vrací hodnotu, jestli je hráč viditelný
+    private bool IsTargetVisible(float range)
+    {
+        return Physics.Raycast(transform.position, _target.transform.position - transform.position, range, ~transform.gameObject.layer);
+    }
+
+    // Metoda je zavolána, když je nepřítel poražen; Vyvolá akci On Enemy Death
     private void GetDestroyed()
     {
         OnEnemyDeath?.Invoke(transform.position);
         Destroy(gameObject);
     }
 
+    // Metoda implementovaná interfacem Damageable, dovoluje nepřáteli obdržet poškození
     public void TakeDamage(float damage, float armourPenetration)
     {
         _currentHealth -= DamageCalculator.CalculateDamage(damage, armourPenetration, _stats.armour);

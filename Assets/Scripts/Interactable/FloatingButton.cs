@@ -13,37 +13,43 @@ public class FloatingButton : MonoBehaviour
     private Canvas _canvas;
     private bool _canvasEnabled;
 
+    // Inicializace
     private void Start()
     {
         FloatingButtonStart();
     }
 
+    // Získá odkaz ke Canvasu, kameře a hráči
     protected void FloatingButtonStart()
     {
         _canvas = GetComponentInChildren<Canvas>();
         _canvas.enabled = false;
 
-        if (playerCameraTransform == null)
+        // TODO uncomment if it doesn't work
+        /*if (playerCameraTransform == null)
         {
             playerCameraTransform = Camera.main.transform;
         }
         if (playerTransform == null)
         {
             playerTransform = GameManager.Instance.Player.transform;
-        }
+        }*/
     }
 
+    // Předá odkaty na hráče a kameru
     public static void SetTransforms(Transform player, Transform camera)
     {
         playerTransform = player;
         playerCameraTransform = camera;
     }
 
+    // Natočí UI směrem ke kameře
     private void Update()
     {
         LookAtCamera(playerCameraTransform);
     }
 
+    // Zobrazí nebo schová UI v závislosti na vzdálenosti od hráče
     private void FixedUpdate()
     {
         if (Vector3.Distance(transform.position, playerTransform.position) < _interactableDistance)
@@ -56,6 +62,7 @@ public class FloatingButton : MonoBehaviour
         }
     }
 
+    // Zobrazí grafické rozhraní
     private void ShowButton()
     {
         if (!_canvasEnabled)
@@ -65,6 +72,7 @@ public class FloatingButton : MonoBehaviour
         }
     }
 
+    // Skryje grafické rozhraní
     private void HideButton()
     {
         if (_canvasEnabled)
@@ -74,6 +82,7 @@ public class FloatingButton : MonoBehaviour
         }
     }
 
+    // Otočí UI směrem ke kameře
     private void LookAtCamera(Transform _cameraTransform)
     {
         if (_canvasEnabled)

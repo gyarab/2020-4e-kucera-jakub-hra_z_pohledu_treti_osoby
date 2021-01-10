@@ -11,11 +11,13 @@ public class DoorKeyCheck : MonoBehaviour, IDoor
 
     private bool _activated;
 
+    // Inicializace
     private void Awake()
     {
         _activated = false;
     }
 
+    // Když hráč projde dveřmi a má klíč v inventáři, pak jsou mu otevřeny dveře
     public void Entered()
     {
         // TODO check for key

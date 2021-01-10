@@ -7,21 +7,24 @@ public class CollectArtefacts : MonoBehaviour, IWinCondition
 {
     public Action OnCompleted { get; set; }
 
-    private int _artefactsToCollect;
+    private int _artefactsToCollect = 4;
     private const int ARTEFACT_ITEM_ID = 7;
     private const string MESSAGE_COMPLETED = "Mission acomplished. Portal to next location is open.";
     private const string MESSAGE_BEGAN = "Collect all 4 artefacts and get our of the maze alive.";
 
+    // Při aktivaci začne odebírat akci On Item Picked Up
     private void OnEnable()
     {
         GroundItem.OnItemPickedUp += UpdateWinCondition;
     }
 
+    // Při deaktivaci přestane odebírat akci On Item Picked Up
     private void OnDisable()
     {
         GroundItem.OnItemPickedUp -= UpdateWinCondition;
     }
 
+    // Metoda je vyvolána akcí On Item Picked Up; Kontroluje, jestli všechny artefakty byly sebrány
     public void UpdateWinCondition(ItemObject item, int amount)
     {
         _artefactsToCollect -= amount;
@@ -32,10 +35,9 @@ public class CollectArtefacts : MonoBehaviour, IWinCondition
         }
     }
 
+    // Vyjme pár pozicí a na nich vytvoří instance artefaktů
     public List<Vector3> ConfirmSpawnLocations(List<Vector3> array)
     {
-        _artefactsToCollect = 4;
-
         Spawner spawner = GetComponent<Spawner>();
         for (int i = 0; i < _artefactsToCollect; i++)
         {
@@ -47,12 +49,13 @@ public class CollectArtefacts : MonoBehaviour, IWinCondition
         return array;
     }
 
+    // Nemá žádné speciální podmínky
     public List<GenerationRule> SpecialGenerationRules()
     {
-        // Nothing to change
         return new List<GenerationRule>();
     }
 
+    // Vrací zprávy informující hráče o jeho postupu
     public string[] GetMessages()
     {
         return new string[] { MESSAGE_BEGAN, MESSAGE_COMPLETED };

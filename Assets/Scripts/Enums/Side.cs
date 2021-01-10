@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Označení sousedů, např. u buňek
 public enum Side
 {
     Top,

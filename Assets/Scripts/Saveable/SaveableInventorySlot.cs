@@ -8,6 +8,7 @@ public class SaveableInventorySlot
     public int id;
     public int amount;
 
+    // Konstruktor s ID předmětu a množstvím
     public SaveableInventorySlot(int _id, int _amount)
     {
         id = _id;

@@ -10,7 +10,7 @@ public class QuestUI : MonoBehaviour
     private Queue<string> _messageQueue;
     private bool _isDisplaying;
 
-    // Start is called before the first frame update
+    // Inicializace proměnných
     void Start()
     {
         _questCanvas = GetComponent<Canvas>();
@@ -20,12 +20,14 @@ public class QuestUI : MonoBehaviour
         _isDisplaying = false;
     }
 
+    // Přidá zprávu do fronty
     public void QueueMessage(string message)
     {
         _messageQueue.Enqueue(message);
         TryToDisplayNext();
     }
 
+    // Zobrazí další zprávu, pokud už se nějaká nezobrazuje nebo fronta je prázdná
     private void TryToDisplayNext()
     {
         if (!_isDisplaying && _messageQueue.Count > 0)
@@ -38,6 +40,7 @@ public class QuestUI : MonoBehaviour
         }
     }
 
+    // Skryje Canvas se zprávou a pokusí se zobrazit další
     private IEnumerator HideCanvasAfterDelay(float delay)
     {
         yield return new WaitForSecondsRealtime(delay);

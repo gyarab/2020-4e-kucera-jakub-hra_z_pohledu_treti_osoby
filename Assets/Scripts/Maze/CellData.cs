@@ -11,16 +11,18 @@ public class CellData
     public int[] XDistance { get; private set; }
     public int[] ZDistance { get; private set; }
 
-    public CellData(Cell[,] cells, Vector2Int firstCell, int cellCount, int maximumNodeCount, int[] xDistance, int[] zDistance)
+    // Konstruktor se všemi parametry
+    public CellData(Cell[,] cells, Vector2Int firstCell, int cellCount, int maximumSubcellCount, int[] xDistance, int[] zDistance)
     {
         Cells = cells;
         FirstCell = firstCell;
         CellCount = cellCount;
-        MaximumSubcellCount = maximumNodeCount;
+        MaximumSubcellCount = maximumSubcellCount;
         XDistance = xDistance;
         ZDistance = zDistance;
     }
 
+    // Vrátí buňky, které jsou k buňce na dané pozici napojené
     public List<Vector2Int> GetNeighbouringCellPositions(Vector2Int position)
     {
         Cell cell = Cells[position.x, position.y];
@@ -46,16 +48,19 @@ public class CellData
         return result;
     }
 
+    // Vrátí délku a výšku buňky
     public Vector2Int GetDimensions(Vector2Int position)
     {
         return new Vector2Int(ZDistance[position.x + 1] - ZDistance[position.x], XDistance[position.y + 1] - XDistance[position.y]);
     }
 
+    // Vrátí délku a šířku buňky
     public Vector2Int GetDimensions(int positionZ, int positionX)
     {
         return new Vector2Int(ZDistance[positionZ + 1] - ZDistance[positionZ], XDistance[positionX + 1] - XDistance[positionX]);
     }
 
+    // Vrátí souřadnice, na kterých povede cesta mezi buňkami
     public Vector2Int GetPath(Vector2Int position, Vector2Int dimension)
     {
         Vector2Int result = new Vector2Int();

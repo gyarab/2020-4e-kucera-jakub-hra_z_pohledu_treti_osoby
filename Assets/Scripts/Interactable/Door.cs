@@ -12,17 +12,14 @@ public class Door : MonoBehaviour
     private Vector3 _secondPoint;
     private int _side;
 
+    // Inicializace proměnných
     private void Awake()
     {
         _secondPoint = transform.position + transform.right;
         _doorImplementation = GetComponent<IDoor>();
     }
 
-    private void Start()
-    {
-        // TODO remove it works
-    }
-
+    // Provádí se jednou za daný interval; kontroluje jestli hráč neprošel dveřmi
     void FixedUpdate()
     {
         if (_side != GetSide(_target.position))
@@ -35,6 +32,7 @@ public class Door : MonoBehaviour
         }
     }
 
+    // Při aktivaci získá odkaz na hráčovu pozici a určí, kde se vůči dveřím nachází
     public void OnEnable()
     {
         _target = GameManager.Instance.Player.transform;
@@ -42,6 +40,7 @@ public class Door : MonoBehaviour
         _doorImplementation.Enabled();
     }
 
+    // Vrátí číslo od -1 do 1 podle toho, v kterém poloprostoru se hráč nachází
     public int GetSide(Vector3 position)
     {
         // d = (x−x1)(y2−y1)−(y−y1)(x2−x1); 2x2 matrix determinant

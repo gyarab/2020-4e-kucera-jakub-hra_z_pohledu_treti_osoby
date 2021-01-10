@@ -4,93 +4,28 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 
-public class GroundItem : FloatingButton // TODO spawner script
+public class GroundItem : FloatingButton
 {
     public static Action<ItemObject, int> OnItemPickedUp;
-
-    // TODO remove or uncomment if it doesnt work
-    /*[SerializeField]
-    private float pickUpRange;
-
-    private static Transform playerTransform;
-    private static Transform cameraTransform;*/
     
     private ItemObject _item;
 
-    /*private Canvas pickUpCanvas;
-    private bool canvasEnabled;*/
-
+    // Inicializace 
     private void Start()
     {
         FloatingButtonStart();
-
-        /*pickUpCanvas = GetComponentInChildren<Canvas>();
-        pickUpCanvas.enabled = false;
-
-        if(cameraTransform == null)
-        {
-            cameraTransform = Camera.main.transform;
-        }
-        if (playerTransform == null)
-        {
-            playerTransform = GameManager.Instance.Player.transform;
-        }*/
     }
 
-    /*private void Update()
-    {
-        LookAtCamera(cameraTransform);
-    }
-
-    private void FixedUpdate()
-    {
-        if (Vector3.Distance(transform.position, playerTransform.position) < pickUpRange)
-        {
-            ShowButton();
-        }
-        else
-        {
-            HideButton();
-        }
-    }*/
-
+    // Nastaví předmět, který obsahuje
     public void SetVariables(ItemObject item)
     {
         _item = item;
     }
-
-    /*private void ShowButton()
-    {
-        if (!canvasEnabled)
-        {
-            pickUpCanvas.enabled = true;
-            canvasEnabled = true;
-        }
-    }
-
-    private void HideButton()
-    {
-        if (canvasEnabled)
-        {
-            pickUpCanvas.enabled = false;
-            canvasEnabled = false;
-        }
-    }
-
-    private void LookAtCamera(Transform _cameraTransform)
-    {
-        if (canvasEnabled)
-        {
-            pickUpCanvas.transform.LookAt(_cameraTransform);
-            pickUpCanvas.transform.Rotate(0, 180, 0);
-        }
-    }*/
-
         
+    // Metoda je zavolána pomocí UI; po zvednutí vyvolá akci On Item Picked Up a zničí tento Game Object
     public void PickUpGUI()
     {
         OnItemPickedUp?.Invoke(_item, 1);
-        //GameManager.Instance.Player.GetComponent<PlayerController>().GetPlayerInventory().AddItem(_item, 1);
         Destroy(gameObject);
     }
 }

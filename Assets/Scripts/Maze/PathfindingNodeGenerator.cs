@@ -7,6 +7,7 @@ public class PathfindingNodeGenerator : MonoBehaviour
     private PathfindingNode[] _pathfindingNodes;
     private int _currentEmptyIndex;
 
+    // Vytvoří uzly k vyhledávání cesty podle podbuňek, které dostane v objektu Subcell Data
     public PathfindingNode[] GenerateNodes(MazeSettingsSO mazeSettings, SubcellData subcellData)
     {
         _pathfindingNodes = new PathfindingNode[subcellData.EmptySpotInArray * mazeSettings.pathfindingNodesInSubcell * mazeSettings.pathfindingNodesInSubcell];
@@ -22,7 +23,7 @@ public class PathfindingNodeGenerator : MonoBehaviour
                 continue;
             }
 
-            // Generate all nodes
+            // Projde všechny buňky a vytvoří v nich uzly k vyhledávání cesty
             subcell.LowestPathfindingNodeID = _currentEmptyIndex;
             startPosition = subcell.Position - startOffset;
             CreatePathfindingNodeGrid(startPosition, mazeSettings.pathfindingNodesInSubcell, step);
@@ -34,32 +35,34 @@ public class PathfindingNodeGenerator : MonoBehaviour
         return _pathfindingNodes;
     }
 
+    // Vytvoří čtvercovou síť vyhledávacích uzlů
     private void CreatePathfindingNodeGrid(Vector3 startPosition, int dimension, float step)
     {
-        // From bottom left corner 
+        // Začne v levém spodním rohu
         for (int i = 0; i < dimension; i++) // Z
         {
             for (int j = 0; j < dimension; j++) // X
             {
                 _pathfindingNodes[_currentEmptyIndex] = new PathfindingNode(_currentEmptyIndex, startPosition.x + step * j, startPosition.y, startPosition.z + step * i);
 
-                // 2nd column + (Y)
+                // Ve druhém a každém dalším sloupci propojí uzel s uzlem v předchozím sloupci (s uzlem vlevo)
                 if (j > 0)
                 {
                     ConnectTwoNodes(_pathfindingNodes[_currentEmptyIndex], _pathfindingNodes[_currentEmptyIndex - 1], Side.Left);
                 }
 
-                // 2nd row + (X)
+                // Ve druhé a každé další řadě propojí uzel s uzlem v předchozí řadě (s uzlem pod ním)
                 if (i > 0)
                 {
                     ConnectTwoNodes(_pathfindingNodes[_currentEmptyIndex], _pathfindingNodes[_currentEmptyIndex - dimension], Side.Bottom);
 
-                    // Diagonal ones
+                    // V aspoň druhé řadě a v minimálně druhém sloupci propojí uzel s uzlem vlevo dole
                     if (j > 0)
                     {
                         ConnectTwoNodes(_pathfindingNodes[_currentEmptyIndex], _pathfindingNodes[_currentEmptyIndex - dimension - 1], Side.BottomLeft);
                     }
 
+                    // V aspoň druhé řadě a v maximálně předposledním sloupci propojí uzel s uzlem vpravo dole
                     if (j < dimension - 1)
                     {
                         ConnectTwoNodes(_pathfindingNodes[_currentEmptyIndex], _pathfindingNodes[_currentEmptyIndex - dimension + 1], Side.BottomRight);
@@ -71,6 +74,7 @@ public class PathfindingNodeGenerator : MonoBehaviour
         }
     }
 
+    // Propojí dva uzly podle daného směru propojení
     private void ConnectTwoNodes(PathfindingNode first, PathfindingNode second, Side direction)
     {
         switch (direction)
@@ -110,11 +114,12 @@ public class PathfindingNodeGenerator : MonoBehaviour
         }
     }
 
+    // Propojí uzly v podbuňce s uzly v sousedních buňkách
     private void ConnectNodesInSubcellToNeighbours(Subcell subcell, int dimension)
     {
         for (int i = 0; i < 8; i++)
         {
-            // Dont create diagonal conections - remove if desired
+            //  Přeskakuje diagonální propojení buňek - odstranit, kdyby to bylo potřeba
             if (i % 2 == 1)
             {
                 continue;
@@ -130,6 +135,7 @@ public class PathfindingNodeGenerator : MonoBehaviour
         }
     }
 
+    // Propojí vyhledávací uzly z dvou různých podbuňek
     private void ConnectNodesFromDifferentSubcells(Subcell first, Subcell second, int direction, int dimension)
     {
         switch (direction)

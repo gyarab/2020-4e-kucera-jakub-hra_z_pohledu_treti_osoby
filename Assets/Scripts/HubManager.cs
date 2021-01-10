@@ -43,10 +43,13 @@ public class HubManager : MonoBehaviour
         _savePath = path;
         _gameState = LoadManager.ReadFile<SaveableGameState>(_savePath);
 
-        GameManager.Instance.QuestUI.QueueMessage("Welcome, visit a shop on your left before you go to battle."); // TODO hardcoded
-        GameManager.Instance.QuestUI.QueueMessage("Once you're ready enter a lit portal.");
-        _gameState.firstTime = false;
-        Save();
+        if (_gameState.firstTime)
+        {
+            GameManager.Instance.QuestUI.QueueMessage("Welcome, visit a shop on your left before you go to battle."); // TODO hardcoded
+            GameManager.Instance.QuestUI.QueueMessage("Once you're ready enter a lit portal.");
+            _gameState.firstTime = false;
+            Save();
+        }
     }
 
     // Odemkne další portál, pokud je to možné, a uloží postup

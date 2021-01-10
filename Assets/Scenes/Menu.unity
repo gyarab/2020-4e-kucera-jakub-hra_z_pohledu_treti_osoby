@@ -1208,11 +1208,11 @@ MonoBehaviour:
   _inputField: {fileID: 1959735882}
   _xSensitivitySlider: {fileID: 376169468}
   _ySensitivitySlider: {fileID: 632058046}
-  levelUIPrefab: {fileID: 3117684830388516850, guid: 6a8cdaad4d8545f439125587efef0f92,
+  _levelUIPrefab: {fileID: 3117684830388516850, guid: 6a8cdaad4d8545f439125587efef0f92,
     type: 3}
-  deleteLevelUIPrefab: {fileID: 4744932964043506517, guid: cb0e9f3edf2fb614aa2af47bebd79e2a,
+  _deleteLevelUIPrefab: {fileID: 4744932964043506517, guid: cb0e9f3edf2fb614aa2af47bebd79e2a,
     type: 3}
-  uiOffset: 60
+  _uiOffset: 60
   _saveMaxCount: 3
 --- !u!4 &731837671
 Transform:

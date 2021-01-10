@@ -9,7 +9,8 @@ public class CellGenerator : MonoBehaviour, ICellGenerator
     private Stack<Vector2Int> _cellStack;
     private int[] _xDistance, _zDistance;
 
-    public CellData GenerateCells(MazeSettingsSO mazeSettings, Vector3 startPoint) // TODO return class?
+    // Vytvoří buňky a propojí je podle informací z Maze Settings
+    public CellData GenerateCells(MazeSettingsSO mazeSettings, Vector3 startPoint)
     {
         _mazeSettings = mazeSettings;
 
@@ -21,6 +22,8 @@ public class CellGenerator : MonoBehaviour, ICellGenerator
         _zDistance = new int[_mazeSettings.length + 1];
 
         _zDistance[0] = _xDistance[0] = 0;
+
+        // Náhodně rozhodne o délce buňek
         for (int i = 1; i < _mazeSettings.length + 1; i++)
         {
             if (_mazeSettings.randomDistanceBetweenCells)
@@ -33,6 +36,7 @@ public class CellGenerator : MonoBehaviour, ICellGenerator
             }
         }
 
+        // Náhodně rozhodne o výšce buňek
         for (int i = 1; i < _mazeSettings.width + 1; i++)
         {
             if (_mazeSettings.randomDistanceBetweenCells)
@@ -45,14 +49,14 @@ public class CellGenerator : MonoBehaviour, ICellGenerator
             }
         }
 
-        // First Cell - add all possible neighbours, Z, X
+        // První buňka - přídá všechny sousedy do zásobníku, Z, X
         Vector2Int firstCell = new Vector2Int(Random.Range(1, _mazeSettings.length - 1), Random.Range(1, _mazeSettings.width - 1));
         Vector2Int currentCellPositionInArray = firstCell;
         _cells[currentCellPositionInArray.x, currentCellPositionInArray.y] = new Cell(true, true, true, true);
         PushNeighbouringCells(currentCellPositionInArray);
         int maxNodeCount = (_zDistance[currentCellPositionInArray.x + 1] - _zDistance[currentCellPositionInArray.x]) * (_xDistance[currentCellPositionInArray.y + 1] - _xDistance[currentCellPositionInArray.y]);
 
-        // All other Cells
+        // Nové buňky se vytváří dokud zásobník není prázdný
         while (_cellStack.Count > 0)
         {
             currentCellPositionInArray = _cellStack.Pop();
@@ -67,10 +71,11 @@ public class CellGenerator : MonoBehaviour, ICellGenerator
             maxNodeCount += (_zDistance[currentCellPositionInArray.x + 1] - _zDistance[currentCellPositionInArray.x]) * (_xDistance[currentCellPositionInArray.y + 1] - _xDistance[currentCellPositionInArray.y]);
         }
 
+        // Vrátí vytvořené buňky a s nimi nutné informace o nich
         return new CellData(_cells, firstCell, cellCounter, maxNodeCount, _xDistance, _zDistance);
     }
 
-    // Pushes neighbouring Cells into Stack
+    // Vloží sousední buňky do zásobníku
     private void PushNeighbouringCells(Vector2Int position)
     {
         Cell cell = _cells[position.x, position.y];
@@ -93,7 +98,7 @@ public class CellGenerator : MonoBehaviour, ICellGenerator
         }
     }
 
-    // Creates new Cell and copies the door positions of surrounding Cells
+    // Vytvoří novou buňku a zkopíruje stav zdí podle okolních buňek
     private void CreateNewCell(Vector2Int position)
     {
         Cell cell = new Cell();
@@ -146,7 +151,7 @@ public class CellGenerator : MonoBehaviour, ICellGenerator
         _cells[position.x, position.y] = cell;
     }
 
-    // Try to create new doors
+    // Pokusí se otevřát zdi v buňce, a tak umožnit přítomnost souseda
     private void CreateNewDoors(Vector2Int position)
     {
         int doorCount = _cells[position.x, position.y].GetDoorCount();

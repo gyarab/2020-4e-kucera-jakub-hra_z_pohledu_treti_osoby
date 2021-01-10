@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Data o předmětu jako je jeho ID, obrázek, jméno atd.
 public abstract class ItemObject : ScriptableObject
 {
     public int itemID;

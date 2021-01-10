@@ -9,12 +9,14 @@ public class InventorySlotContainer
     public int Coins { get; set; }
     public string SavePath { get; set; }
 
+    // Konstruktor, který obsahuje cestu k uloženeému souboru
     public InventorySlotContainer(string path)
     {
         SavePath = path;
         Load(path);
     }
 
+    // Přidá předmět podle ID do inventáře
     public void AddItem(ItemObject itemObject, int amount)
     {
         for (int i = 0; i < Slots.Count; i++)
@@ -29,6 +31,7 @@ public class InventorySlotContainer
         Slots.Add(new InventorySlot(itemObject, amount, Slots.Count));
     }
 
+    // Odstraní předmět podle ID z inventáře; vrací true, když to byl poslední předmět toho druhu
     public bool RemoveItem(int itemObjectID)
     {
         for (int i = 0; i < Slots.Count; i++)
@@ -48,11 +51,13 @@ public class InventorySlotContainer
         return false;
     }
 
+    // Odstraní předmět na určité pozici v poli
     public void RemoveItemAtIndex(int index)
     {
         Slots.RemoveAt(index);
     }
 
+    // Vrátí true, když je předmět s určitým ID v inventáři
     public bool HasItem(int itemObjectID)
     {
         for (int i = 0; i < Slots.Count; i++)
@@ -66,11 +71,13 @@ public class InventorySlotContainer
         return false;
     }
 
+    // Uloží inventář na zařízení
     public void Save()
     {
         LoadManager.SaveFile(SavePath, new SaveableInventory(Slots, EquippedItemSlots, Coins));
     }
 
+    // Načte inventář ze zařízení
     public void Load(string path)
     {
         Slots = new List<InventorySlot>();
@@ -91,6 +98,7 @@ public class InventorySlotContainer
         }
     }
 
+    // Vrátí Inventory SLot obsahující předmět s daným ID
     public InventorySlot GetSlotByItemID(int id)
     {
         for (int i = 0; i < Slots.Count; i++)

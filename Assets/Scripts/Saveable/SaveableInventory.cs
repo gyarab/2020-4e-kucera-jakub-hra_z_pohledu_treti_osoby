@@ -9,6 +9,7 @@ public class SaveableInventory
     public List<int> equippedItemIds;
     public int coins;
 
+    // Konstruktor bez parametrů
     public SaveableInventory()
     {
         savedItems = new List<SaveableInventorySlot>();
@@ -16,6 +17,7 @@ public class SaveableInventory
         coins = 0;
     }
 
+    // Konstruktor, který převede seznam Inventory Slotů na uložitelné Saveable Inventory Sloty
     public SaveableInventory(List<InventorySlot> items, List<InventorySlot> equippedItems, int coins)
     {
         savedItems = new List<SaveableInventorySlot>();
@@ -35,6 +37,7 @@ public class SaveableInventory
         this.coins = coins;
     }
 
+    // Konstruktor, který převede seznam s ID předmětů na Saveable Inventory Slot
     public SaveableInventory(int[] array)
     {
         savedItems = new List<SaveableInventorySlot>();

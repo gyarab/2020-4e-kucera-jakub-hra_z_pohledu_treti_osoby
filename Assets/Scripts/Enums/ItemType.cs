@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Druhy předmětů
 public enum ItemType
 {
     Quest,
