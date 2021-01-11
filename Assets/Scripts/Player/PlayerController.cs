@@ -531,6 +531,18 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
     }
 
+    public void RemoveWeapons()
+    {
+        if (_rightHandTransform.childCount > 0)
+        {
+            Destroy(_rightHandTransform.GetChild(0).gameObject);
+        }
+        if (_leftHandTransform.childCount > 0)
+        {
+            Destroy(_leftHandTransform.GetChild(0).gameObject);
+        }
+    }
+
     // Metoda je volána, když hráč má obdržet poškození
     public void TakeDamage(float damageTaken, float armourPenetration)
     {

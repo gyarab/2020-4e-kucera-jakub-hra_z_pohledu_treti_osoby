@@ -158,14 +158,22 @@ public class InventoryMonoBehaviour : MonoBehaviour
             }
             else
             {
-                // TODO if equiped -> unequip
-                _equipBuyButtonTMPT.SetText("Equip");
-                _equipBuyButton.onClick.AddListener(delegate { EquipItem(id); });
+                // Equip or unequip
+                if (CheckIfEquipped(id))
+                {
+                    _equipBuyButtonTMPT.SetText("Unequip");
+                    _equipBuyButton.onClick.AddListener(delegate { UnequipItem(id); });
+                } else
+                {
+                    _equipBuyButtonTMPT.SetText("Equip");
+                    _equipBuyButton.onClick.AddListener(delegate { EquipItem(id); });
+                }
             }
 
-            // TODO change chanseStatsUI
+            // Change chanseStatsUI
             _currentStatsTMPT.text = _player.GetStats().StatsToStringColumn(false, false);
-            // TODO change statsDelta
+
+            // Change statsDelta
             CharacterStats selectedObjectStats = EquipmentToStats(itemObject);
             CharacterStats equippedObjectStats = new CharacterStats(); ;
             switch (itemObject.type)
@@ -177,7 +185,6 @@ public class InventoryMonoBehaviour : MonoBehaviour
                     }
                     break;
             }
-
             selectedObjectStats.SubtractStats(equippedObjectStats);
             _statsDeltaTMPT.text = selectedObjectStats.StatsToStringColumn(true, true);
         }
@@ -222,7 +229,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
     {
         slot.GetComponent<Image>().sprite = item.ItemObject.uiSprite;
         slot.GetComponent<Button>().onClick.RemoveAllListeners();
-        slot.GetComponent<Image>().color = Color.white; // TODO dehighlight
+        slot.GetComponent<Image>().color = Color.white; // dehighlight
 
         item.SlotHolderChildPosition = index;
         int id = item.ItemObject.itemID;
@@ -231,7 +238,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         {
             if (CheckIfEquipped(item))
             {
-                slot.GetComponent<Image>().color = Color.green; // TODO highlight
+                slot.GetComponent<Image>().color = Color.green; // highlight
             }
         }
 
@@ -261,9 +268,23 @@ public class InventoryMonoBehaviour : MonoBehaviour
     // Vrcí true, když je předmět v slotu vybaven
     private bool CheckIfEquipped(InventorySlot slot)
     {
-        if(_equippedWeaponSlot != null)
+        if(_equippedWeaponSlot != null) // ADD category
         {
             if (slot.ItemObject.itemID == _equippedWeaponSlot.ItemObject.itemID)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Vrcí true, když je předmět v slotu vybaven
+    private bool CheckIfEquipped(int id)
+    {
+        if (_equippedWeaponSlot != null) // ADD category
+        {
+            if (id == _equippedWeaponSlot.ItemObject.itemID)
             {
                 return true;
             }
@@ -293,14 +314,42 @@ public class InventoryMonoBehaviour : MonoBehaviour
             {
                 if (_equippedWeaponSlot != null)
                 {
-                    _slotHolder.GetChild(_equippedWeaponSlot.SlotHolderChildPosition).GetComponent<Image>().color = Color.white;  // TODO dehighlight
+                    _slotHolder.GetChild(_equippedWeaponSlot.SlotHolderChildPosition).GetComponent<Image>().color = Color.white;  // dehighlight
                 }
-                _slotHolder.GetChild(inventorySlot.SlotHolderChildPosition).GetComponent<Image>().color = Color.green; // TODO highlight
+                _slotHolder.GetChild(inventorySlot.SlotHolderChildPosition).GetComponent<Image>().color = Color.green; // highlight
             }
 
             _equippedWeaponSlot = inventorySlot;
             _player.SwitchAnimationController(weapon.animationType);
             _player.SetWeapons(weapon.model, weapon.positionOffset, weapon.animationType == AnimationType.Twohanded);
+        }
+    }
+
+    // Odvybaví předmět podle ID
+    public void UnequipItem(int itemID)
+    {
+        InventorySlot inventorySlot = _playerInventoryContainer.GetSlotByItemID(itemID);
+
+        UnequipItemInSlot(inventorySlot, true);
+        PassStatsToPlayer();
+        DisplayInfo(itemID);
+    }
+
+    // Vybaví item v určitém slotu
+    public void UnequipItemInSlot(InventorySlot inventorySlot, bool visualEffect)
+    {
+        if (inventorySlot.ItemObject.type == ItemType.Weapon) // ADD more equippable categories
+        {
+            WeaponObject weapon = (WeaponObject)inventorySlot.ItemObject;
+
+            if (visualEffect)
+            {
+                _slotHolder.GetChild(inventorySlot.SlotHolderChildPosition).GetComponent<Image>().color = Color.white;  // dehighlight
+            }
+
+            _equippedWeaponSlot = null;
+            _player.SwitchAnimationController(AnimationType.Fists);
+            _player.RemoveWeapons();
         }
     }
 
@@ -419,7 +468,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         return stats;
     }
 
-    #region Item List Manipulation // TODO move some?
+    #region Item List Manipulation
 
     // Přidá hráčovi peníze
     public void AddCoinsToPlayer(int amount)
@@ -458,6 +507,10 @@ public class InventoryMonoBehaviour : MonoBehaviour
             }
         }
     }
+
+    #endregion
+
+    #region Saving and retrieving
 
     // Uloží stav inventářů
     public void Save()
@@ -518,7 +571,6 @@ public class InventoryMonoBehaviour : MonoBehaviour
     // Změní okno v inventáři na okno s inventářem hráče
     public void SwitchToInventoryTabUI()
     {
-        Debug.Log("Player inventory");
         _isShop = false;
         DisplayInventory(_playerInventoryContainer);
     }
@@ -526,7 +578,6 @@ public class InventoryMonoBehaviour : MonoBehaviour
     //Změní okno v inventáři na okno s inventářem obchodu
     public void SwitchToShopTabUI()
     {
-        Debug.Log("Shop inventory");
         _isShop = true;
         DisplayInventory(_secondaryShopInventoryContainer);
     }
@@ -538,6 +589,13 @@ public class InventoryMonoBehaviour : MonoBehaviour
         _inGameCanvas.enabled = true;
 
         Save();
+    }
+
+    // Vrátí hráče do menu
+    public void ExitToMenuUI()
+    {
+        Save();
+        GameManager.Instance.ReturnToMenu();
     }
 
     #endregion

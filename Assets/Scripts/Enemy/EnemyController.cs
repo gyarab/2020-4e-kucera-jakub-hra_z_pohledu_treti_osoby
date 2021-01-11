@@ -50,6 +50,8 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
     [SerializeField]
     private float _moveDistanceTolerance;
     [SerializeField]
+    private float _pathfindingRefreshInterval;
+    [SerializeField]
     Vector2Int _randomMovementCycles, _randomMovementLength;
 
     [Header("Animaton")]
@@ -128,13 +130,22 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
         int index = 0;
         float distance;
         Vector3 positionDelta;
+        bool recalculate = true;
+        float timePassed = 0;
 
         while (true)
         {
             if (CanAttack())
             {
+                recalculate = false;
                 break;
             }
+
+            if(timePassed > _pathfindingRefreshInterval)
+            {
+                break;
+            }
+            timePassed += Time.fixedDeltaTime;
 
             positionDelta = GamePhysics.MoveTowardsPositionNonYClamped(transform.position, _path[index], _movementSpeed, out distance);
             transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, positionDelta, _rotationSpeed);
@@ -145,6 +156,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
 
                 if (index >= _path.Count || _path[index] == null) // how can it be null
                 {
+                    recalculate = false;
                     break;
                 }
             }
@@ -155,7 +167,14 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
 
         animator.SetBool("Walk", false);
 
-        ChangeState(FollowTarget());
+        if (recalculate)
+        {
+            ChangeState(FollowPathToTarget());
+        }
+        else
+        {
+            ChangeState(FollowTarget());
+        }
     }
 
     // Nepřítel v tomto stavu stojí na místě a čeká na uplynutí doby, zároveň se rozhlíží, jestli neuvidí hráče

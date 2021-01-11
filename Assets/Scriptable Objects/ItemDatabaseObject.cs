@@ -8,6 +8,7 @@ public class ItemDatabaseObject : ScriptableObject, ISerializationCallbackReceiv
     public ItemObject[] items;
     public Dictionary<int, ItemObject> getItem;
 
+    // Vytvoří z pole slovník
     public void OnAfterDeserialize()
     {
         getItem = new Dictionary<int, ItemObject>();
@@ -20,9 +21,10 @@ public class ItemDatabaseObject : ScriptableObject, ISerializationCallbackReceiv
         }
     }
 
+    // Metoda je tu pouze kvůli interfacu ISerializationCallbackReceiver
     public void OnBeforeSerialize()
     {
-        // TODO not working; wokring without it
+        // probably useless
         /*items.Clear();
 
         foreach(KeyValuePair<int, ItemObject> kvp in getItem)

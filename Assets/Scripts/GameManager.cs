@@ -13,6 +13,11 @@ public class GameManager : MonoBehaviour
     private const string GAME_FILE = "game.info";
     private const string SETTINGS_FILE = "settings.conf";
 
+    private const string MENU_SCENE_NAME = "Menu";
+    private const string HUB_SCENE_NAME = "Hub";
+    private const string PLAYER_SCENE_NAME = "Player";
+    private const string MAP_SCENE_NAME = "Maze";
+
     private static GameManager _instance;
     public GameObject Player { get; set; }
     public InputManager InputManager { get; set; }
@@ -122,7 +127,7 @@ public class GameManager : MonoBehaviour
         }
 
         _currentSavePath = path;
-        StartCoroutine(LoadGameAsync("Hub", "Player", playerSettings));
+        StartCoroutine(LoadGameAsync(HUB_SCENE_NAME, PLAYER_SCENE_NAME, playerSettings));
     }
 
     // Přesvědčí se, zda se už něco nenačítá a poté zavolá Coroutine, která načte scénu, která vygeneruje mapu
@@ -135,7 +140,7 @@ public class GameManager : MonoBehaviour
 
         Player.GetComponent<PlayerController>().Reset();
 
-        StartCoroutine(LoadMazeAsync("Maze", mazeSettings));
+        StartCoroutine(LoadMazeAsync(MAP_SCENE_NAME, mazeSettings));
     }
 
     // Zjistí se, zda se už něco nenačítá a poté zavolá Coroutine, která načte scénu s výběrem úrovní
@@ -149,7 +154,18 @@ public class GameManager : MonoBehaviour
         Player.GetComponent<PlayerController>().GetPlayerInventory().AddCoinsToPlayer(coinsUnlocked);
         Player.GetComponent<PlayerController>().Reset();
 
-        StartCoroutine(LoadHubAsync("Hub", success));
+        StartCoroutine(LoadHubAsync(HUB_SCENE_NAME, success));
+    }
+
+    // Přesvědčí se, zda se už něco nenačítá a poté zavolá Coroutine, která načte úvodní obrazovku
+    public void ReturnToMenu()
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        StartCoroutine(LoadMenu(MENU_SCENE_NAME));
     }
 
     // Odnačte scénu podle názvu
@@ -192,7 +208,7 @@ public class GameManager : MonoBehaviour
         CurrentHubManager.LoadState(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, GAME_FILE));
         CurrentHubManager.EnablePlayerDependantObjects(Player.transform, InputManager.GetCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, "shop.inv"));
 
-        UnloadScene("Menu");
+        UnloadScene(MENU_SCENE_NAME);
         _loading = false;
         _loadingScreen.HideLoadingScreen();
     }
@@ -204,6 +220,7 @@ public class GameManager : MonoBehaviour
         _loadingScreen.ShowLoadingScreen();
         Player.SetActive(false);
         CurrentHubManager = null;
+        CurrentMazeManager = null;
         AsyncOperation locationSceneLoadingTask = SceneManager.LoadSceneAsync(locationSceneName, LoadSceneMode.Additive);
 
         while (!locationSceneLoadingTask.isDone) { yield return null; }
@@ -212,7 +229,7 @@ public class GameManager : MonoBehaviour
 
         while (CurrentHubManager == null) { yield return null; }
 
-        UnloadScene("Maze");
+        UnloadScene(MAP_SCENE_NAME);
 
         Player.SetActive(true);
         Player.transform.position = new Vector3(0, 2, 0); // TODO hardcoded
@@ -235,6 +252,8 @@ public class GameManager : MonoBehaviour
         _loading = true;
         _loadingScreen.ShowLoadingScreen();
         Player.SetActive(false);
+        CurrentHubManager = null;
+        CurrentMazeManager = null;
         AsyncOperation locationSceneLoadingTask = SceneManager.LoadSceneAsync(locationSceneName, LoadSceneMode.Additive);
 
         while (!locationSceneLoadingTask.isDone) { yield return null; }
@@ -247,9 +266,38 @@ public class GameManager : MonoBehaviour
         QuestUI.QueueMessage(message);
 
         CurrentHubManager = null;
-        UnloadScene("Hub");
+        UnloadScene(HUB_SCENE_NAME);
 
         Player.SetActive(true);
+        _loading = false;
+        _loadingScreen.HideLoadingScreen();
+    }
+
+    // Načte menu
+    IEnumerator LoadMenu(string menuSceneName)
+    {
+        _loading = true;
+        _loadingScreen.ShowLoadingScreen();
+        Player.SetActive(false);
+        Player = null;
+        CurrentHubManager = null;
+        InputManager = null;
+        CurrentHubManager = null;
+        CurrentMazeManager = null;
+
+        string[] loadedScenes = GetNamesOfActiveScenes();
+
+        AsyncOperation menuSceneLoadingTask = SceneManager.LoadSceneAsync(menuSceneName, LoadSceneMode.Additive);
+        while (!menuSceneLoadingTask.isDone) { yield return null; }
+        SceneManager.SetActiveScene(SceneManager.GetSceneByName(menuSceneName));
+
+        yield return null;
+
+        for (int i = 0; i < loadedScenes.Length; i++)
+        {
+            UnloadScene(loadedScenes[i]);
+        }
+
         _loading = false;
         _loadingScreen.HideLoadingScreen();
     }
@@ -262,6 +310,19 @@ public class GameManager : MonoBehaviour
             AsyncOperation sceneUnloadingTask = SceneManager.UnloadSceneAsync(sceneName);
             while (!sceneUnloadingTask.isDone) { yield return null; }
         }
+    }
+
+    private string[] GetNamesOfActiveScenes()
+    {
+        int sceneCount = SceneManager.sceneCount;
+        string[] loadedScenes = new string[sceneCount];
+
+        for (int i = 0; i < sceneCount; i++)
+        {
+            loadedScenes[i] = SceneManager.GetSceneAt(i).name;
+        }
+
+        return loadedScenes;
     }
 
     #endregion
