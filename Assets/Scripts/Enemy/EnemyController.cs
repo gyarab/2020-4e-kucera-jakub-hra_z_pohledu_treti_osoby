@@ -26,6 +26,8 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
     private float _detectionAngle;
     [SerializeField]
     private Vector3 _firstRaycastOffset, _secondRaycastOffset;
+    [SerializeField]
+    private LayerMask _environmentLayer;
 
     [Header("RayCast")]
     [SerializeField]
@@ -50,13 +52,13 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
     [SerializeField]
     private float _moveDistanceTolerance;
     [SerializeField]
-    private float _pathfindingRefreshInterval;
+    private float _pathfindingRefreshInterval, _yPathfindingRayOffset;
     [SerializeField]
     Vector2Int _randomMovementCycles, _randomMovementLength;
 
     [Header("Animaton")]
     [SerializeField]
-    private Animator animator;
+    private Animator _animator;
 
     [Header("Other"), SerializeField]
     Vector2 _waitTime;
@@ -90,235 +92,19 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
 
         _seenTarget = false;
         _target = GameManager.Instance.Player.transform;
-        ChangeState(WaitForNextAction());
     }
 
-    // Otáčí ukazatel životů směrem ke kameře
-    void Update()
-    {
-        if (_healthBarCanvas.enabled)
-        {
-            LookAtCamera();
-        }
-    }
-
-    // Řeší fyzickou stránku objektu, tedy gravitaci, pohyb a kolize
-    void FixedUpdate()
+    public void PassivePhysics()
     {
         _grounded = IsGrounded();
         CalculateYSpeed();
         ResolveCollisions();
     }
 
-    #region State Methods
-
-    // Coroutine, která následuje hráče po cestě z Pathfinding, dokud nedorazí nakonec nebo hráč je dost blízko
-    private IEnumerator FollowPathToTarget()
-    {
-        animator.SetBool("Walk", true);
-
-        _path = Pathfinder.GetPath(transform.position, _target.position);
-
-        if (_path == null)
-        {
-            ChangeState(FollowTarget());
-        } else if(_path.Count < 1)
-        {
-            ChangeState(FollowTarget());
-        }
-
-        int index = 0;
-        float distance;
-        Vector3 positionDelta;
-        bool recalculate = true;
-        float timePassed = 0;
-
-        while (true)
-        {
-            if (CanAttack())
-            {
-                recalculate = false;
-                break;
-            }
-
-            if(timePassed > _pathfindingRefreshInterval)
-            {
-                break;
-            }
-            timePassed += Time.fixedDeltaTime;
-
-            positionDelta = GamePhysics.MoveTowardsPositionNonYClamped(transform.position, _path[index], _movementSpeed, out distance);
-            transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, positionDelta, _rotationSpeed);
-
-            if (distance <= _moveDistanceTolerance)
-            {
-                index++;
-
-                if (index >= _path.Count || _path[index] == null) // how can it be null
-                {
-                    recalculate = false;
-                    break;
-                }
-            }
-
-            transform.position += positionDelta;
-            yield return new WaitForFixedUpdate();
-        }
-
-        animator.SetBool("Walk", false);
-
-        if (recalculate)
-        {
-            ChangeState(FollowPathToTarget());
-        }
-        else
-        {
-            ChangeState(FollowTarget());
-        }
-    }
-
-    // Nepřítel v tomto stavu stojí na místě a čeká na uplynutí doby, zároveň se rozhlíží, jestli neuvidí hráče
-    private IEnumerator WaitForNextAction()
-    {
-        float timer = 0;
-        float timeToWait = UnityEngine.Random.Range(_waitTime.x, _waitTime.y);
-
-        while(timer < timeToWait)
-        {
-            CheckForTarget();
-
-            timer += Time.fixedDeltaTime;
-            yield return new WaitForFixedUpdate();
-        }
-
-        int randomNumber = UnityEngine.Random.Range(0, 2);
-        if(randomNumber == 0)
-        {
-            ChangeState(WalkToRandomPlace());
-        } else
-        {
-            ChangeState(FaceRandomDirection());
-        }
-    }
-
-    // Zaútočí na protivníka a po prodlevě udělí hráči poškození, jestli se vyskytuje v oblasti zásahu
-    private IEnumerator AttackTarget()
-    {
-        animator.SetTrigger("Attack");
-        yield return new WaitForSeconds(_delayBeforeAttack);
-        Attack();
-        yield return new WaitForSeconds(_delayAfterAttack);
-
-        ChangeState(FollowPathToTarget());
-    }
-
-    // Následuje hráče vizuálně, dokud je vidět nebo na něj může zaútočit
-    private IEnumerator FollowTarget()
-    {
-        animator.SetBool("Walk", true);
-
-        float distance;
-        Vector3 positionDelta;
-        bool attack = false;
-
-        while (IsTargetVisible(_detectionRange))
-        {
-            positionDelta = GamePhysics.MoveTowardsPositionNonYClamped(transform.position, _target.position, _movementSpeed, out distance);
-            transform.rotation = GamePhysics.RotateTowardsTarget(transform.rotation, transform.position, _target.position, _rotationSpeed);
-
-            if (distance <= _attackRange * _attackInitiationPercentage)
-            {
-                attack = true;
-                break;
-            }
-
-            transform.position += positionDelta;
-            yield return new WaitForFixedUpdate();
-        }
-
-        animator.SetBool("Walk", false);
-
-        if (attack)
-        {
-            ChangeState(AttackTarget());
-        } else
-        {
-            ChangeState(FollowPathToTarget());
-        }
-    }
-
-    // Vybere si náhodnou pozici, na kterou přejde; zároveň se rozhlíží po hráči
-    private IEnumerator WalkToRandomPlace()
-    {
-        animator.SetBool("Walk", true);
-
-        _path = Pathfinder.GetRandomPath(transform.position, UnityEngine.Random.Range(_randomMovementCycles.x, _randomMovementCycles.y), UnityEngine.Random.Range(_randomMovementLength.x, _randomMovementLength.y));
-
-        int index = 0;
-        float distance;
-        Vector3 positionDelta;
-
-        while (true)
-        {
-            CheckForTarget();
-
-            positionDelta = GamePhysics.MoveTowardsPositionNonYClamped(transform.position, _path[index], _movementSpeed, out distance);
-            transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, positionDelta, _rotationSpeed);
-
-            if (distance <= _moveDistanceTolerance)
-            {
-                index++;
-
-                if (index >= _path.Count)
-                {
-                    break;
-                }
-            }
-
-            transform.position += positionDelta;
-            yield return new WaitForFixedUpdate();
-        }
-
-        animator.SetBool("Walk", false);
-
-        ChangeState(WaitForNextAction());
-    }
-
-    // Otočí se náhodným směrem
-    private IEnumerator FaceRandomDirection()
-    {
-        float degreesToRotate = UnityEngine.Random.Range(90f, 180f);
-        float alreadyRotatedDegrees = 0;
-        int sign = 1;
-        if (UnityEngine.Random.Range(0, 2) == 0)
-        {
-            sign = -1;
-        }
-
-        do
-        {
-            CheckForTarget();
-
-            if (alreadyRotatedDegrees + _angularSpeed >= degreesToRotate)
-            {
-                transform.Rotate(0, (degreesToRotate - alreadyRotatedDegrees) * sign, 0);
-                break;
-            }
-
-            transform.Rotate(0, _angularSpeed * sign, 0);
-            alreadyRotatedDegrees += _angularSpeed;
-            yield return new WaitForFixedUpdate();
-        } while (true);
-
-        ChangeState(WaitForNextAction());
-    }
-
-    #endregion
-
     #region Attack Methods
 
     // Spočítá vzdálenost mezi sebou a hráčem a taky úhel a podle toho mu udělí nebo neudělí poškození
-    private void Attack()
+    public void Attack()
     {
         float distance = Vector3.Distance(transform.position, _target.transform.position);
 
@@ -343,16 +129,10 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
         }
     }
 
-    // Vrátí boolean, jestli je hráč v dosahu
-    private bool InRangeToAttack()
-    {
-        return Vector3.Distance(transform.position, _target.transform.position) < _attackRange;
-    }
-
     // Vrací true, když je ráč viditelný a v dosahu
     public bool CanAttack()
     {
-        if (InRangeToAttack()) // Is enemy in range to attack?
+        if (IsTargetInRange(_attackRange)) // Is enemy in range to attack?
         {
             if (IsTargetVisible(_attackRange))
             {
@@ -407,29 +187,42 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
     }
 
     // Kontroluje, jestli je hráč v zorném poli protivníka
-    private void CheckForTarget()
+    public bool TryToDetectTarget()
     {
-        if (!_seenTarget)
+        if (Vector3.Distance(transform.position, _target.transform.position) < _detectionRange)
         {
-            if (Vector3.Distance(transform.position, _target.transform.position) < _detectionRange)
+            if (IsTargetVisible(_detectionRange))
             {
-                if (IsTargetVisible(_detectionRange))
+                Vector3 forward = transform.forward;
+                Vector3 targetDirection = _target.transform.position - transform.position;
+                if (Vector2.Angle(new Vector2(forward.x, forward.z), new Vector2(targetDirection.x, targetDirection.z)) < _detectionAngle)
                 {
-                    Vector3 forward = transform.forward;
-                    Vector3 targetDirection = _target.transform.position - transform.position;
-                    if (Vector2.Angle(new Vector2(forward.x, forward.z), new Vector2(targetDirection.x, targetDirection.z)) < _detectionAngle)
-                    {
-                        ChangeState(FollowPathToTarget());
-                    }
+                    _seenTarget = true;
+                    return true;
                 }
             }
         }
+
+        return false;
     }
 
     // Vrací hodnotu, jestli je hráč viditelný
     private bool IsTargetVisible(float range)
     {
-        return Physics.Raycast(transform.position, _target.transform.position - transform.position, range, ~transform.gameObject.layer);
+        return !Physics.Raycast(transform.position, _target.transform.position - transform.position, range, _environmentLayer);
+    }
+
+    // Vrátí boolean, jestli je hráč v dosahu
+    private bool IsTargetInRange(float range)
+    {
+        return Vector3.Distance(transform.position, _target.transform.position) < range;
+    }
+
+    // Je pathfinding node viditelný
+    public bool IsPathToNextWaypointClear(Vector3 position)
+    {
+        Vector3 correctedPosition = new Vector3(position.x, position.y + _yPathfindingRayOffset, position.z);
+        return !Physics.Raycast(transform.position, correctedPosition - transform.position, Vector3.Distance(transform.position, correctedPosition), _environmentLayer);
     }
 
     // Metoda je zavolána, když je nepřítel poražen; Vyvolá akci On Enemy Death
@@ -439,6 +232,98 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
         Destroy(gameObject);
     }
 
+    #region New
+
+    public void LookAtCameraIfCanvasEnabled()
+    {
+        if (_healthBarCanvas.enabled)
+        {
+            LookAtCamera();
+        }
+    }
+
+    public Animator GetAnimator()
+    {
+        return _animator;
+    }
+
+    public List<Vector3> GetPathToTarget()
+    {
+        return Pathfinder.GetPath(transform.position, _target.position);
+    }
+
+    public List<Vector3> GetRandomPath()
+    {
+        return Pathfinder.GetRandomPath(transform.position, UnityEngine.Random.Range(_randomMovementCycles.x, _randomMovementCycles.y), UnityEngine.Random.Range(_randomMovementLength.x, _randomMovementLength.y));
+    }
+
+    public float MoveToPositionAndRotate(Vector3 targetPosition)
+    {
+        float distance;
+        Vector3 positionDelta =  GamePhysics.MoveTowardsPositionNonYClamped(transform.position, targetPosition, _movementSpeed, out distance);
+        transform.position += positionDelta;
+        transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, positionDelta, _rotationSpeed);
+        return distance;
+    }
+
+    public float MoveToTargetAndRotate()
+    {
+        float distance;
+        Vector3 positionDelta = GamePhysics.MoveTowardsPositionNonYClamped(transform.position, _target.position, _movementSpeed, out distance);
+        transform.position += positionDelta;
+        transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, positionDelta, _rotationSpeed);
+        return distance;
+    }
+
+    public void RotateYDegrees(float _degrees)
+    {
+        transform.Rotate(0, _degrees, 0);
+    }
+
+    public bool IsEnemyVisibleAndInAttackRange()
+    {
+        return (IsTargetVisible(_attackRange) && IsTargetInRange(_attackRange));
+    }
+
+    public bool IsEnemyVisibleAndInDetectionRange()
+    {
+        return IsTargetVisible(_detectionRange) && IsTargetInRange(_detectionRange);
+    }
+
+    public void GetFPTTInitValues(out float pathfingindRefreshInterval, out float distanceTolerance)
+    {
+        pathfingindRefreshInterval = _pathfindingRefreshInterval;
+        distanceTolerance = _moveDistanceTolerance;
+    }
+
+    public Vector3 GetWFNAInitValues()
+    {
+        return _waitTime;
+    }
+
+    public void GetATInitValues(out float delayBeforeAttack, out float delayAfterAttack)
+    {
+        delayBeforeAttack = _delayBeforeAttack;
+        delayAfterAttack = _delayAfterAttack;
+    }
+
+    public float GetFTInitValues()
+    {
+        return _attackRange * _attackInitiationPercentage;
+    }
+
+    public float GetWTRPInitValues()
+    {
+        return _moveDistanceTolerance;
+    }
+
+    public float GetFRDInitValues()
+    {
+        return _angularSpeed;
+    }
+
+    #endregion
+
     // Metoda implementovaná interfacem Damageable, dovoluje nepřáteli obdržet poškození
     public void TakeDamage(float damage, float armourPenetration)
     {
@@ -447,7 +332,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
 
         if (!_seenTarget)
         {
-            ChangeState(FollowPathToTarget());
+            GetComponent<EnemyFSM>().ChangeState(EnemyStateType.FollowTarget);
         }
 
         if (_currentHealth <= 0)
