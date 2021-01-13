@@ -8,11 +8,13 @@ public class FollowPathToTargetState : EnemyState
     private int _index;
     private float _distance, _timePassed, _pathfindingRefreshInterval, _moveDistanceTolerance;
 
+    // Konstruktor
     public FollowPathToTargetState(EnemyController enemyController, EnemyFSM FSM) : base(enemyController, FSM)
     {
         enemyController.GetFPTTInitValues(out _pathfindingRefreshInterval, out _moveDistanceTolerance);
     }
 
+    // Získá cestu k hráči a začne přehrávat animaci chůze
     public override void OnEntered()
     {
         _enemyController.GetAnimator().SetBool("Walk", true);
@@ -20,15 +22,13 @@ public class FollowPathToTargetState : EnemyState
 
         if (_path == null)
         {
-            Debug.Log("path is null");
             _FSM.ChangeState(EnemyStateType.FollowTarget);
-            Debug.Log("changed");
+            return;
         }
         else if (_path.Count < 1)
         {
-            Debug.Log("path is empty");
             _FSM.ChangeState(EnemyStateType.FollowTarget);
-            Debug.Log("changed");
+            return;
         }
 
         _index = 0;
@@ -38,18 +38,18 @@ public class FollowPathToTargetState : EnemyState
         {
             if (_enemyController.IsPathToNextWaypointClear(_path[1]))
             {
-                Debug.Log("Skipped");
                 _index = 1;
             }
         }
-        Debug.Log("FPTT");
     }
 
+    // Zavolá zdědenou metodu
     public override void FrameUpdate()
     {
         base.FrameUpdate();
     }
 
+    // Zařizuje to, aby nepřítel prošel vyhledanou cestou k hráči
     public override void PhysicsUpdate()
     {
         base.PhysicsUpdate();
@@ -89,6 +89,7 @@ public class FollowPathToTargetState : EnemyState
         }
     }
 
+    // Přestane přehrávat animaci chůze
     public override void OnExit()
     {
         _enemyController.GetAnimator().SetBool("Walk", false);

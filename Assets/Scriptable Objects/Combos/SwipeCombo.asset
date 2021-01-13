@@ -15,7 +15,7 @@ MonoBehaviour:
   actions: 010000000200000005000000000000000200000005000000
   waitTime:
   - 0.5
-  - 1
+  - 1.5
   optimalAngle: 180
   optimalMinDistance: 0
   optimalMaxDistance: 4

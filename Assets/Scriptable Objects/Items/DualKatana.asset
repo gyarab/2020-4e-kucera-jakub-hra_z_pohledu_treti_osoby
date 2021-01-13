@@ -16,10 +16,11 @@ MonoBehaviour:
   uiSprite: {fileID: 21300000, guid: 87a7f93f79f798747b2fd39dbdc93aea, type: 3}
   type: 3
   itemName: Two-handed sword
-  description: Two cheap deadly blades.
-  price: 10
-  damage: 20
-  healthBonus: 0
+  description: Two katanas are surely better than one, right? But I'm pretty sure
+    they were not intended as a dual wield weapon.
+  price: 20
+  damage: 25
+  healthBonus: -20
   armourPenetration: 5
   animationType: 2
   model: {fileID: 1045144690088684098, guid: 001e75cc47a17cc4a8adb463b6c45dbf, type: 3}

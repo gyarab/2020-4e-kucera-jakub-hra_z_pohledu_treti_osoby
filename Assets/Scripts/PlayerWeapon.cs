@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PlayerWeapon : MonoBehaviour // TODO remove???
 {
+    // Zatím nepoužité
+
     [Header("Attack General")]
     public float damage;
     public bool findEnemy;

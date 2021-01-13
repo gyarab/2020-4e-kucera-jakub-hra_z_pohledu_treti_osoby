@@ -15,6 +15,6 @@ MonoBehaviour:
   itemID: 6
   uiSprite: {fileID: 21300000, guid: e589f148f252e484faf49af8a92a286e, type: 3}
   type: 0
-  itemName: Silver key
-  description: Keys usually open a door.
+  itemName: Silver Key
+  description: Keys usually open a door, but this one..., this one could kill a werewolf.
   price: 0

@@ -16,8 +16,9 @@ MonoBehaviour:
   uiSprite: {fileID: 21300000, guid: cbf1e923846d13144b1989878e7c6e4f, type: 3}
   type: 3
   itemName: Very Long Katana
-  description: IDK, TODO.
-  price: 30
+  description: High quality and very reliable japanese weapon. Might be a little bit
+    havier, owing to it's length.
+  price: 35
   damage: 25
   healthBonus: 0
   armourPenetration: 10

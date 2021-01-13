@@ -175,6 +175,7 @@ MonoBehaviour:
   _zOuterRoomOffset: 40
   _zBossOffset: 50
   _yDoorOffset: 0
+  _yGroundItemOffset: 0.5
 --- !u!114 &1994751313
 MonoBehaviour:
   m_ObjectHideFlags: 0

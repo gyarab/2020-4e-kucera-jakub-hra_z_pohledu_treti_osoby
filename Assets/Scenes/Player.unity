@@ -2483,8 +2483,8 @@ MonoBehaviour:
   m_outlineColor:
     serializedVersion: 2
     rgba: 4278190080
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 34
+  m_fontSizeBase: 34
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -3993,8 +3993,8 @@ MonoBehaviour:
   _playerRotationSpeed: 0.5
   _inAirSpeed: 0.8
   _rollSpeedMultiplier: 1
-  _jumpForce: 3
-  _maxStep: 0.3
+  _jumpForce: 2
+  _maxStep: 0.35
   _collisionLayer:
     serializedVersion: 2
     m_Bits: 6656
@@ -4869,8 +4869,8 @@ MonoBehaviour:
   m_outlineColor:
     serializedVersion: 2
     rgba: 4278190080
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -5138,7 +5138,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000061035156, y: 0.0000060815787}
+  m_AnchoredPosition: {x: -0.000061035156, y: 0.000006150244}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1642604803

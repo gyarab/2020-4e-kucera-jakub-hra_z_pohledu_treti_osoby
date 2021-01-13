@@ -7,11 +7,13 @@ public class FaceRandomDirectionState : EnemyState
     private float _alreadyRotatedDegrees, _angularSpeed, _degreesToRotate;
     int _sign;
 
+    // Konstruktor
     public FaceRandomDirectionState(EnemyController enemyController, EnemyFSM FSM) : base(enemyController, FSM)
     {
         _angularSpeed = _enemyController.GetFRDInitValues();
     }
 
+    // Náhodně zvolí úhel, o který se otočí
     public override void OnEntered()
     {
         _alreadyRotatedDegrees = 0;
@@ -24,14 +26,15 @@ public class FaceRandomDirectionState : EnemyState
         {
             _sign = -1;
         }
-        Debug.Log("FRD");
     }
 
+    // Zavolá zděděnou metodu
     public override void FrameUpdate()
     {
         base.FrameUpdate();
     }
 
+    // Otočí postavu o daný úhel, přitom zjišťuje, jestli hráč nevešel do zorného pole
     public override void PhysicsUpdate()
     {
         base.PhysicsUpdate();
@@ -53,10 +56,5 @@ public class FaceRandomDirectionState : EnemyState
             _enemyController.RotateYDegrees(_angularSpeed * _sign);
             _alreadyRotatedDegrees += _angularSpeed;
         }
-    }
-
-    public override void OnExit()
-    {
-
     }
 }

@@ -14,7 +14,7 @@ public class Spawner : MonoBehaviour
     [SerializeField]
     private GameObject _bossRoom, _bossRoomDoors, _boss;
     [SerializeField]
-    float _zOuterRoomOffset, _zBossOffset, _yDoorOffset; // TODO remove last?
+    float _zOuterRoomOffset, _zBossOffset, _yDoorOffset, _yGroundItemOffset;
 
     // Vytvoří instanci protivníka na určité pozici
     public void SpawnEnemy(Vector3 position)
@@ -22,21 +22,21 @@ public class Spawner : MonoBehaviour
         Instantiate(_enemyPrefab, position, Quaternion.identity);
     }
 
-    // Vytvoří předmětu protivníka na určité pozici
+    // Vytvoří instanci předmětu na určité pozici
     public void SpawnItem(Vector3 position, int itemID)
     {
         ItemObject item = GameManager.Instance.GetItemObjectByID(itemID);
-        GroundItem groundItem = Instantiate(_groundItemPrefab, position, Quaternion.identity).GetComponent<GroundItem>();
+        GroundItem groundItem = Instantiate(_groundItemPrefab, new Vector3(position.x, position.y + _yGroundItemOffset, + position.x), Quaternion.identity).GetComponent<GroundItem>();
         groundItem.SetVariables(item);
     }
 
-    // Vytvoří portálu protivníka na určité pozici
+    // Vytvoří instanci portálu na určité pozici
     public void SpawnReturnPortal(Vector3 position)
     {
         Instantiate(_returnPortal, position, Quaternion.identity);
     }
 
-    // Vytvoří vedlejší místnosti s bossem na určité pozici
+    // Vytvoří vedlejší místnost s bossem na určité pozici
     public GameObject SpawnBossRoom(Vector3 position, int side, float distanceBetweenCells)
     {
         float yRotation = side * 90f;

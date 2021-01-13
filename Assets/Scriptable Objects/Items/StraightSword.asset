@@ -15,12 +15,12 @@ MonoBehaviour:
   itemID: 3
   uiSprite: {fileID: 21300000, guid: bac9fd6f171d74f408ed62a6774540a1, type: 3}
   type: 3
-  itemName: StraightSword
-  description: Nothing penetrates armour better than a both-handed sword.
-  price: 20
+  itemName: "Zweih\xE4nder"
+  description: Nothing causes so headache to the enemies like a both-handed sword.
+  price: 15
   damage: 20
-  healthBonus: -5
-  armourPenetration: 10
+  healthBonus: 0
+  armourPenetration: 0
   animationType: 3
   model: {fileID: 36738576168161428, guid: 52487f2629c1a46479b8295bf408f849, type: 3}
   positionOffset: {x: 0, y: 0, z: -0.0033}

@@ -6,22 +6,25 @@ public class FollowTargetState : EnemyState
 {
     private float _distance, _attackRange;
 
+    // Konstruktor
     public FollowTargetState(EnemyController enemyController, EnemyFSM FSM) : base(enemyController, FSM)
     {
         _attackRange = _enemyController.GetFTInitValues();
     }
 
+    // Nastaví animace chůze
     public override void OnEntered()
     {
         _enemyController.GetAnimator().SetBool("Walk", true);
-        Debug.Log("FT");
     }
 
+    // Zavolá zděděnou metodu
     public override void FrameUpdate()
     {
         base.FrameUpdate();
     }
 
+    // Následuje hráče, dokud ho neztratí z dohledu nebo nemůže zaútočit
     public override void PhysicsUpdate()
     {
         base.PhysicsUpdate();
@@ -42,6 +45,7 @@ public class FollowTargetState : EnemyState
         }
     }
 
+    // Ukončí animace chůze
     public override void OnExit()
     {
         _enemyController.GetAnimator().SetBool("Walk", false);

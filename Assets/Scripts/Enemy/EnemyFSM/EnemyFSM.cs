@@ -12,7 +12,7 @@ public class EnemyFSM : MonoBehaviour
     private WalkToRandomPlaceState _walkToRandomPlaceState;
     private FaceRandomDirectionState _faceRandomDirectionState;
 
-    // Start is called before the first frame update
+    // Inicializace a nastaví počáteční stav
     void Start()
     {
         EnemyController controller = GetComponent<EnemyController>();
@@ -28,6 +28,7 @@ public class EnemyFSM : MonoBehaviour
         _currentState.OnEntered();
     }
 
+    // Změní stav a zavolá metodu ukončující starý stav a začínající nový stav
     public void ChangeState(EnemyStateType nextState)
     {
         _currentState.OnExit();
@@ -35,6 +36,7 @@ public class EnemyFSM : MonoBehaviour
         _currentState.OnEntered();
     }
 
+    // Změní stav podle parametru
     private void SetState(EnemyStateType nextState)
     {
         switch (nextState)
@@ -60,12 +62,13 @@ public class EnemyFSM : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
+    // Zavolá metodu, která vykoná instrukce pro aktuální stav
     void Update()
     {
         _currentState.FrameUpdate();
     }
 
+    // Zavolá metodu, která vykoná instrukce pro aktuální stav
     void FixedUpdate()
     {
         _currentState.PhysicsUpdate();

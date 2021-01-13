@@ -8,24 +8,27 @@ public class WalkToRandomPlaceState : EnemyState
     private int _index;
     private float _distance, _moveDistanceTolerance;
 
+    // Konstruktor
     public WalkToRandomPlaceState(EnemyController enemyController, EnemyFSM FSM) : base(enemyController, FSM)
     {
         _moveDistanceTolerance = _enemyController.GetWTRPInitValues();
     }
 
+    // Víská vygenerovanou náhodnou cestu z Pathfinding, začne přehrávat animaci chůze
     public override void OnEntered()
     {
         _enemyController.GetAnimator().SetBool("Walk", true);
         _path = _enemyController.GetRandomPath();
         _index = 0;
-        Debug.Log("WTRP");
     }
 
+    // Zavolá zděděnou metodu
     public override void FrameUpdate()
     {
         base.FrameUpdate();
     }
 
+    // Prochází body a rozhlíží se po hráči
     public override void PhysicsUpdate()
     {
         base.PhysicsUpdate();
@@ -49,6 +52,7 @@ public class WalkToRandomPlaceState : EnemyState
         }
     }
 
+    // Skončí přehrávat animaci běhu
     public override void OnExit()
     {
         _enemyController.GetAnimator().SetBool("Walk", false);

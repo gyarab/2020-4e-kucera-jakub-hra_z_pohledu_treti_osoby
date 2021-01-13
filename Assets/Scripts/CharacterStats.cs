@@ -10,11 +10,13 @@ public class CharacterStats
     public float Damage { get; set; }
     public float ArmourPenetration { get; set; }
 
+    // Konstruktor
     public CharacterStats()
     {
         Health = Armour = Damage = ArmourPenetration = 0;
     }
 
+    // Konstruktor se všemi parametry
     public CharacterStats(float health, float armour, float damage, float armourPenetration)
     {
         Health = health;
@@ -24,22 +26,25 @@ public class CharacterStats
 
     }
 
+    // Přičte k aktuálním hodnotám hodnoty z parametru
     public void AddStats(CharacterStats stats)
     {
         Health += stats.Health;
         Armour += stats.Armour;
         Damage += stats.Damage;
-        ArmourPenetration += ArmourPenetration;
+        ArmourPenetration += stats.ArmourPenetration;
     }
 
+    // Přičte od aktuálních hodnot hodnoty z parametru
     public void SubtractStats(CharacterStats stats)
     {
         Health -= stats.Health;
         Armour -= stats.Armour;
         Damage -= stats.Damage;
-        ArmourPenetration -= ArmourPenetration;
+        ArmourPenetration -= stats.ArmourPenetration;
     }
 
+    // Převede staty na string
     public string StatsToStringColumn(bool signs, bool ignoreNull)
     {
         string result = StatToString(Health, signs, ignoreNull);
@@ -50,6 +55,7 @@ public class CharacterStats
         return result;
     }
 
+    // Převede jednotlivou hodnotu na string, možnost přidat znaménko nebo nevypsat nulu
     public string StatToString(float number, bool signs, bool ignoreNull)
     {
         if(number == 0 && ignoreNull)

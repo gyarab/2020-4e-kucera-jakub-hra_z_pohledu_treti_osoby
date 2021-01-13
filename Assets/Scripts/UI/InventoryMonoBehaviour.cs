@@ -132,7 +132,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
         ItemObject itemObject = inventoryContainer.GetSlotByItemID(itemID).ItemObject;
 
-        _itemNameTMPT.text = itemObject.name;
+        _itemNameTMPT.text = itemObject.itemName;
         _descriptionTMPT.text = itemObject.description;
         _equipBuyButton.onClick.RemoveAllListeners();
 

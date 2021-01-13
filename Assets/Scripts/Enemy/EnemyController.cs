@@ -94,13 +94,6 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
         _target = GameManager.Instance.Player.transform;
     }
 
-    public void PassivePhysics()
-    {
-        _grounded = IsGrounded();
-        CalculateYSpeed();
-        ResolveCollisions();
-    }
-
     #region Attack Methods
 
     // Spočítá vzdálenost mezi sebou a hráčem a taky úhel a podle toho mu udělí nebo neudělí poškození
@@ -147,6 +140,14 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
 
     #region Physics Methods
 
+    // Zavolá metody, které by se měly provádět pokaždé řešící např. kolize a gravitaci
+    public void PassivePhysics()
+    {
+        _grounded = IsGrounded();
+        CalculateYSpeed();
+        ResolveCollisions();
+    }
+
     // Počítá sílu gravitace
     private void CalculateYSpeed()
     {
@@ -177,13 +178,46 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
         transform.position += GamePhysics.RaycastCollisionDetection(transform.position, _raycastDirections, _raycastLength, _collisionLayer);
     }
 
+    // Posune nepřátele blíž k cílové pozici a otočí podle směru pohybu
+    public float MoveToPositionAndRotate(Vector3 targetPosition)
+    {
+        float distance;
+        Vector3 positionDelta = GamePhysics.MoveTowardsPositionNonYClamped(transform.position, targetPosition, _movementSpeed, out distance);
+        transform.position += positionDelta;
+        transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, positionDelta, _rotationSpeed);
+        return distance;
+    }
+
+    // Posune nepřátele blíž k cílové pozici a otočí podle směru pohybu
+    public float MoveToTargetAndRotate()
+    {
+        float distance;
+        Vector3 positionDelta = GamePhysics.MoveTowardsPositionNonYClamped(transform.position, _target.position, _movementSpeed, out distance);
+        transform.position += positionDelta;
+        transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, positionDelta, _rotationSpeed);
+        return distance;
+    }
+
+    // Otočí nepřítele o daný počet úhlů
+    public void RotateYDegrees(float _degrees)
+    {
+        transform.Rotate(0, _degrees, 0);
+    }
+
     #endregion
 
-    // Otáčí Canvas s životy směrem ke kameře
-    private void LookAtCamera()
+    #region Detection
+    
+    // Vrací pravda, když je hráč viditelný a v dosahu útoku
+    public bool IsEnemyVisibleAndInAttackRange()
     {
-        _healthBarGO.transform.LookAt(_mainCamera.transform);
-        _healthBarGO.transform.Rotate(0, 180, 0);
+        return (IsTargetVisible(_attackRange) && IsTargetInRange(_attackRange));
+    }
+
+    // Vrací pravda, když je hráč viditelný a v dosahu útoku
+    public bool IsEnemyVisibleAndInDetectionRange()
+    {
+        return IsTargetVisible(_detectionRange) && IsTargetInRange(_detectionRange);
     }
 
     // Kontroluje, jestli je hráč v zorném poli protivníka
@@ -218,12 +252,56 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
         return Vector3.Distance(transform.position, _target.transform.position) < range;
     }
 
-    // Je pathfinding node viditelný
+    // Je pathfinding node viditelný?
     public bool IsPathToNextWaypointClear(Vector3 position)
     {
         Vector3 correctedPosition = new Vector3(position.x, position.y + _yPathfindingRayOffset, position.z);
         return !Physics.Raycast(transform.position, correctedPosition - transform.position, Vector3.Distance(transform.position, correctedPosition), _environmentLayer);
     }
+
+    #endregion
+
+    #region State initialization
+
+    // Vrací potřebné hodnoty pro inicializaci stavu Follow Path To Target
+    public void GetFPTTInitValues(out float pathfingindRefreshInterval, out float distanceTolerance)
+    {
+        pathfingindRefreshInterval = _pathfindingRefreshInterval;
+        distanceTolerance = _moveDistanceTolerance;
+    }
+
+    // Vrací potřebné hodnoty pro inicializaci stavu Wait For Next Action
+    public Vector3 GetWFNAInitValues()
+    {
+        return _waitTime;
+    }
+
+    // Vrací potřebné hodnoty pro inicializaci stavu AttackTarget
+    public void GetATInitValues(out float delayBeforeAttack, out float delayAfterAttack)
+    {
+        delayBeforeAttack = _delayBeforeAttack;
+        delayAfterAttack = _delayAfterAttack;
+    }
+
+    // Vrací potřebné hodnoty pro inicializaci stavu Follow Target
+    public float GetFTInitValues()
+    {
+        return _attackRange * _attackInitiationPercentage;
+    }
+
+    // Vrací potřebné hodnoty pro inicializaci stavu Walk To Random Place
+    public float GetWTRPInitValues()
+    {
+        return _moveDistanceTolerance;
+    }
+
+    // Vrací potřebné hodnoty pro inicializaci stavu Face Random Direction
+    public float GetFRDInitValues()
+    {
+        return _angularSpeed;
+    }
+
+    #endregion
 
     // Metoda je zavolána, když je nepřítel poražen; Vyvolá akci On Enemy Death
     private void GetDestroyed()
@@ -231,8 +309,6 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
         OnEnemyDeath?.Invoke(transform.position);
         Destroy(gameObject);
     }
-
-    #region New
 
     public void LookAtCameraIfCanvasEnabled()
     {
@@ -242,87 +318,30 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
         }
     }
 
+    // Otáčí Canvas s životy směrem ke kameře
+    private void LookAtCamera()
+    {
+        _healthBarGO.transform.LookAt(_mainCamera.transform);
+        _healthBarGO.transform.Rotate(0, 180, 0);
+    }
+
+    // Vrátí Animator
     public Animator GetAnimator()
     {
         return _animator;
     }
 
+    // Vrací cestu k hráči
     public List<Vector3> GetPathToTarget()
     {
         return Pathfinder.GetPath(transform.position, _target.position);
     }
 
+    // Získá a vrátí náhodnou cestu
     public List<Vector3> GetRandomPath()
     {
         return Pathfinder.GetRandomPath(transform.position, UnityEngine.Random.Range(_randomMovementCycles.x, _randomMovementCycles.y), UnityEngine.Random.Range(_randomMovementLength.x, _randomMovementLength.y));
     }
-
-    public float MoveToPositionAndRotate(Vector3 targetPosition)
-    {
-        float distance;
-        Vector3 positionDelta =  GamePhysics.MoveTowardsPositionNonYClamped(transform.position, targetPosition, _movementSpeed, out distance);
-        transform.position += positionDelta;
-        transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, positionDelta, _rotationSpeed);
-        return distance;
-    }
-
-    public float MoveToTargetAndRotate()
-    {
-        float distance;
-        Vector3 positionDelta = GamePhysics.MoveTowardsPositionNonYClamped(transform.position, _target.position, _movementSpeed, out distance);
-        transform.position += positionDelta;
-        transform.rotation = GamePhysics.RotateTowardsMovementDirection(transform.rotation, positionDelta, _rotationSpeed);
-        return distance;
-    }
-
-    public void RotateYDegrees(float _degrees)
-    {
-        transform.Rotate(0, _degrees, 0);
-    }
-
-    public bool IsEnemyVisibleAndInAttackRange()
-    {
-        return (IsTargetVisible(_attackRange) && IsTargetInRange(_attackRange));
-    }
-
-    public bool IsEnemyVisibleAndInDetectionRange()
-    {
-        return IsTargetVisible(_detectionRange) && IsTargetInRange(_detectionRange);
-    }
-
-    public void GetFPTTInitValues(out float pathfingindRefreshInterval, out float distanceTolerance)
-    {
-        pathfingindRefreshInterval = _pathfindingRefreshInterval;
-        distanceTolerance = _moveDistanceTolerance;
-    }
-
-    public Vector3 GetWFNAInitValues()
-    {
-        return _waitTime;
-    }
-
-    public void GetATInitValues(out float delayBeforeAttack, out float delayAfterAttack)
-    {
-        delayBeforeAttack = _delayBeforeAttack;
-        delayAfterAttack = _delayAfterAttack;
-    }
-
-    public float GetFTInitValues()
-    {
-        return _attackRange * _attackInitiationPercentage;
-    }
-
-    public float GetWTRPInitValues()
-    {
-        return _moveDistanceTolerance;
-    }
-
-    public float GetFRDInitValues()
-    {
-        return _angularSpeed;
-    }
-
-    #endregion
 
     // Metoda implementovaná interfacem Damageable, dovoluje nepřáteli obdržet poškození
     public void TakeDamage(float damage, float armourPenetration)
