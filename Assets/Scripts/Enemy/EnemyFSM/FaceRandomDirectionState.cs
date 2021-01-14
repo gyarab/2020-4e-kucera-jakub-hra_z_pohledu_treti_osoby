@@ -26,6 +26,7 @@ public class FaceRandomDirectionState : EnemyState
         {
             _sign = -1;
         }
+        Debug.Log("FRD");
     }
 
     // Zavolá zděděnou metodu

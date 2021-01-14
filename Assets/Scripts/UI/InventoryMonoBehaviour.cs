@@ -59,6 +59,13 @@ public class InventoryMonoBehaviour : MonoBehaviour
     [SerializeField]
     private HealthBar _bossHealthBar;
 
+    [Header("DeathScreen"), SerializeField]
+    private Canvas _deathScreenCanvas;
+    [SerializeField, Range(0.1f, 2f)]
+    private float _deathScreenRevealTime;
+    [SerializeField]
+    private float _deathScreenShowTime;
+
     private InventorySlotContainer _secondaryShopInventoryContainer;
 
     private string _savePath;
@@ -82,6 +89,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
         HideInventoryUI();
         PassStatsToPlayer();
         _bossHealthBar.SetVisibility(false);
+        _deathScreenCanvas.enabled = false;
     }
 
     // Při aktivaci začne odebírat akci On Item Picked Up, která je vyvolána při zvednutí předmětu
@@ -263,7 +271,41 @@ public class InventoryMonoBehaviour : MonoBehaviour
         }
     }
 
+    // Ukáže zpráva po smrti hráče
+    public void ShowDeathScreen()
+    {
+        _deathScreenCanvas.enabled = true;
+        StartCoroutine(HideDeathScreenAndReset());
+    }
+
+    // Skryje zpráva po smrti hráče
+    private IEnumerator HideDeathScreenAndReset()
+    {
+        float timePassed = 0;
+        CanvasGroup canvasGroup = _deathScreenCanvas.transform.GetComponent<CanvasGroup>();
+
+        do
+        {
+            yield return null;
+            timePassed += Time.deltaTime;
+            canvasGroup.alpha = Mathf.Clamp(timePassed / _deathScreenRevealTime, 0f, 1f);
+        } while (timePassed < _deathScreenRevealTime);
+
+        timePassed = 0;
+
+        while (timePassed < _deathScreenShowTime)
+        {
+            yield return null;
+            timePassed += Time.deltaTime;
+        }
+
+        _deathScreenCanvas.enabled = false;
+        GameManager.Instance.ReturnToHub(false, 0);
+    }
+
     #endregion
+
+    #region Item Usage
 
     // Vrcí true, když je předmět v slotu vybaven
     private bool CheckIfEquipped(InventorySlot slot)
@@ -415,18 +457,9 @@ public class InventoryMonoBehaviour : MonoBehaviour
         RemoveCoinsFromPlayer(inventorySlot.ItemObject.price);
     }
 
-    // Odstraní předmět, pokud je u hráče v inventáři; vrací hodnotu, jestli se podařilo předmět odstranit
-    public bool RemoveItemIfInInventory(int itemID)
-    {
-        if (_playerInventoryContainer.HasItem(itemID))
-        {
-            _playerInventoryContainer.RemoveItem(itemID);
+    #endregion
 
-            return true;
-        }
-
-        return false;
-    }
+    #region Stats
 
     // Předá hráči data vybavenách předmětů
     public void PassStatsToPlayer()
@@ -468,6 +501,8 @@ public class InventoryMonoBehaviour : MonoBehaviour
         return stats;
     }
 
+    #endregion
+
     #region Item List Manipulation
 
     // Přidá hráčovi peníze
@@ -506,6 +541,19 @@ public class InventoryMonoBehaviour : MonoBehaviour
                 _playerInventoryContainer.RemoveItemAtIndex(i);
             }
         }
+    }
+
+    // Odstraní předmět, pokud je u hráče v inventáři; vrací hodnotu, jestli se podařilo předmět odstranit
+    public bool RemoveItemIfInInventory(int itemID)
+    {
+        if (_playerInventoryContainer.HasItem(itemID))
+        {
+            _playerInventoryContainer.RemoveItem(itemID);
+
+            return true;
+        }
+
+        return false;
     }
 
     #endregion

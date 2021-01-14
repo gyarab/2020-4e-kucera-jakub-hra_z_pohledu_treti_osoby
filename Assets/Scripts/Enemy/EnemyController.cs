@@ -204,6 +204,14 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
         transform.Rotate(0, _degrees, 0);
     }
 
+    public void FacePlayer()
+    {
+        Vector3 lookVector = _target.transform.position - transform.position;
+        lookVector.y = 0;
+        Quaternion newRotation = Quaternion.LookRotation(lookVector);
+        transform.rotation = Quaternion.Slerp(transform.rotation, newRotation, 1);
+    }
+
     #endregion
 
     #region Detection

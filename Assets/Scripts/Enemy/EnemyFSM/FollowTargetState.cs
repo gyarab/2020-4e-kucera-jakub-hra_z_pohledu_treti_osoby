@@ -16,6 +16,7 @@ public class FollowTargetState : EnemyState
     public override void OnEntered()
     {
         _enemyController.GetAnimator().SetBool("Walk", true);
+        Debug.Log("FT");
     }
 
     // Zavolá zděděnou metodu

@@ -60,7 +60,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     [SerializeField]
     private Animator animator;
     [SerializeField]
-    private AnimatorOverrideController _fistsOverrideController, _onehandedOverrideController, _twohandedOverrideController, _bothhandedOverrideController; 
+    private AnimatorOverrideController _fistsOverrideController, _onehandedOverrideController, _twohandedOverrideController, _bothhandedOverrideController;
 
     private InventorySlotContainer _inventoryContainer;
     private CharacterStats _currentStats;
@@ -531,6 +531,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
     }
 
+    // Odstraní instance zbraně z rukou
     public void RemoveWeapons()
     {
         if (_rightHandTransform.childCount > 0)
@@ -546,9 +547,12 @@ public class PlayerController : MonoBehaviour, IDamageable
     // Metoda je volána, když hráč má obdržet poškození
     public void TakeDamage(float damageTaken, float armourPenetration)
     {
-        Debug.Log("hit");
+        if (_currentHealth <= 0)
+        {
+            return;
+        }
 
-        if (_rolling)
+            if (_rolling)
         {
             if(_rollInvincibilityTiming.x <= _rollTimer && _rollTimer <= _rollInvincibilityTiming.y)
             {
@@ -561,7 +565,7 @@ public class PlayerController : MonoBehaviour, IDamageable
 
         if(_currentHealth <= 0)
         {
-            GameManager.Instance.ReturnToHub(false, 0);
+            _inventory.ShowDeathScreen();
         }
     }
 }

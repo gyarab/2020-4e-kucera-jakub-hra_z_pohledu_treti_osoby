@@ -19,6 +19,9 @@ public class AttackTargetState : EnemyState
         _enemyController.GetAnimator().SetTrigger("Attack");
         _attacked = false;
         _timer = 0;
+
+        _enemyController.FacePlayer();
+        Debug.Log("AT");
     }
 
     // Zavolá zděděnou metodu

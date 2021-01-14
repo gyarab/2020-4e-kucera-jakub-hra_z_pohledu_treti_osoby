@@ -295,6 +295,7 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < loadedScenes.Length; i++)
         {
+            Debug.Log(loadedScenes[i]);
             UnloadScene(loadedScenes[i]);
         }
 
