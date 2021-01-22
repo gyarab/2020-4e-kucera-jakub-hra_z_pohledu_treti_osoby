@@ -200,15 +200,9 @@ public static class GamePhysics
             if (Physics.ComputePenetration(sphereCollider, position, rotation, overlaps[i], transform.position, transform.rotation, out direction, out magnitude))
             {
                 Vector3 penetrationVector = direction * magnitude;
-                string a = ("a: " + penetrationVector.x + ", " + penetrationVector.y + ", " + penetrationVector.z);
-                penetrationVector = GetXZPlaneVector(penetrationVector, sphereCollider.radius); // TODO remove if not working
-                string b = ("b: " + penetrationVector.x + ", " + penetrationVector.y + ", " + penetrationVector.z);
+                penetrationVector = GetXZPlaneVector(penetrationVector, sphereCollider.radius);
 
-                if (float.IsNaN(penetrationVector.x))
-                {
-                    Debug.Log(a);
-                    Debug.Log(b);
-                } else
+                if (!float.IsNaN(penetrationVector.x))
                 {
                     collisionCorectionVector += penetrationVector;
                 }
@@ -216,41 +210,6 @@ public static class GamePhysics
         }
 
         return collisionCorectionVector;
-    }
-
-    // Převede Vector3 upravující pozici na Vector2 (Y-ová souřadnice je vynechána), funguje pouze pro Sphere Collidery
-    public static Vector3 GetXZPlaneVector(Vector3 input, float radius)
-    {
-        if(radius <= 0)
-        {
-            throw new System.Exception("Radius is lesser or equal to zero");
-        }
-
-        if(input.x * input.z == 0)
-        {
-            return input;
-        }
-
-        if(Vector3.Magnitude(input) > radius)
-        {
-            return Vector3.zero;
-        }
-
-        Vector3 vector = new Vector3(Mathf.Abs(input.x), Mathf.Abs(input.y), Mathf.Abs(input.z));
-
-        float horizontalCathetus = Mathf.Sqrt((vector.x * vector.x) + (vector.z * vector.z));
-        float shorterHypotenuse = Vector3.Magnitude(vector);
-
-        float hypotenuseDelta = radius - shorterHypotenuse;
-        float yDistanceFromCenter = (vector.y * hypotenuseDelta) / shorterHypotenuse; // sphere center - [0;0]
-        float rho = Mathf.Sqrt((radius * radius) - (yDistanceFromCenter * yDistanceFromCenter));
-        float distanceFromYAxis = Mathf.Sqrt((hypotenuseDelta * hypotenuseDelta) - (yDistanceFromCenter * yDistanceFromCenter)); // x = 0 && z = 0; Triangle - hypotenuseDelta, yDistanceFromCenter, distanceFromYAxis;
-        float missingPiece = rho - distanceFromYAxis - horizontalCathetus;
-        float multiplier = 1 + (missingPiece / horizontalCathetus);
-
-        Vector3 result = new Vector3(input.x, 0, input.z);
-
-        return result * multiplier;
     }
 
     // Kolize řešená 3 raycasty
@@ -274,4 +233,39 @@ public static class GamePhysics
     }
 
     #endregion
+
+    // Převede Vector3 upravující pozici na Vector2 (Y-ová souřadnice je vynechána), funguje pouze pro Sphere Collidery
+    public static Vector3 GetXZPlaneVector(Vector3 input, float radius)
+    {
+        if (radius <= 0)
+        {
+            throw new System.Exception("Radius is lesser or equal to zero");
+        }
+
+        if (input.x * input.z == 0)
+        {
+            return input;
+        }
+
+        if (Vector3.Magnitude(input) > radius)
+        {
+            return Vector3.zero;
+        }
+
+        Vector3 vector = new Vector3(Mathf.Abs(input.x), Mathf.Abs(input.y), Mathf.Abs(input.z));
+
+        float horizontalCathetus = Mathf.Sqrt((vector.x * vector.x) + (vector.z * vector.z));
+        float shorterHypotenuse = Vector3.Magnitude(vector);
+
+        float hypotenuseDelta = radius - shorterHypotenuse;
+        float yDistanceFromCenter = (vector.y * hypotenuseDelta) / shorterHypotenuse; // sphere center - [0;0]
+        float rho = Mathf.Sqrt((radius * radius) - (yDistanceFromCenter * yDistanceFromCenter));
+        float distanceFromYAxis = Mathf.Sqrt((hypotenuseDelta * hypotenuseDelta) - (yDistanceFromCenter * yDistanceFromCenter)); // x = 0 && z = 0; Triangle - hypotenuseDelta, yDistanceFromCenter, distanceFromYAxis;
+        float missingPiece = rho - distanceFromYAxis - horizontalCathetus;
+        float multiplier = 1 + (missingPiece / horizontalCathetus);
+
+        Vector3 result = new Vector3(input.x, 0, input.z);
+
+        return result * multiplier;
+    }
 }

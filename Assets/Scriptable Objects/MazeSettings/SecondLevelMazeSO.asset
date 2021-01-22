@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55ca55f109fac69418731ec21f0099e1, type: 3}
   m_Name: SecondLevelMazeSO
   m_EditorClassIdentifier: 
+  levelNumber: 2
   mazeWinCondition: 2
   centerPoint: {x: 0, y: 0, z: 0}
   distanceBetweenCells: 10
@@ -43,4 +44,4 @@ MonoBehaviour:
   corridorTileTypes: 00000000
   spawnChance: 0.02
   minEnemyCount: 8
-  maxEnemyCount: 24
+  maxEnemyCount: 16

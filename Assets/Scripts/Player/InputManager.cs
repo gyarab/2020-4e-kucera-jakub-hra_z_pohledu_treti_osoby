@@ -26,12 +26,15 @@ public class InputManager : MonoBehaviour
 
     private int _cameraFingerId;
     private Dictionary<int, float> _fingerTouchTimeDictionary;
+    private RaycastHit _raycastHit;
+    private Ray _ray;
 
     // Nastaví id doteku, který má pohybovat s kamerou na -1 (znamená, že není zatím id přiřazeno) a vytvoří slovník pro uložení doteků obrazovky
     private void Awake()
     {
         _cameraFingerId = -1;
         _fingerTouchTimeDictionary = new Dictionary<int, float>(_recordedTouchesLimit);
+        _excludeUILayer = ~_excludeUILayer;
     }
 
     // Předá odkaz na sebe Game Manageru, aby se mohlo načítání pokračovat
@@ -86,13 +89,12 @@ public class InputManager : MonoBehaviour
                     {
                         _fingerTouchTimeDictionary.Remove(t.fingerId);
 
-                        Ray ray = _cameraController.GetComponent<Camera>().ScreenPointToRay(t.position);
-                        RaycastHit hit;
-                        if (Physics.Raycast(ray, out hit, _targetLockRayDistance, _excludeUILayer))
+                        _ray = _cameraController.GetComponent<Camera>().ScreenPointToRay(t.position);
+                        if (Physics.Raycast(_ray, out _raycastHit, _targetLockRayDistance, _excludeUILayer))
                         {
-                            if (hit.transform.tag == "Damageable")
+                            if (_raycastHit.transform.CompareTag("Damageable"))
                             {
-                                _cameraController.SetTarget(hit.transform);
+                                _cameraController.SetTarget(_raycastHit.transform);
                             }
                         }
                     }

@@ -53,9 +53,9 @@ public class HubManager : MonoBehaviour
     }
 
     // Odemkne další portál, pokud je to možné, a uloží postup
-    public void UnlockNextLevel()
+    public void UnlockNextLevel(int completedLevelIndex)
     {
-        if(_gameState.highestLevelUnlocked < _levelCount)
+        if(_gameState.highestLevelUnlocked < _levelCount && completedLevelIndex >= _gameState.highestLevelUnlocked)
         {
             _portals[_gameState.highestLevelUnlocked].enabled = true;
             _gameState.highestLevelUnlocked++;

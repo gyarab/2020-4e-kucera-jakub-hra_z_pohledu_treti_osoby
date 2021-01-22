@@ -71,6 +71,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
     private List<Vector3> _path;
     private bool _seenTarget;
     private Vector3[] _raycastDirections;
+    private RaycastHit _hitInfo;
 
     private float _currentHealth;
     private bool _grounded;
@@ -101,7 +102,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
     {
         float distance = Vector3.Distance(transform.position, _target.transform.position);
 
-        if (distance <= _attackRange)
+        if (distance <= _attackRange && IsTargetVisible(_attackRange))
         {
             Vector3 attackDirection3D = _target.transform.position - transform.position;
 
@@ -112,12 +113,9 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
             if (angle < _attackAngleInDegrees)
             {
                 _target.GetComponent<IDamageable>().TakeDamage(_stats.damage, _stats.armourPenetration);
-            } else if (distance <= _attackRange * _secondaryAttackRangeMultiplier)
+            } else if ((distance <= _attackRange * _secondaryAttackRangeMultiplier) && (angle < _secondaryAttackAngleInDegrees))
             {
-                if(angle < _secondaryAttackAngleInDegrees)
-                {
-                    _target.GetComponent<IDamageable>().TakeDamage(_stats.damage, _stats.armourPenetration);
-                }
+                _target.GetComponent<IDamageable>().TakeDamage(_stats.damage, _stats.armourPenetration);
             }
         }
     }
@@ -231,7 +229,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
     // Kontroluje, jestli je hráč v zorném poli protivníka
     public bool TryToDetectTarget()
     {
-        if (Vector3.Distance(transform.position, _target.transform.position) < _detectionRange)
+        if (IsTargetInRange(_detectionRange))
         {
             if (IsTargetVisible(_detectionRange))
             {
@@ -251,7 +249,12 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
     // Vrací hodnotu, jestli je hráč viditelný
     private bool IsTargetVisible(float range)
     {
-        return !Physics.Raycast(transform.position, _target.transform.position - transform.position, range, _environmentLayer);
+        bool result = false;
+        if (Physics.Raycast(transform.position, _target.transform.position - transform.position, out _hitInfo, range, _collisionLayer))
+        {
+            result = _hitInfo.transform.CompareTag("Player");
+        }
+        return result;
     }
 
     // Vrátí boolean, jestli je hráč v dosahu

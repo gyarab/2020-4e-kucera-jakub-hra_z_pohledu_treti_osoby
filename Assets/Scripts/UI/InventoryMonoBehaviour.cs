@@ -87,7 +87,6 @@ public class InventoryMonoBehaviour : MonoBehaviour
     public void Start()
     {
         HideInventoryUI();
-        PassStatsToPlayer();
         _bossHealthBar.SetVisibility(false);
         _deathScreenCanvas.enabled = false;
     }
@@ -198,6 +197,22 @@ public class InventoryMonoBehaviour : MonoBehaviour
         }
     }
 
+    // Zobrazí prázdné okno, protože v inventáři není žádný předmět
+    private void DisplayInfoEmpty()
+    {
+        _itemNameTMPT.text = " ";
+        _descriptionTMPT.text = " ";
+        _equipBuyButton.onClick.RemoveAllListeners();
+        _equipBuyButtonTMPT.SetText(" ");
+
+        // Change chanseStatsUI
+        _currentStatsTMPT.text = _player.GetStats().StatsToStringColumn(false, false);
+
+        // Change statsDelta
+        CharacterStats selectedObjectStats = new CharacterStats();
+        _statsDeltaTMPT.text = selectedObjectStats.StatsToStringColumn(true, true);
+    }
+
     // Zobrazí inventář
     public void DisplayInventory(InventorySlotContainer inventory)
     {
@@ -229,6 +244,9 @@ public class InventoryMonoBehaviour : MonoBehaviour
         if (inventory.Slots.Count > 0)
         {
             DisplayInfo(inventory.Slots[0].ItemObject.itemID);
+        } else
+        {
+            DisplayInfoEmpty();
         }
     }
 
@@ -408,7 +426,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
     {
         bool consumed = false;
 
-        if (inventorySlot.ItemObject.type == ItemType.Consumable) // ADD more equippable categories
+        if (inventorySlot.ItemObject.type == ItemType.Consumable) // ADD more categories
         {
             ConsumableObject consumable = (ConsumableObject)inventorySlot.ItemObject;
 
@@ -417,13 +435,26 @@ public class InventoryMonoBehaviour : MonoBehaviour
 
         if (consumed)
         {
+            GameObject slot = _slotHolder.transform.GetChild(inventorySlot.SlotHolderChildPosition).gameObject;
+
             if (_playerInventoryContainer.RemoveItem(inventorySlot.ItemObject.itemID))
             {
-                _slotHolder.transform.GetChild(inventorySlot.SlotHolderChildPosition).gameObject.SetActive(false);
+                slot.SetActive(false);
 
                 if (_playerInventoryContainer.Slots.Count > 0)
                 {
                     DisplayInfo(_playerInventoryContainer.Slots[0].ItemObject.itemID);
+                }
+            } else
+            {
+                if (inventorySlot.Amount > 1)
+                {
+                    slot.GetComponentInChildren<TextMeshProUGUI>().enabled = true;
+                    slot.GetComponentInChildren<TextMeshProUGUI>().text = inventorySlot.Amount.ToString();
+                }
+                else
+                {
+                    slot.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
                 }
             }
         }
@@ -589,6 +620,11 @@ public class InventoryMonoBehaviour : MonoBehaviour
         foreach (InventorySlot slot in _playerInventoryContainer.EquippedItemSlots)
         {
             EquipItemInSlot(slot, false);
+        }
+        
+        if(_equippedWeaponSlot == null)
+        {
+            _player.SwitchAnimationController(AnimationType.Fists);
         }
 
         PassStatsToPlayer();

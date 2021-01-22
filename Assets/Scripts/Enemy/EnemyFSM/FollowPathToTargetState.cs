@@ -17,7 +17,6 @@ public class FollowPathToTargetState : EnemyState
     // Získá cestu k hráči a začne přehrávat animaci chůze
     public override void OnEntered()
     {
-        Debug.Log("1: FPTT");
         _enemyController.GetAnimator().SetBool("Walk", true);
         _path = _enemyController.GetPathToTarget();
 
@@ -42,7 +41,6 @@ public class FollowPathToTargetState : EnemyState
                 _index = 1;
             }
         }
-        Debug.Log("2: FPTT");
     }
 
     // Zavolá zdědenou metodu

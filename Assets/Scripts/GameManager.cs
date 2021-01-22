@@ -83,7 +83,7 @@ public class GameManager : MonoBehaviour
 
         LoadManager.CreateFolder(Path.Combine(Application.persistentDataPath, SAVES_FOLDER), path);
         LoadManager.SaveFile(Path.Combine(fullPath, GAME_FILE), new SaveableGameState(1, true));
-        LoadManager.SaveFile(Path.Combine(fullPath, PLAYER_INVENTORY), new SaveableInventory());
+        LoadManager.SaveFile(Path.Combine(fullPath, PLAYER_INVENTORY), new SaveableInventory(10));
         LoadManager.SaveFile(Path.Combine(fullPath, SHOP_INVENTORY), new SaveableInventory(Resources.Load<NewGameInventorySO>(Path.Combine("NewGame", "ShopkeeperInventory")).itemIDs));
     }
 
@@ -154,7 +154,13 @@ public class GameManager : MonoBehaviour
         Player.GetComponent<PlayerController>().GetPlayerInventory().AddCoinsToPlayer(coinsUnlocked);
         Player.GetComponent<PlayerController>().Reset();
 
-        StartCoroutine(LoadHubAsync(HUB_SCENE_NAME, success));
+        int completedLevelIndex = 0;
+        if (success)
+        {
+            completedLevelIndex = CurrentMazeManager.LevelNumber;
+        }
+
+        StartCoroutine(LoadHubAsync(HUB_SCENE_NAME, completedLevelIndex));
     }
 
     // Přesvědčí se, zda se už něco nenačítá a poté zavolá Coroutine, která načte úvodní obrazovku
@@ -214,7 +220,7 @@ public class GameManager : MonoBehaviour
     }
 
     // Načte scénu s výběrem levelů (scéna s postavou je načtena) a odnačte scénu s bludištěm
-    IEnumerator LoadHubAsync(string locationSceneName, bool unlockNextLevel)
+    IEnumerator LoadHubAsync(string locationSceneName, int completedLevelIndex)
     {
         _loading = true;
         _loadingScreen.ShowLoadingScreen();
@@ -237,10 +243,7 @@ public class GameManager : MonoBehaviour
         CurrentHubManager.LoadState(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, GAME_FILE));
         CurrentHubManager.EnablePlayerDependantObjects(Player.transform, InputManager.GetCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, SHOP_INVENTORY));
 
-        if (unlockNextLevel)
-        {
-            CurrentHubManager.UnlockNextLevel();
-        }
+        CurrentHubManager.UnlockNextLevel(completedLevelIndex);
 
         _loading = false;
         _loadingScreen.HideLoadingScreen();
@@ -295,7 +298,6 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < loadedScenes.Length; i++)
         {
-            Debug.Log(loadedScenes[i]);
             UnloadScene(loadedScenes[i]);
         }
 

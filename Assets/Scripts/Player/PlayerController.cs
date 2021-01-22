@@ -552,7 +552,7 @@ public class PlayerController : MonoBehaviour, IDamageable
             return;
         }
 
-            if (_rolling)
+        if (_rolling)
         {
             if(_rollInvincibilityTiming.x <= _rollTimer && _rollTimer <= _rollInvincibilityTiming.y)
             {

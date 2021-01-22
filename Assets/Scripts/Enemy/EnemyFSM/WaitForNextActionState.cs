@@ -11,7 +11,6 @@ public class WaitForNextActionState : EnemyState
     public WaitForNextActionState(EnemyController enemyController, EnemyFSM FSM) : base(enemyController, FSM)
     {
         _waitTime = _enemyController.GetWFNAInitValues();
-        Debug.Log("WFNA");
     }
 
     // Nastaví náhodně časový interval

@@ -6,6 +6,9 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Maze Settings", menuName = "Maze Settings")]
 public class MazeSettingsSO : ScriptableObject
 {
+    [Header("General")]
+    public int levelNumber;
+
     [Header("Type"), SerializeField]
     public WinConditionType mazeWinCondition;
 

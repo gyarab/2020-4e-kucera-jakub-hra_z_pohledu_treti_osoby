@@ -20,7 +20,6 @@ public class WalkToRandomPlaceState : EnemyState
         _enemyController.GetAnimator().SetBool("Walk", true);
         _path = _enemyController.GetRandomPath();
         _index = 0;
-        Debug.Log("WTRP");
     }
 
     // Zavolá zděděnou metodu

@@ -11,6 +11,7 @@ public class ScriptableObjectIDManager : EditorWindow
         GetWindow<ScriptableObjectIDManager>();
     }
 
+    // Vykreslení GUI v editoru
     public void OnGUI()
     {
         SerializedObject obj = new SerializedObject(this);
@@ -22,6 +23,7 @@ public class ScriptableObjectIDManager : EditorWindow
         obj.ApplyModifiedProperties();
     }
 
+    // Zobrazí tlačítka
     void DrawButtons()
     {
         if (GUILayout.Button("Set ItemObject ID's"))
@@ -30,6 +32,7 @@ public class ScriptableObjectIDManager : EditorWindow
         }
     }
 
+    // Najde Scriptable Objecty a přiřadí jim ID
     void FindSOandSetIDs()
     {
         List<ItemObject> list = FindAssetsByType<ItemObject>();
@@ -40,6 +43,7 @@ public class ScriptableObjectIDManager : EditorWindow
         AssetDatabase.SaveAssets();
     }
 
+    // Najde všechny objekty daného typu v projektu
     private List<T> FindAssetsByType<T>() where T : UnityEngine.Object
     {
         List<T> assets = new List<T>();
@@ -56,6 +60,7 @@ public class ScriptableObjectIDManager : EditorWindow
         return assets;
     }
 
+    // Vrátí nejvyšší ID
     private int FindHighestID(List<ItemObject> _list)
     {
         int max = 0;
@@ -70,6 +75,7 @@ public class ScriptableObjectIDManager : EditorWindow
         return max;
     }
 
+    // Nastaví ID
     private void SetIDs(List<ItemObject> _list, int _currentID)
     {
         foreach (ItemObject item in _list)

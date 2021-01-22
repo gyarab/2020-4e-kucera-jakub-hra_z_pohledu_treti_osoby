@@ -5,18 +5,20 @@ using System;
 
 public class MazeManager : MonoBehaviour
 {
+    public int LevelNumber { private set; get; }
+
     private bool _completedWinCondition;
     private int _coinsCollected;
     private string[] _winConditionMessages;
 
-    public void Awake()
+    private void Awake()
     {
         _completedWinCondition = false;
         _coinsCollected = 0;
     }
 
     // Předá svůj odkaz Game Manageru, aby věděl, že už je skript načtený a mohl z něj zavolat metodu k vytvoření mapy
-    public void Start()
+    private void Start()
     {
         GameManager.Instance.CurrentMazeManager = this;
     }
@@ -24,6 +26,8 @@ public class MazeManager : MonoBehaviour
     // Přidá jeden komponent implementující interface Win Condition podle nastavení v Maze Settings
     public string CreateMaze(MazeSettingsSO mazeSettings)
     {
+        LevelNumber = mazeSettings.levelNumber;
+
         IWinCondition winCondition;
 
         switch (mazeSettings.mazeWinCondition)

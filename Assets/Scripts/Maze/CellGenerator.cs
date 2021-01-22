@@ -155,7 +155,6 @@ public class CellGenerator : MonoBehaviour, ICellGenerator
     private void CreateNewDoors(Vector2Int position)
     {
         int doorCount = _cells[position.x, position.y].GetDoorCount();
-        //Debug.Log(doorCount);
         int offset = Random.Range(0, 4);
 
         for (int i = 0; i < 4; i++)

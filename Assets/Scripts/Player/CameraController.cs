@@ -18,7 +18,6 @@ public class CameraController : MonoBehaviour
     private Vector2 _pitchMinMax;
     [SerializeField]
     private float _distanceFromTarget, _rotationSmoothTime, _cameraClippingOffset, _automaticCameraRotationSpeed;
-
     
     private Transform _cameraLockedTarget;
     private bool _lockedOnTarget, _shouldRotate, _forceLockOn;
@@ -63,8 +62,15 @@ public class CameraController : MonoBehaviour
         }
         else if (_lockedOnTarget) // Když je kamera zaměřená na nepřítele, tak se otáčí na něj
         {
-            _currentRotation = new Vector3(_currentRotation.x, Mathf.LerpAngle(_currentRotation.y, Quaternion.LookRotation(_cameraLockedTarget.position - _playerTransform.position).eulerAngles.y, _automaticCameraRotationSpeed * Time.deltaTime));
-            transform.eulerAngles = _currentRotation;
+            if (_cameraLockedTarget == null)
+            {
+                _lockedOnTarget = false;
+            }
+            else
+            {
+                _currentRotation = new Vector3(_currentRotation.x, Mathf.LerpAngle(_currentRotation.y, Quaternion.LookRotation(_cameraLockedTarget.position - _playerTransform.position).eulerAngles.y, _automaticCameraRotationSpeed * Time.deltaTime));
+                transform.eulerAngles = _currentRotation;
+            }
         }
         else if (_velocityRotation != Vector3.zero) // Když nejou předchozí podmínky splňeny, tak se kamera otáčí podle směru pohybu hráče
         {

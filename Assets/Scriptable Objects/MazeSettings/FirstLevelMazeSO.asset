@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55ca55f109fac69418731ec21f0099e1, type: 3}
   m_Name: FirstLevelMazeSO
   m_EditorClassIdentifier: 
+  levelNumber: 1
   mazeWinCondition: 1
   centerPoint: {x: 0, y: 0, z: 0}
   distanceBetweenCells: 10
@@ -42,5 +43,5 @@ MonoBehaviour:
   roomTileTypes: 00000000
   corridorTileTypes: 00000000
   spawnChance: 0.02
-  minEnemyCount: 5
+  minEnemyCount: 10
   maxEnemyCount: 20

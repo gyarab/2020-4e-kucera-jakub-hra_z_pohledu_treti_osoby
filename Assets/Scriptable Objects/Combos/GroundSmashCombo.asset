@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   actions: 010000000300000005000000
   waitTime:
-  - 1.5
+  - 2
   optimalAngle: 50
   optimalMinDistance: 0
   optimalMaxDistance: 5

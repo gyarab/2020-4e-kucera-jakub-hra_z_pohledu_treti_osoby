@@ -22,7 +22,7 @@ public class SaveableInventory
     {
         savedItems = new List<SaveableInventorySlot>();
 
-        foreach (InventorySlot slot in items) // TODO add to constructor?
+        foreach (InventorySlot slot in items)
         {
             savedItems.Add(new SaveableInventorySlot(slot.ItemObject.itemID, slot.Amount));
         }
@@ -48,5 +48,13 @@ public class SaveableInventory
         }
 
         equippedItemIds = new List<int>();
+    }
+
+    // Konstruktor, který vytvoří inventář s určitým počtem peněz
+    public SaveableInventory(int coins)
+    {
+        savedItems = new List<SaveableInventorySlot>();
+        equippedItemIds = new List<int>();
+        this.coins = coins;
     }
 }

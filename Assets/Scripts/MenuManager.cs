@@ -8,23 +8,17 @@ using TMPro;
 
 public class MenuManager : MonoBehaviour
 {
-    [Header("UI")] // TODO change to serialized
+    [Header("UI")]
     [SerializeField]
     private Canvas _menuCanvas;
     [SerializeField]
-    private Canvas _saveSelectionCanvas;
-    [SerializeField]
-    private Canvas _settingsCanvas;
+    private Canvas _saveSelectionCanvas, _settingsCanvas, _controlsCanvas;
     [SerializeField]
     private TMP_InputField _inputField;
     [SerializeField]
-    private Slider _xSensitivitySlider;
+    private Slider _xSensitivitySlider, _ySensitivitySlider;
     [SerializeField]
-    private Slider _ySensitivitySlider;
-    [SerializeField]
-    private GameObject _levelUIPrefab;
-    [SerializeField]
-    private GameObject _deleteLevelUIPrefab;
+    private GameObject _levelUIPrefab, _deleteLevelUIPrefab;
     [SerializeField]
     private float _uiOffset;
 
@@ -37,12 +31,13 @@ public class MenuManager : MonoBehaviour
     private List<GameObject> _deleteSlotButton;
     private SaveableSettings _settings;
 
-    // Start is called before the first frame update
+    // Inicializace, viditelná je úvodní obrazovka
     void Start()
     {
         _menuCanvas.enabled = true;
         _saveSelectionCanvas.enabled = false;
         _settingsCanvas.enabled = false;
+        _controlsCanvas.enabled = false;
 
         _savedGames = CheckForSavedGames();
         _settings = GameManager.Instance.LoadSettings();
@@ -112,24 +107,35 @@ public class MenuManager : MonoBehaviour
         DrawLevelUI();
     }
 
-    // TODO rework to settings
+    // Otevře nastavení
     public void SettingsUI()
     {
         _menuCanvas.enabled = false;
         _settingsCanvas.enabled = true;
     }
 
+    // Zobrazí okno s ovládáním
+    public void ControlsUI()
+    {
+        _menuCanvas.enabled = false;
+        _controlsCanvas.enabled = true;
+    }
+
+    // Vypne aplikaci
     public void ExitUI()
     {
         Application.Quit();
     }
 
+    // Návrat do menu
     public void BackUI()
     {
         _menuCanvas.enabled = true;
         _saveSelectionCanvas.enabled = false;
+        _controlsCanvas.enabled = false;
     }
 
+    // Uloží nastavení a zobrazí úvodní obrazovku
     public void SaveAndExitUI()
     {
         GameManager.Instance.SaveSettings(_settings);
@@ -138,21 +144,25 @@ public class MenuManager : MonoBehaviour
         _settingsCanvas.enabled = false;
     }
 
+    // Změní hodnotu citlivosti na ose x
     public void OnXSensitivityChangedUI()
     {
         _settings.xSensitivity = _xSensitivitySlider.value;
     }
 
+    // Změní hodnotu citlivosti na ose y
     public void OnYSensitivityChangedUI()
     {
         _settings.ySensitivity = _ySensitivitySlider.value;
     }
 
+    // Načte hru na určité pozici
     public void GetSaveUI(int _position)
     {
         LoadSave(_savedGames[_position]);
     }
 
+    // Smaže uložený postup na indexu
     public void DeleteSaveUI(int _position)
     {
         GameManager.Instance.DeleteSave(_savedGames[_position]);
@@ -160,6 +170,7 @@ public class MenuManager : MonoBehaviour
         DrawLevelUI();
     }
 
+    // Vytvoří nový save, když jsou splněné podmínky
     public void CreateSaveUI()
     {
         if(_savedGames.Count < _saveMaxCount)

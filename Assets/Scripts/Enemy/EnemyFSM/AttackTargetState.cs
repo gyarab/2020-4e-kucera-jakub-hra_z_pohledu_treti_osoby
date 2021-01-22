@@ -21,7 +21,6 @@ public class AttackTargetState : EnemyState
         _timer = 0;
 
         _enemyController.FacePlayer();
-        Debug.Log("AT");
     }
 
     // Zavolá zděděnou metodu
