@@ -5,7 +5,8 @@
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
-/[Bb]uild/
+# Uncommented by me
+#/[Bb]uild/
 /[Bb]uilds/
 /[Ll]ogs/
 /[Mm]emoryCaptures/
@@ -52,7 +53,8 @@ ExportedObj/
 sysinfo.txt
 
 # Builds
-*.apk
+# Uncommented by me
+#*.apk
 *.unitypackage
 
 # Crashlytics generated file
