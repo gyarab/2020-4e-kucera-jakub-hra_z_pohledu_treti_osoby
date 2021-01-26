@@ -44,4 +44,4 @@ MonoBehaviour:
   corridorTileTypes: 00000000
   spawnChance: 0.02
   minEnemyCount: 5
-  maxEnemyCount: 15
+  maxEnemyCount: 10

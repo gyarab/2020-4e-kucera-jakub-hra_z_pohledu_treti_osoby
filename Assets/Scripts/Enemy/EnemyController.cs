@@ -113,7 +113,8 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
             if (angle < _attackAngleInDegrees)
             {
                 _target.GetComponent<IDamageable>().TakeDamage(_stats.damage, _stats.armourPenetration);
-            } else if ((distance <= _attackRange * _secondaryAttackRangeMultiplier) && (angle < _secondaryAttackAngleInDegrees))
+            }
+            else if ((distance <= _attackRange * _secondaryAttackRangeMultiplier) && (angle < _secondaryAttackAngleInDegrees))
             {
                 _target.GetComponent<IDamageable>().TakeDamage(_stats.damage, _stats.armourPenetration);
             }
@@ -321,6 +322,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
         Destroy(gameObject);
     }
 
+    // Otočí Canvas směrem ke kameře
     public void LookAtCameraIfCanvasEnabled()
     {
         if (_healthBarCanvas.enabled)
@@ -362,6 +364,7 @@ public class EnemyController : EnemyStateMachineMonoBehaviour, IDamageable
 
         if (!_seenTarget)
         {
+            _seenTarget = true;
             GetComponent<EnemyFSM>().ChangeState(EnemyStateType.FollowTarget);
         }
 

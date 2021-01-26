@@ -487,7 +487,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
         else
         {
-            return true;
+            return false;
         }
     }
 
@@ -496,6 +496,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     {
         _currentHealth = _currentStats.Health;
         _healthBar.SetValue(_currentHealth / _currentStats.Health);
+        _inventory.BossHealthBar.SetVisibility(false);
 
         _inventory.RemoveTemporaryItems();
     }
