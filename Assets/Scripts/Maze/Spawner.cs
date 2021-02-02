@@ -26,7 +26,7 @@ public class Spawner : MonoBehaviour
     public void SpawnItem(Vector3 position, int itemID)
     {
         ItemObject item = GameManager.Instance.GetItemObjectByID(itemID);
-        GroundItem groundItem = Instantiate(_groundItemPrefab, new Vector3(position.x, position.y + _yGroundItemOffset, + position.x), Quaternion.identity).GetComponent<GroundItem>();
+        GroundItem groundItem = Instantiate(_groundItemPrefab, new Vector3(position.x, position.y + _yGroundItemOffset, position.z), Quaternion.identity).GetComponent<GroundItem>();
         groundItem.SetVariables(item);
     }
 

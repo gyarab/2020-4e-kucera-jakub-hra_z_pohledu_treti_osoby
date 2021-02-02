@@ -83,9 +83,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 6912
   _raycastLength: 0.5
-  _attackRange: 2.5
+  _attackRange: 3
   _secondaryAttackRangeMultiplier: 0.3
-  _attackInitiationPercentage: 0.8
+  _attackInitiationPercentage: 0.7
   _secondaryAttackAngleInDegrees: 70
   _delayBeforeAttack: 1.5
   _delayAfterAttack: 1.5
