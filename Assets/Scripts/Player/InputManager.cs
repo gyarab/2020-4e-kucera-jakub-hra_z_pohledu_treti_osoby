@@ -88,7 +88,6 @@ public class InputManager : MonoBehaviour
                     if (_fingerTouchTimeDictionary.ContainsKey(t.fingerId))
                     {
                         _fingerTouchTimeDictionary.Remove(t.fingerId);
-
                         _ray = _cameraController.GetComponent<Camera>().ScreenPointToRay(t.position);
                         if (Physics.Raycast(_ray, out _raycastHit, _targetLockRayDistance, _excludeUILayer))
                         {
