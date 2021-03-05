@@ -24,16 +24,6 @@ public class FloatingButton : MonoBehaviour
     {
         _canvas = GetComponentInChildren<Canvas>();
         _canvas.enabled = false;
-
-        // TODO uncomment if it doesn't work
-        /*if (playerCameraTransform == null)
-        {
-            playerCameraTransform = Camera.main.transform;
-        }
-        if (playerTransform == null)
-        {
-            playerTransform = GameManager.Instance.Player.transform;
-        }*/
     }
 
     // Předá odkaty na hráče a kameru

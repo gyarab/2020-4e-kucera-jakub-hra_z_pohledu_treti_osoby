@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HubDoor : MonoBehaviour, IDoor // TODO rework to button press?
+public class HubDoor : MonoBehaviour, IDoor
 {
     [SerializeField]
     private MazeSettingsSO _mazeSettings;

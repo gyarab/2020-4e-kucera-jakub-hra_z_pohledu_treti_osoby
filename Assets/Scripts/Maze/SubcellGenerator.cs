@@ -23,7 +23,7 @@ public class SubcellGenerator : MonoBehaviour, ISubcellGenerator
         Stack<Vector2Int> cellStack = new Stack<Vector2Int>();
 
         // Vezme první buňku, vytvoří v ní podbuňky a vloží sousední buňky do zásobníku
-        Vector3 spawnPoint = new Vector3(startPoint.x + (float)_cellData.XDistance[_cellData.FirstCell.y] * _mazeSettings.distanceBetweenCells, startPoint.y, startPoint.z + (float)_cellData.ZDistance[_cellData.FirstCell.x] * _mazeSettings.distanceBetweenCells); // TODO only points to the right cell // RLpos
+        Vector3 spawnPoint = new Vector3(startPoint.x + (float)_cellData.XDistance[_cellData.FirstCell.y] * _mazeSettings.distanceBetweenCells, startPoint.y, startPoint.z + (float)_cellData.ZDistance[_cellData.FirstCell.x] * _mazeSettings.distanceBetweenCells); // RLpos
         CreateRoom(_cellData.FirstCell);
         PushNeighbouringCellsIntoStack(cellStack, _cellData.FirstCell);
         _cellData.Cells[_cellData.FirstCell.x, _cellData.FirstCell.y].generated = true;

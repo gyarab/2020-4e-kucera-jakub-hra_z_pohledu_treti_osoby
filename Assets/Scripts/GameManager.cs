@@ -238,7 +238,7 @@ public class GameManager : MonoBehaviour
         UnloadScene(MAP_SCENE_NAME);
 
         Player.SetActive(true);
-        Player.transform.position = new Vector3(0, 2, 0); // TODO hardcoded
+        Player.transform.position = new Vector3(0, 2, 0); // hardcoded
 
         CurrentHubManager.LoadState(Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, GAME_FILE));
         CurrentHubManager.EnablePlayerDependantObjects(Player.transform, InputManager.GetCameraTransform(), Path.Combine(Application.persistentDataPath, SAVES_FOLDER, _currentSavePath, SHOP_INVENTORY));

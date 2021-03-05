@@ -4,9 +4,8 @@ using UnityEngine;
 
 public class Spawner : MonoBehaviour
 {
-    // TODO add parents?
     [SerializeField]
-    private GameObject _enemyPrefab; // TODO field
+    private GameObject _enemyPrefab; // TODO field (more enemy types needed)
     [SerializeField]
     private GameObject _groundItemPrefab;
     [SerializeField]

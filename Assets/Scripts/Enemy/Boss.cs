@@ -298,7 +298,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         StartNextAction();
     }
 
-    // Provede útok, během kterého skočí do vzduchu; TODO Y movement; speed throughout the animation
+    // Provede útok, během kterého skočí do vzduchu;
     private IEnumerator JumpSmash()
     {
         const float TIME_TO_HIT = 1.3f;
@@ -365,7 +365,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
         const float TIME_TO_END = 1.5f;
         const float TIME_WINDOW = 0.42f;
 
-        int handIndex = UnityEngine.Random.Range(0, 2); // TODO decided in another way?
+        int handIndex = UnityEngine.Random.Range(0, 2);
         Transform handTransform;
 
         if(handIndex == 0)

@@ -16,11 +16,13 @@ public class MenuManager : MonoBehaviour
     [SerializeField]
     private TMP_InputField _inputField;
     [SerializeField]
+    private TextMeshProUGUI _errorTMPT;
+    [SerializeField]
     private Slider _xSensitivitySlider, _ySensitivitySlider;
     [SerializeField]
     private GameObject _levelUIPrefab, _deleteLevelUIPrefab;
     [SerializeField]
-    private float _uiOffset;
+    private float _uiOffset, _errorMessageDisplayTime;
 
     [Header("Miscelanious")]
     [SerializeField]
@@ -39,6 +41,8 @@ public class MenuManager : MonoBehaviour
         _settingsCanvas.enabled = false;
         _controlsCanvas.enabled = false;
 
+        _errorTMPT.enabled = false;
+
         _savedGames = CheckForSavedGames();
         _settings = GameManager.Instance.LoadSettings();
         _xSensitivitySlider.value = _settings.xSensitivity;
@@ -54,7 +58,7 @@ public class MenuManager : MonoBehaviour
     }
 
     // Zavolá metodu v GameManageru, která vytvoří nový uložený postup
-    private bool CreateNewSave(string _directory) // TODO move to gui?
+    private bool CreateNewSave(string _directory) 
     {
         GameManager.Instance.CreateNewSave(_directory);
 
@@ -183,7 +187,7 @@ public class MenuManager : MonoBehaviour
                 {
                     if (saveName == newSaveName)
                     {
-                        Debug.Log("Save name already exists"); // Tell user TODO
+                        StartCoroutine(ShowAndHideErrorMessage("Save name already exists"));
                         return;
                     }
                 }
@@ -194,13 +198,26 @@ public class MenuManager : MonoBehaviour
                 }
             } else
             {
-                Debug.Log("Invalid Name"); // TODO
+                StartCoroutine(ShowAndHideErrorMessage("Invalid Name"));
             }
         }
         else
         {
-            Debug.Log("Slots are full"); // TODO
+            StartCoroutine(ShowAndHideErrorMessage("Slots are full"));
         }
+    }
+
+    #endregion
+
+    #region Coroutines
+
+    // Zobrazí Canvas se zprávou pro uživatele a po chvíli ho skryje
+    private IEnumerator ShowAndHideErrorMessage(string message)
+    {
+        _errorTMPT.text = message;
+        _errorTMPT.enabled = true;
+        yield return new WaitForSecondsRealtime(_errorMessageDisplayTime);
+        _errorTMPT.enabled = false;
     }
 
     #endregion

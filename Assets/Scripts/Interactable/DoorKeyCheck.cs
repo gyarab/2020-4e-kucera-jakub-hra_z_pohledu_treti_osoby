@@ -20,7 +20,6 @@ public class DoorKeyCheck : MonoBehaviour, IDoor
     // Když hráč projde dveřmi a má klíč v inventáři, pak jsou mu otevřeny dveře
     public void Entered()
     {
-        // TODO check for key
         if(!_activated)
         {
             if (GameManager.Instance.Player.GetComponent<PlayerController>().GetPlayerInventory().RemoveItemIfInInventory(_keyID))
