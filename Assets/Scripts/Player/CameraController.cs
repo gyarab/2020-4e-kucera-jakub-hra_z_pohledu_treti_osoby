@@ -26,6 +26,12 @@ public class CameraController : MonoBehaviour
     private Vector2 _lookInput;
     private float _cameraSensitivityX, _cameraSensitivityY;
 
+    // Inicializace promennych
+    private void Awake()
+    {
+        _currentRotation = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y);
+    }
+
     // Nastaví citlivost při otáčení kamerou
     public void SetSensitivity(float x, float y)
     {
@@ -98,8 +104,8 @@ public class CameraController : MonoBehaviour
     private void LookAround()
     {
         // Pohybuje kamerou
-        _yaw += _lookInput.x * _cameraSensitivityX;
-        _pitch -= _lookInput.y * _cameraSensitivityY;
+        _yaw = _currentRotation.y + (_lookInput.x * _cameraSensitivityX);
+        _pitch = _currentRotation.x - (_lookInput.y * _cameraSensitivityY);
         _pitch = Mathf.Clamp(_pitch, _pitchMinMax.x, _pitchMinMax.y);
 
         // Otáčí kameru za hráčem

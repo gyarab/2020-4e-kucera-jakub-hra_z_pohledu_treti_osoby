@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rotationSpeed: 0.2
-  _movementSpeed: 0.1
+  _movementSpeed: 0.09
   _maxAngleDifference: 10
   _maxTargetDistance: 4
   _ground:

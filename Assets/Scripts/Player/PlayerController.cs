@@ -492,7 +492,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     }
 
     // Obnoví životy a odstraní limitované objekty z inventáře
-    public void Reset()
+    public void ResetStatsAndCleanInventory()
     {
         _currentHealth = _currentStats.Health;
         _healthBar.SetValue(_currentHealth / _currentStats.Health);

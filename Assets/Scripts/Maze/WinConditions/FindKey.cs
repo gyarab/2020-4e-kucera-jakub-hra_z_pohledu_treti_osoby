@@ -10,7 +10,7 @@ public class FindKey : MonoBehaviour, IWinCondition
     private int _enemiesAlive, _totalEnemies;
     private bool _spawnedKey;
     private const string MESSAGE_COMPLETED = "Mission acomplished. This was the last mission. Thanks for playing the game.";
-    private const string MESSAGE_BEGAN = "Find a key and use it to go through doors inside maze.";
+    private const string MESSAGE_BEGAN = "Find a key and use it to go through locked doors inside the maze.";
 
     private const int KEY_ITEM_ID = 6;
 

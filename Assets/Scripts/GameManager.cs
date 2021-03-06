@@ -138,7 +138,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        Player.GetComponent<PlayerController>().Reset();
+        Player.GetComponent<PlayerController>().ResetStatsAndCleanInventory();
 
         StartCoroutine(LoadMazeAsync(MAP_SCENE_NAME, mazeSettings));
     }
@@ -152,7 +152,8 @@ public class GameManager : MonoBehaviour
         }
 
         Player.GetComponent<PlayerController>().GetPlayerInventory().AddCoinsToPlayer(coinsUnlocked);
-        Player.GetComponent<PlayerController>().Reset();
+        Player.GetComponent<PlayerController>().ResetStatsAndCleanInventory();
+        Player.GetComponent<PlayerController>().GetPlayerInventory().Save();
 
         int completedLevelIndex = 0;
         if (success)

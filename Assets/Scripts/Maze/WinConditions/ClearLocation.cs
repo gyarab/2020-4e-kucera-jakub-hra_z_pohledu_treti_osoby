@@ -8,8 +8,8 @@ public class ClearLocation : MonoBehaviour, IWinCondition
     public Action OnCompleted { get; set; }
 
     private int _enemiesAlive;
-    private const string MESSAGE_COMPLETED = "Mission acomplished. Portal to next location is open.";
-    private const string MESSAGE_BEGAN = "Clear maze from all enemy monsters.";
+    private const string MESSAGE_COMPLETED = "Mission acomplished. Portal to the next location is now open.";
+    private const string MESSAGE_BEGAN = "Clear the maze from all enemies.";
 
     // Při aktivaci začne odebírat akci On Enemy Death
     private void OnEnable()

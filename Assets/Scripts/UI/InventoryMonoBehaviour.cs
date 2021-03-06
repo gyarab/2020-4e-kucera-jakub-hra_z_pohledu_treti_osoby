@@ -156,6 +156,7 @@ public class InventoryMonoBehaviour : MonoBehaviour
                 _equipBuyButtonTMPT.SetText("Consume");
                 _equipBuyButton.onClick.AddListener(delegate { ConsumeItem(id); });
             }
+            _statsDeltaTMPT.text = new CharacterStats(0, 0, 0, 0).StatsToStringColumn(true, true);
         } else
         {
             if (_isShop)

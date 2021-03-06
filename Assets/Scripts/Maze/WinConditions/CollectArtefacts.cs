@@ -9,8 +9,8 @@ public class CollectArtefacts : MonoBehaviour, IWinCondition
 
     private int _artefactsToCollect = 4;
     private const int ARTEFACT_ITEM_ID = 7;
-    private const string MESSAGE_COMPLETED = "Mission acomplished. Portal to next location is open.";
-    private const string MESSAGE_BEGAN = "Collect all 4 artefacts and get our of the maze alive.";
+    private const string MESSAGE_COMPLETED = "Mission acomplished. Portal to the next location is now open.";
+    private const string MESSAGE_BEGAN = "Collect all 4 artefacts and get out of the maze alive.";
 
     // Při aktivaci začne odebírat akci On Item Picked Up
     private void OnEnable()
