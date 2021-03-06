@@ -45,10 +45,10 @@ public class HubManager : MonoBehaviour
 
         if (_gameState.firstTime)
         {
-            GameManager.Instance.QuestUI.QueueMessage("Welcome, visit a shop on your left before you go to the battle."); // hardcoded
+            GameManager.Instance.QuestUI.QueueMessage("Welcome, visit the shop on your left before you go to the battle."); // hardcoded
             GameManager.Instance.QuestUI.QueueMessage("For each defeated enemy you will receive a coin, if you manage to return here safely.");
             GameManager.Instance.QuestUI.QueueMessage("For each defeated enemy you will receive a coin, if you manage to return here safely.");
-            GameManager.Instance.QuestUI.QueueMessage("Once you're ready enter a lit portal.");
+            GameManager.Instance.QuestUI.QueueMessage("Once you're ready enter the lit portal.");
             _gameState.firstTime = false;
             Save();
         }

@@ -143,6 +143,7 @@ public class Boss : EnemyStateMachineMonoBehaviour, IDamageable
     private void PlayIntro()
     {
         _healthBar = GameManager.Instance.Player.GetComponent<PlayerController>().GetPlayerInventory().BossHealthBar;
+        _healthBar.SetValue(_currentHealth / _bossStats.health);
         _healthBar.SetVisibility(true);
         ChangeState(Intro());
     }

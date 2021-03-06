@@ -16,7 +16,7 @@ MonoBehaviour:
   uiSprite: {fileID: 21300000, guid: bac9fd6f171d74f408ed62a6774540a1, type: 3}
   type: 3
   itemName: "Zweih\xE4nder"
-  description: Nothing causes so headache to the enemies like a both-handed sword.
+  description: Nothing causes a worse headache to the enemies than a both-handed sword.
   price: 15
   damage: 20
   healthBonus: 0

@@ -16,6 +16,8 @@ MonoBehaviour:
   uiSprite: {fileID: 21300000, guid: 4ce9e91ce581a31449ad0b0bbe2be502, type: 3}
   type: 0
   itemName: Magical artefact
-  description: It looks dangerous, I shouldn't touch that. It's origin might be on
-    a different planet.
+  description: 'It looks dangerous, I shouldn''t touch that. It''s origin might be
+    on a different planet.
+
+    *This item will disappear after completing the objective.'
   price: 0

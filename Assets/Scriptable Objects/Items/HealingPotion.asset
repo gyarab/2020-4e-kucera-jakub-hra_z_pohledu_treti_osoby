@@ -17,6 +17,6 @@ MonoBehaviour:
   type: 1
   itemName: Healing Potion
   description: Special potion brewed during full moon might save your life or win
-    you a fight.
+    you a fight. It slightly restores your health.
   price: 5
   healthRegen: 30

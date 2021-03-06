@@ -16,7 +16,7 @@ MonoBehaviour:
   uiSprite: {fileID: 21300000, guid: d1c7b57143be7b34994a444d57783f45, type: 3}
   type: 3
   itemName: One-handed Sword
-  description: Traditional sword. It's not that interesting. Nevertheless it's still
+  description: Traditional sword. It's not that interesting. Nevertheless, it's still
     a good starter weapon.
   price: 10
   damage: 10
