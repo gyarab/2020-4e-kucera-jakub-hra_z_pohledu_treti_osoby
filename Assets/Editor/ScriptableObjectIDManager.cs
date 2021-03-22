@@ -43,7 +43,7 @@ public class ScriptableObjectIDManager : EditorWindow
         AssetDatabase.SaveAssets();
     }
 
-    // Najde všechny objekty daného typu v projektu
+    // Najde všechny objekty daného typu v projektu; převzato od glitchers
     private List<T> FindAssetsByType<T>() where T : UnityEngine.Object
     {
         List<T> assets = new List<T>();
