@@ -175,7 +175,7 @@ MonoBehaviour:
   _zOuterRoomOffset: 40
   _zBossOffset: 50
   _yDoorOffset: 0
-  _yGroundItemOffset: 0.5
+  _yEnemyOffet: 1
 --- !u!114 &1994751313
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -190,6 +190,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _playerYOffset: 2
   _enemyYOffset: 1
+  _maxRandomStep: 10
 --- !u!114 &1994751314
 MonoBehaviour:
   m_ObjectHideFlags: 0

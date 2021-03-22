@@ -42,7 +42,7 @@ public class CollectArtefacts : MonoBehaviour, IWinCondition
         for (int i = 0; i < _artefactsToCollect; i++)
         {
             int index = UnityEngine.Random.Range(0, array.Count);
-            spawner.SpawnItem(array[index], ARTEFACT_ITEM_ID);
+            spawner.SpawnItem(array[index], 0.5f, ARTEFACT_ITEM_ID);
             array.RemoveAt(index);
         }
 

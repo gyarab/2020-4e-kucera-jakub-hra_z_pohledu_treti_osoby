@@ -51,7 +51,7 @@ public class FindKey : MonoBehaviour, IWinCondition
     // Vytvoří instanci klíče
     private void SpawnKey(Vector3 position)
     {
-        GetComponent<Spawner>().SpawnItem(position, KEY_ITEM_ID);
+        GetComponent<Spawner>().SpawnItem(position, -1, KEY_ITEM_ID);
         _spawnedKey = true;
     }
 

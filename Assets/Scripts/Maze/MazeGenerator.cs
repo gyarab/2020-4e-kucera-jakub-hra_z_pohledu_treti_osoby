@@ -6,6 +6,8 @@ public class MazeGenerator : MonoBehaviour
 {
     [SerializeField]
     private float _playerYOffset, _enemyYOffset;
+    [SerializeField]
+    private int _maxRandomStep;
 
     private Vector3 _startPoint;
     private CellData _cellData;
@@ -333,12 +335,12 @@ public class MazeGenerator : MonoBehaviour
 
     #endregion
 
-    // Přída na mapu nepřátele
+    // Přídá na mapu nepřátele
     private void SpawnEnemies()
     {
         List<Vector3> positionsToSpawn = new List<Vector3>();
 
-        float minEnemyPercentage = (float)(_mazeSettings.minEnemyCount + 1f) / (float)_pathfindingNodes.Length;
+        float minEnemyPercentage = (float)(_mazeSettings.minEnemyCount + 1) / (float)_pathfindingNodes.Length;
 
         for (int i = 0; i < _pathfindingNodes.Length; i++)
         {
@@ -354,6 +356,23 @@ public class MazeGenerator : MonoBehaviour
                 } else if (((float)positionsToSpawn.Count + 1f) / ((float)i + 1f) < minEnemyPercentage)
                 {
                     positionsToSpawn.Add(new Vector3(_pathfindingNodes[i].Position.x, _pathfindingNodes[i].Position.y + _enemyYOffset, _pathfindingNodes[i].Position.z));
+                }
+            }
+        }
+
+        if (positionsToSpawn.Count < _mazeSettings.minEnemyCount)
+        {
+            for (int i = _pathfindingNodes.Length - 1; i > 0; i--)
+            {
+                if (_pathfindingNodes[i] != null)
+                {
+                    positionsToSpawn.Add(new Vector3(_pathfindingNodes[i].Position.x, _pathfindingNodes[i].Position.y + _enemyYOffset, _pathfindingNodes[i].Position.z));
+                    i -= Random.Range(0, _maxRandomStep);
+
+                    if (positionsToSpawn.Count == _mazeSettings.minEnemyCount)
+                    {
+                        break;
+                    }
                 }
             }
         }
