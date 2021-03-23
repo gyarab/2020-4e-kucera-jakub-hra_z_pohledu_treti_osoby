@@ -397,6 +397,11 @@ public class PlayerController : MonoBehaviour, IDamageable
     // Vypočítá, jestli útok postavy někoho trafil a udělí příslušný počet poškození
     private void CalculateAttack()
     {
+        if (_currentHealth <= 0)
+        {
+            return;
+        }
+
         _attackCollisions = Physics.OverlapSphereNonAlloc(transform.position, _weaponRange, _attackOverlaps, _enemies);
 
         for (int i = 0; i < _attackCollisions; i++)
