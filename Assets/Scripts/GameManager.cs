@@ -172,6 +172,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        QuestUI.ClearQueueAndHideCanvas();
         StartCoroutine(LoadMenu(MENU_SCENE_NAME));
     }
 

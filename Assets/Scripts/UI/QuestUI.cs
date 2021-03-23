@@ -27,6 +27,13 @@ public class QuestUI : MonoBehaviour
         TryToDisplayNext();
     }
 
+    // Vyčistí frontu a skryje Canvas
+    public void ClearQueueAndHideCanvas()
+    {
+        _messageQueue.Clear();
+        HideCanvas();
+    }
+
     // Zobrazí další zprávu, pokud už se nějaká nezobrazuje nebo fronta je prázdná
     private void TryToDisplayNext()
     {
@@ -44,8 +51,14 @@ public class QuestUI : MonoBehaviour
     private IEnumerator HideCanvasAfterDelay(float delay)
     {
         yield return new WaitForSecondsRealtime(delay);
+        HideCanvas();
+        TryToDisplayNext();
+    }
+
+    // Skryje Canvas
+    private void HideCanvas()
+    {
         _questCanvas.enabled = false;
         _isDisplaying = false;
-        TryToDisplayNext();
     }
 }
