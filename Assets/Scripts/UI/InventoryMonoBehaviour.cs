@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEngine.UI;
 using TMPro;
 
+// Inventář; založeno na https://www.youtube.com/watch?v=_IqTeruf3-s a https://www.youtube.com/watch?v=LcizwQ7ogGA od Coding With Unity
 public class InventoryMonoBehaviour : MonoBehaviour
 {
     public HealthBar BossHealthBar => _bossHealthBar;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Uložitelný inventář; založeno na https://www.youtube.com/watch?v=LcizwQ7ogGA od Codin With Unity
 [System.Serializable]
 public class SaveableInventory
 {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Třída s předměty v inventáři; založeno na https://www.youtube.com/watch?v=_IqTeruf3-s, https://www.youtube.com/watch?v=232EqU1k9yQ od Coding With Unity
 public class InventorySlotContainer
 {
     public List<InventorySlot> Slots { get; set; }

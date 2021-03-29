@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Databáze předmětů
 public class ItemDatabase : MonoBehaviour
 {
     [SerializeField]

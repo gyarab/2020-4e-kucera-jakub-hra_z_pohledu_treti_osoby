@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Jednotlivý předmět v inventáři; založeno na https://www.youtube.com/watch?v=_IqTeruf3-s od Coding with Unity
 public class InventorySlot
 {
     public ItemObject ItemObject { get; set; }
